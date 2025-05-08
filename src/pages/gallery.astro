@@ -1,0 +1,11 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GalleryPage from '../components/GalleryPage.jsx';
+---
+
+<BaseLayout>
+  <div class="gallery-container">
+    <h1 class="gallery-header">Gallery</h1>
+    <GalleryPage client:load />
+  </div>
+</BaseLayout> 

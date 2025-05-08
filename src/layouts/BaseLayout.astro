@@ -1,0 +1,404 @@
+---
+import '../assets/global.css';
+import '../assets/panel-styles.css';
+import Footer from './Footer.astro';
+
+const { pathname } = Astro.url;
+const { title = "Algorithmic Art", description = "Create beautiful algorithmic art using space-filling curves and mathematical patterns. Generate, customize, and download unique digital artwork." } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<link rel="icon" type="image/png" href="/icon.png" />
+		<link rel="apple-touch-icon" href="/icons/icon-192.png" />
+		<meta name="generator" content={Astro.generator} />
+		
+		<!-- Primary Meta Tags -->
+		<title>{title}</title>
+		<meta name="title" content={title} />
+		<meta name="description" content={description} />
+		
+		<!-- Open Graph / Facebook -->
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={`https://art.jonathanrreed.com${pathname}`} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content="https://art.jonathanrreed.com/og-image.png" />
+		
+		<!-- Twitter -->
+		<meta property="twitter:card" content="summary_large_image" />
+		<meta property="twitter:url" content={`https://art.jonathanrreed.com${pathname}`} />
+		<meta property="twitter:title" content={title} />
+		<meta property="twitter:description" content={description} />
+		<meta property="twitter:image" content="https://art.jonathanrreed.com/og-image.png" />
+		
+		<!-- Performance optimizations -->
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="preload" href="/fonts/NebulaSans-Book.ttf" as="font" type="font/ttf" crossorigin />
+		<link rel="preload" href="/fonts/NebulaSans-BoldItalic.ttf" as="font" type="font/ttf" crossorigin />
+		
+		<!-- DNS prefetching -->
+		<link rel="dns-prefetch" href="https://art.jonathanrreed.com" />
+		
+		<!-- Link to manifest.json for PWA support -->
+		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+		
+		<!-- Structured Data / JSON-LD -->
+		<script type="application/ld+json">
+		{
+			"@context": "https://schema.org",
+			"@type": "WebApplication",
+			"name": "Algorithmic Art by Jonathan Reed",
+			"description": "Create beautiful algorithmic art using space-filling curves and mathematical patterns",
+			"applicationCategory": "MultimediaApplication",
+			"operatingSystem": "Web",
+			"offers": {
+				"@type": "Offer",
+				"price": "0",
+				"priceCurrency": "USD"
+			},
+			"author": {
+				"@type": "Person",
+				"name": "Jonathan Reed",
+				"url": "https://jonathanrreed.com"
+			}
+		}
+		</script>
+	</head>
+	<body>
+		<div class="page-background"></div>
+		<header class="site-header">
+			<div class="nav-container">
+				<a href="/" class="site-logo" aria-label="Algorithmic Art Gallery Home">
+					<span class="site-logo-text">Algorithmic Art Gallery</span>
+				</a>
+				<nav class="main-nav">
+					<a href="/" class={`nav-link ${pathname === '/' ? 'active' : ''}`}>Generator</a>
+					<a href="/gallery" class={`nav-link ${pathname === '/gallery' ? 'active' : ''}`}>Gallery</a>
+					<a href="/about" class={`nav-link ${pathname === '/about' ? 'active' : ''}`}>About</a>
+				</nav>
+			</div>
+		</header>
+		<div class="content-wrapper">
+			<slot />
+		</div>
+		<Footer />
+
+		<script is:inline defer>
+			// Global click effect for all buttons using event delegation
+			document.addEventListener('DOMContentLoaded', () => {
+				// Function to add click effect to an element
+				function addClickEffect(element) {
+					if (!element) return;
+					
+					// Add click effect class
+					element.classList.add('click-effect');
+					
+					// Remove the class after animation completes
+					setTimeout(() => {
+						element.classList.remove('click-effect');
+					}, 150);
+				}
+				
+				// Use event delegation for mouse clicks
+				document.body.addEventListener('click', (e) => {
+					// Check if the clicked element is a button, has role="button", or is one of our interactive elements
+					const target = e.target.closest('button, [role="button"], .nav-link, .site-logo, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete');
+					if (target) {
+						addClickEffect(target);
+					}
+				});
+				
+				// Support keyboard interaction for accessibility
+				document.body.addEventListener('keydown', (e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						// Find the active element that's interactive
+						const target = document.activeElement;
+						if (target && target.matches('button, [role="button"], .nav-link, .site-logo, a, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete')) {
+							addClickEffect(target);
+						}
+					}
+				});
+			});
+		</script>
+		
+		<!-- Service Worker Registration -->
+		<script is:inline defer>
+			// Register service worker for caching and offline support
+			if ('serviceWorker' in navigator) {
+				window.addEventListener('load', () => {
+					navigator.serviceWorker.register('/worker/service-worker.js')
+						.then(registration => {
+							console.log('ServiceWorker registration successful with scope: ', registration.scope);
+						})
+						.catch(error => {
+							console.log('ServiceWorker registration failed: ', error);
+						});
+				});
+			}
+		</script>
+	</body>
+</html>
+
+<style is:global>
+	@font-face {
+		font-family: 'Nebula';
+		src: url('/fonts/NebulaSans-Book.ttf') format('truetype');
+		font-weight: 400;
+		font-style: normal;
+		font-display: swap;
+	}
+
+	@font-face {
+		font-family: 'Nebula';
+		src: url('/fonts/NebulaSans-BoldItalic.ttf') format('truetype');
+		font-weight: 700;
+		font-style: italic;
+		font-display: swap;
+	}
+
+	*, *::before, *::after {
+		box-sizing: border-box;
+	}
+
+	html, body {
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		height: 100%;
+		font-family: 'Nebula', 'Inter', 'ui-sans-serif', 'system-ui', sans-serif;
+		background: #080a0e;
+		overflow-x: hidden;
+	}
+
+	.content-wrapper {
+		min-height: 100vh;
+		width: 100%;
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		overflow-x: hidden;
+		padding-top: 70px;
+		padding-bottom: 2rem;
+	}
+
+	.site-header {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		z-index: 10;
+		background-color: rgba(8, 10, 14, 0.85);
+		backdrop-filter: blur(12px);
+		border-bottom: 1px solid rgba(103, 232, 249, 0.15);
+		box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
+	}
+
+	.nav-container {
+		max-width: 1400px;
+		margin: 0 auto;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 2rem;
+	}
+
+	.site-logo {
+		color: #67e8f9;
+		font-family: 'Nebula', 'Inter', 'ui-sans-serif', 'system-ui', sans-serif;
+		font-weight: 700;
+		font-style: italic;
+		font-size: 1.35rem;
+		text-decoration: none;
+		text-shadow: 0 0 10px rgba(103, 232, 249, 0.4);
+		transition: all 0.2s;
+		letter-spacing: -0.01em;
+		display: inline-block;
+		height: 40px;
+		line-height: 40px;
+	}
+	
+	.site-logo-text {
+		display: inline-block;
+	}
+
+	.site-logo:hover {
+		text-shadow: 0 0 15px rgba(103, 232, 249, 0.6);
+		transform: scale(1.02);
+	}
+
+	.main-nav {
+		display: flex;
+		gap: 1.5rem;
+	}
+
+	.nav-link {
+		color: #e2e8f0;
+		text-decoration: none;
+		font-size: 1rem;
+		padding: 0.6rem 1rem;
+		border-radius: 0.5rem;
+		transition: all 0.2s;
+		font-weight: 600;
+		position: relative;
+	}
+
+	.nav-link:hover {
+		color: #67e8f9;
+		background-color: rgba(103, 232, 249, 0.1);
+	}
+	
+	.nav-link::after {
+		content: '';
+		position: absolute;
+		bottom: 0.3rem;
+		left: 50%;
+		width: 0;
+		height: 2px;
+		background-color: #67e8f9;
+		transform: translateX(-50%);
+		transition: width 0.2s;
+		opacity: 0;
+		box-shadow: 0 0 8px #67e8f9;
+	}
+	
+	.nav-link:hover::after {
+		width: 60%;
+		opacity: 1;
+	}
+	
+	.nav-link.active {
+		color: #67e8f9;
+		background-color: rgba(103, 232, 249, 0.15);
+	}
+	
+	.nav-link.active::after {
+		width: 70%;
+		opacity: 1;
+	}
+
+	/* Global click effect for all interactive elements */
+	.click-effect {
+		transform: scale(0.98) !important;
+		box-shadow: 0 0 8px rgba(103, 232, 249, 0.4) inset !important;
+		transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+	}
+
+	button.click-effect, 
+	[role="button"].click-effect {
+		background-color: rgba(15, 23, 42, 0.8) !important;
+	}
+
+	.nav-link.click-effect {
+		background-color: rgba(103, 232, 249, 0.2) !important;
+	}
+
+	.site-logo.click-effect {
+		text-shadow: 0 0 12px rgba(103, 232, 249, 0.7) !important;
+	}
+
+	/* Gallery specific button effects */
+	.gallery-btn-view.click-effect {
+		background-color: rgba(6, 95, 70, 0.8) !important;
+		border-color: rgba(5, 150, 105, 0.8) !important;
+	}
+
+	.gallery-btn-delete.click-effect {
+		background-color: rgba(153, 27, 27, 0.8) !important;
+		border-color: rgba(220, 38, 38, 0.8) !important;
+	}
+
+	.gallery-action-btn.click-effect {
+		transform: scale(0.95) !important;
+		box-shadow: 0 0 12px rgba(103, 232, 249, 0.6) inset !important;
+	}
+
+	/* Generator page specific button effects */
+	.generate-button.click-effect {
+		background-color: rgba(6, 78, 59, 0.9) !important;
+		transform: scale(0.98) translateY(1px) !important;
+	}
+
+	.dice-button.click-effect {
+		transform: rotate(15deg) scale(0.9) !important;
+		background-color: rgba(15, 23, 42, 0.9) !important;
+	}
+
+	.export-button.click-effect {
+		background-color: rgba(30, 58, 138, 0.8) !important;
+	}
+
+	.settings-button.click-effect,
+	.save-settings-button.click-effect {
+		background-color: rgba(30, 41, 59, 0.8) !important;
+		border-color: rgba(75, 85, 99, 0.9) !important;
+	}
+
+	.load-button.click-effect {
+		background-color: rgba(6, 95, 70, 0.4) !important;
+	}
+
+	.delete-button.click-effect {
+		background-color: rgba(153, 27, 27, 0.3) !important;
+	}
+
+	@media (max-width: 640px) {
+		.nav-container {
+			padding: 0.75rem;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+		
+		.site-logo {
+			font-size: 1.1rem;
+			height: 32px;
+			line-height: 32px;
+			margin-bottom: 0.5rem;
+			width: 100%;
+			text-align: center;
+		}
+		
+		.main-nav {
+			width: 100%;
+			justify-content: center;
+			gap: 0.5rem;
+		}
+		
+		.nav-link {
+			font-size: 0.85rem;
+			padding: 0.4rem 0.6rem;
+		}
+		
+		.content-wrapper {
+			padding-top: 100px; /* Increase padding to accommodate the taller header */
+			padding-left: 1rem;
+			padding-right: 1rem;
+		}
+	}
+	
+	@media (max-width: 375px) {
+		.site-logo {
+			font-size: 1rem;
+			height: 28px;
+			line-height: 28px;
+		}
+		
+		.main-nav {
+			gap: 0.25rem;
+		}
+		
+		.nav-link {
+			font-size: 0.8rem;
+			padding: 0.3rem 0.5rem;
+		}
+		
+		.content-wrapper {
+			padding-top: 90px; /* Slightly reduced for very small screens */
+		}
+	}
+</style>

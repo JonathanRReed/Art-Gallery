@@ -1,0 +1,88 @@
+# robots.txt – art.jonathanrreed.com
+# Generated 2023-11-15 · SEO-optimised, AI-scraper-aware
+# ------------------------------------------------------------------
+# ███ 1. MAJOR SEARCH ENGINES (full access) ███
+User-agent: Googlebot
+Allow: /*.js$
+Allow: /*.css$
+Disallow: /search/
+Disallow: /*?s=
+Disallow: /*?q=
+Sitemap: https://art.jonathanrreed.com/sitemap.xml
+
+User-agent: Bingbot
+Allow: /*.js$
+Allow: /*.css$
+Disallow: /search/
+Disallow: /*?s=
+Disallow: /*?q=
+Crawl-delay: 5
+
+User-agent: DuckDuckBot               # DuckDuckGo
+Allow: /*.js$
+Allow: /*.css$
+Disallow: /search/
+Disallow: /*?s=
+Disallow: /*?q=
+
+# ███ 2. SOCIAL-PREVIEW BOTS (OG/meta only) ███
+User-agent: FacebookBot
+User-agent: meta-externalagent
+User-agent: LinkedInBot
+Allow: /
+
+# ███ 3. MODEL-TRAINING & BULK-AI SCRAPERS (blocked) ███
+User-agent: GPTBot                     # OpenAI model-training
+Disallow: /
+User-agent: OAI-SearchBot              # OpenAI retrieval indexer
+Disallow: /
+User-agent: ChatGPT-User
+User-agent: ChatGPT-User/2.0
+Disallow: /
+
+User-agent: anthropic-ai               # Anthropic
+User-agent: ClaudeBot
+User-agent: claude-web
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+User-agent: Perplexity-User/1.0
+Disallow: /
+
+User-agent: Google-Extended            # Gemini training
+Disallow: /
+
+User-agent: Amazonbot                  # Alexa / AI tasks
+Disallow: /
+User-agent: Applebot-Extended          # Apple AI training
+Disallow: /
+
+User-agent: Bytespider                 # ByteDance / TikTok AI
+Disallow: /
+
+User-agent: MistralAI-User/1.0         # Mistral "Le Chat" crawler
+Disallow: /
+
+User-agent: AI2Bot                     # Allen AI / Semantic Scholar
+Disallow: /
+
+User-agent: CCBot                      # Common Crawl
+Disallow: /
+
+User-agent: cohere-ai                  # Cohere
+Disallow: /
+
+# Placeholder — xAI Grok crawler (token unknown as of May-2025)
+# User-agent: GrokBot
+# Disallow: /
+
+# ███ 4. OTHER SEARCH/ASSIST BOTS (optional block) ███
+User-agent: Applebot                   # Siri / Spotlight search
+Allow: /
+
+# ███ 5. CATCH-ALL ███
+User-agent: *
+Allow: /
+
+Sitemap: https://art.jonathanrreed.com/sitemap.xml

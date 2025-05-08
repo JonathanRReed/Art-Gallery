@@ -1,0 +1,201 @@
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-column footer-center">
+      <div class="footer-header">
+        <div class="footer-product-block">
+          <span class="footer-product-main">Algorithmic<span class="footer-product-company"> Art Gallery</span></span>
+          <span class="footer-product-author">From Jonathan Reed</span>
+        </div>
+      </div>
+      
+      <div class="footer-links">
+        <div class="footer-links-row">
+          <img src="/jonathan.avif" alt="Jonathan Reed" width="32" height="32" class="footer-icon-img" />
+          <a href="https://JonathanRReed.com/" class="footer-link-text" target="_blank" rel="noopener noreferrer">
+            JonathanRReed.com
+          </a>
+        </div>
+        <div class="footer-links-row">
+          <img src="/Logo.svg" alt="Logo" width="32" height="32" class="footer-icon-img" />
+          <a href="https://helloworldfirm.com/" class="footer-link-text" target="_blank" rel="noopener noreferrer">
+            helloworldfirm.com
+          </a>
+        </div>
+      </div>
+      
+      <button class="share-button" id="shareButton" title="Share this website">
+        <span class="share-icon">🔗</span>
+        <span class="share-text">Share</span>
+      </button>
+    </div>
+  </div>
+  <div class="footer-copyright">
+    2025 &copy; All Rights Reserved
+  </div>
+</footer>
+
+<script>
+  // Add Web Share API functionality
+  document.addEventListener('DOMContentLoaded', () => {
+    const shareButton = document.getElementById('shareButton');
+    
+    if (shareButton && navigator.share) {
+      shareButton.addEventListener('click', async () => {
+        try {
+          await navigator.share({
+            title: 'Algorithmic Art Gallery',
+            text: 'Check out this amazing algorithmic art generator!',
+            url: window.location.href
+          });
+          console.log('Successfully shared');
+        } catch (err) {
+          console.error('Error sharing:', err);
+        }
+      });
+    } else if (shareButton) {
+      // Hide share button if Web Share API is not supported
+      shareButton.style.display = 'none';
+    }
+  });
+</script>
+
+<style>
+  .site-footer {
+    width: 100%;
+    background-color: rgba(8, 10, 14, 0.85);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(103, 232, 249, 0.15);
+    padding: 3.5rem 0 1.5rem;
+    margin-top: 3rem;
+    box-shadow: 0 -4px 20px -4px rgba(0, 0, 0, 0.5);
+  }
+
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .footer-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .footer-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .footer-product-block {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .footer-product-main {
+    color: #e2e8f0;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .footer-product-company {
+    color: #67e8f9;
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .footer-product-author {
+    color: #94a3b8;
+    font-size: 1rem;
+    margin-top: 0.25rem;
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .footer-links-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .footer-icon-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: rgba(103, 232, 249, 0.1);
+    box-shadow: 0 0 10px rgba(103, 232, 249, 0.2);
+    padding: 2px;
+  }
+
+  .footer-link-text {
+    color: #e2e8f0;
+    text-decoration: none;
+    transition: color 0.2s;
+    font-size: 1rem;
+  }
+
+  .footer-link-text:hover {
+    color: #67e8f9;
+    text-decoration: underline;
+  }
+
+  .share-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: rgba(103, 232, 249, 0.15);
+    color: #67e8f9;
+    border: 1px solid rgba(103, 232, 249, 0.3);
+    border-radius: 8px;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 1.5rem;
+  }
+
+  .share-button:hover {
+    background-color: rgba(103, 232, 249, 0.25);
+    box-shadow: 0 0 12px rgba(103, 232, 249, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .share-icon {
+    font-size: 1.2rem;
+  }
+
+  .footer-copyright {
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(103, 232, 249, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    .footer-container {
+      padding: 0 1.5rem;
+    }
+    
+    .footer-product-main {
+      font-size: 1.1rem;
+    }
+    
+    .footer-product-author {
+      font-size: 0.9rem;
+    }
+  }
+</style> 

@@ -1,0 +1,143 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GenerationPage from '../components/GenerationPage.jsx';
+// import ControlsPanel from '../components/ControlsPanel.jsx';
+// import PreviewCanvas from '../components/PreviewCanvas.jsx';
+// import ExportPanel from '../components/ExportPanel.jsx';
+
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+---
+
+<BaseLayout title="Algorithmic Art - Generate Beautiful Pattern Art" description="Create unique algorithmic art patterns with customizable parameters. Generate, save, and export your own mathematical art.">
+	<div class="loading-skeleton">
+		<div class="skeleton-header"></div>
+		<div class="skeleton-content">
+			<div class="skeleton-panel"></div>
+			<div class="skeleton-preview">
+				<div class="skeleton-canvas"></div>
+				<div class="skeleton-buttons">
+					<div class="skeleton-button-lg"></div>
+					<div class="skeleton-buttons-row">
+						<div class="skeleton-button-sm"></div>
+						<div class="skeleton-button-sm"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="generator-container">
+		<GenerationPage client:only="react" />
+	</div>
+</BaseLayout>
+
+<style>
+	/* Loading skeleton styles */
+	.loading-skeleton {
+		width: 100%;
+		max-width: 1200px;
+		margin: 0 auto;
+		animation: fade-out 0.5s forwards;
+		animation-delay: 0.8s; /* Allow time for React to load */
+		position: absolute;
+		top: 80px;
+		left: 0;
+		right: 0;
+	}
+	
+	@keyframes fade-out {
+		from { opacity: 1; }
+		to { opacity: 0; visibility: hidden; }
+	}
+	
+	.skeleton-header {
+		height: 40px;
+		width: 70%;
+		background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(43, 58, 84, 0.8) 50%, rgba(30, 41, 59, 0.8) 100%);
+		border-radius: 8px;
+		margin: 20px auto;
+		background-size: 200% 100%;
+		animation: loading-shimmer 1.5s infinite linear;
+	}
+	
+	.skeleton-content {
+		display: flex;
+		gap: 20px;
+		padding: 16px;
+	}
+	
+	.skeleton-panel {
+		flex: 0 0 300px;
+		height: 500px;
+		background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(43, 58, 84, 0.8) 50%, rgba(30, 41, 59, 0.8) 100%);
+		border-radius: 8px;
+		background-size: 200% 100%;
+		animation: loading-shimmer 1.5s infinite linear;
+	}
+	
+	.skeleton-preview {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+	
+	.skeleton-canvas {
+		aspect-ratio: 1/1;
+		background: linear-gradient(90deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 50%, rgba(15, 23, 42, 0.8) 100%);
+		border-radius: 8px;
+		background-size: 200% 100%;
+		animation: loading-shimmer 1.5s infinite linear;
+	}
+	
+	.skeleton-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+	
+	.skeleton-button-lg {
+		height: 40px;
+		background: linear-gradient(90deg, rgba(9, 107, 81, 0.8) 0%, rgba(16, 185, 129, 0.8) 50%, rgba(9, 107, 81, 0.8) 100%);
+		border-radius: 8px;
+		background-size: 200% 100%;
+		animation: loading-shimmer 1.5s infinite linear;
+	}
+	
+	.skeleton-buttons-row {
+		display: flex;
+		gap: 12px;
+	}
+	
+	.skeleton-button-sm {
+		height: 40px;
+		flex: 1;
+		background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(43, 58, 84, 0.8) 50%, rgba(30, 41, 59, 0.8) 100%);
+		border-radius: 8px;
+		background-size: 200% 100%;
+		animation: loading-shimmer 1.5s infinite linear;
+	}
+	
+	@keyframes loading-shimmer {
+		0% { background-position: 200% 0; }
+		100% { background-position: -200% 0; }
+	}
+	
+	.generator-container {
+		width: 100%;
+	}
+	
+	/* Mobile responsiveness */
+	@media (max-width: 768px) {
+		.skeleton-content {
+			flex-direction: column;
+		}
+		
+		.skeleton-panel {
+			width: 100%;
+			flex: none;
+			height: 300px;
+		}
+	}
+</style>
