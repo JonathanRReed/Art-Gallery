@@ -165,7 +165,7 @@ export default function ControlsPanel({
                 gap: '0.5rem'
               }}
             >
-              ⚙️ Saved Settings
+              Saved Settings
             </button>
             
             <button
@@ -187,7 +187,7 @@ export default function ControlsPanel({
               }}
               disabled={loading}
             >
-              💾 Save Current Settings
+              Save Current Settings
             </button>
           </div>
           
@@ -211,8 +211,9 @@ export default function ControlsPanel({
               onClick={onRandomizeSeed}
               title="Randomize Seed"
               disabled={loading}
+              aria-label="Randomize seed"
             >
-              🎲
+              Random
             </button>
           </div>
           

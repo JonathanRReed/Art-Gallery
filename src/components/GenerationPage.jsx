@@ -695,25 +695,25 @@ export default function GenerationPage() {
             }}>
               <div className="progress-bar" style={{
                 width: '100%',
-                height: '8px',
+                height: '3px',
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '4px',
+                borderRadius: '2px',
                 overflow: 'hidden',
               }}>
                 <div style={{
                   height: '100%',
                   width: `${progress}%`,
-                  backgroundColor: '#10b981',
-                  transition: 'width 0.3s ease-in-out',
+                  backgroundColor: '#f1f5f9',
+                  transition: 'width 0.2s ease-out',
                 }}></div>
               </div>
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginTop: '0.25rem',
-                fontSize: '0.875rem',
-                color: '#94a3b8',
+                marginTop: '0.375rem',
+                fontSize: '0.75rem',
+                color: '#64748b',
               }}>
                 <div>{progress}% completed</div>
                 {patternSize > 512 && (
@@ -722,9 +722,9 @@ export default function GenerationPage() {
                     style={{
                       backgroundColor: 'transparent',
                       border: 'none',
-                      color: '#10b981',
+                      color: '#94a3b8',
                       cursor: 'pointer',
-                      fontSize: '0.875rem',
+                      fontSize: '0.75rem',
                       padding: '0.25rem 0.5rem',
                       borderRadius: '0.25rem',
                       display: 'flex',
@@ -732,7 +732,7 @@ export default function GenerationPage() {
                       gap: '0.25rem',
                     }}
                   >
-                    {isPaused ? '▶️ Resume' : '⏸️ Pause'}
+                    {isPaused ? 'Resume' : 'Pause'}
                   </button>
                 )}
               </div>
@@ -773,10 +773,10 @@ export default function GenerationPage() {
           <div style={{ 
             textAlign: 'center', 
             marginTop: '0.75rem', 
-            fontSize: '0.875rem', 
-            color: 'rgba(255, 255, 255, 0.6)'
+            fontSize: '0.75rem', 
+            color: '#4b5563'
           }}>
-            Gallery saves to browser's local storage (5MB limit).
+            Gallery saves to browser local storage.
           </div>
         </div>
       </div>
@@ -789,31 +789,30 @@ export default function GenerationPage() {
           left: `${settingsButtonPosition.left}px`,
           zIndex: 1000,
           padding: '1rem',
-          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          backgroundColor: '#1e293b',
           borderRadius: '0.5rem',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
           maxHeight: '320px',
-          maxWidth: '320px',
-          overflowY: 'auto',
-          backdropFilter: 'blur(8px)'
+          maxWidth: '300px',
+          overflowY: 'auto'
         }}>
           {/* Dropdown triangle pointer */}
           <div style={{
             position: 'absolute',
-            top: '-8px',
-            left: '30px',
-            width: '16px',
-            height: '16px',
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            top: '-6px',
+            left: '24px',
+            width: '12px',
+            height: '12px',
+            backgroundColor: '#1e293b',
             transform: 'rotate(45deg)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
             zIndex: '-1'
           }} />
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0, color: '#e5e7eb' }}>Saved Settings</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h3 style={{ margin: 0, color: '#f1f5f9', fontSize: '0.9rem', fontWeight: 500 }}>Saved Settings</h3>
             <button
               onClick={() => setShowSettingsPanel(false)}
               className="gallery-action-btn"
@@ -828,14 +827,15 @@ export default function GenerationPage() {
                 justifyContent: 'center',
                 padding: '0.25rem'
               }}
+              aria-label="Close settings panel"
             >
-              ❌
+              &times;
             </button>
           </div>
           
           {savedSettings.length === 0 ? (
-            <div style={{ color: '#94a3b8', textAlign: 'center', padding: '1rem' }}>
-              No saved settings yet. Save your current settings to use them later.
+            <div style={{ color: '#64748b', textAlign: 'center', padding: '0.75rem', fontSize: '0.8rem' }}>
+              No saved settings yet.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -847,23 +847,22 @@ export default function GenerationPage() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '0.5rem 0.75rem',
-                    backgroundColor: 'rgba(30, 41, 59, 0.4)',
+                    padding: '0.5rem 0.625rem',
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
                     borderRadius: '0.375rem',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
-                    transition: 'all 0.15s ease-in-out',
-                    cursor: 'pointer',
-                    backdropFilter: 'blur(4px)'
+                    border: '1px solid rgba(255, 255, 255, 0.04)',
+                    transition: 'border-color 0.15s ease',
+                    cursor: 'pointer'
                   }}
                 >
                   <div>
                     <div style={{ 
-                      color: '#e5e7eb',
-                      fontWeight: 'bold',
-                      fontSize: '0.875rem'
+                      color: '#e2e8f0',
+                      fontWeight: 500,
+                      fontSize: '0.8rem'
                     }}>{setting.name}</div>
                     <div style={{ 
-                      color: '#94a3b8', 
+                      color: '#64748b', 
                       fontSize: '0.7rem' 
                     }}>
                       {new Date(setting.timestamp).toLocaleDateString()}
@@ -878,15 +877,15 @@ export default function GenerationPage() {
                         handleLoadSettings(setting); 
                       }}
                       style={{
-                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                        border: '1px solid rgba(16, 185, 129, 0.4)',
-                        color: '#10b981',
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: '#e2e8f0',
                         padding: '0.25rem 0.5rem',
                         borderRadius: '0.25rem',
                         cursor: 'pointer',
                         fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        transition: 'all 0.15s ease'
+                        fontWeight: 500,
+                        transition: 'background-color 0.15s ease'
                       }}
                     >
                       Load
@@ -899,15 +898,15 @@ export default function GenerationPage() {
                         handleDeleteSettings(setting.id); 
                       }}
                       style={{
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        color: '#ef4444',
+                        backgroundColor: 'transparent',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        color: '#64748b',
                         padding: '0.25rem 0.5rem',
                         borderRadius: '0.25rem',
                         cursor: 'pointer',
                         fontSize: '0.7rem',
-                        fontWeight: 'bold',
-                        transition: 'all 0.15s ease'
+                        fontWeight: 500,
+                        transition: 'color 0.15s ease'
                       }}
                     >
                       Delete
@@ -928,7 +927,7 @@ export default function GenerationPage() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -937,60 +936,62 @@ export default function GenerationPage() {
           <div style={{
             backgroundColor: '#1e293b',
             borderRadius: '0.5rem',
-            padding: '2rem',
-            maxWidth: '450px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            padding: '1.5rem',
+            maxWidth: '400px',
             width: '90%'
           }}>
-            <h2 style={{ margin: '0 0 1.5rem 0', color: '#f8fafc' }}>Save Current Settings</h2>
+            <h2 style={{ margin: '0 0 1rem 0', color: '#f1f5f9', fontSize: '1.1rem', fontWeight: 500 }}>Save Settings</h2>
             
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: '#e5e7eb' }}>
-              Setting Name:
+            <label style={{ display: 'block', marginBottom: '0.375rem', color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
+              Name
             </label>
             <input
               type="text"
               value={settingsName}
               onChange={(e) => setSettingsName(e.target.value)}
-              placeholder="My awesome pattern"
+              placeholder="My pattern"
               style={{
                 width: '100%',
-                padding: '0.75rem',
+                padding: '0.625rem 0.75rem',
                 borderRadius: '0.375rem',
-                backgroundColor: '#0f172a',
+                backgroundColor: 'rgba(0, 0, 0, 0.2)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 color: 'white',
-                marginBottom: '1rem'
+                marginBottom: '1rem',
+                fontSize: '0.9rem'
               }}
             />
             
             <div style={{ 
-              backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+              backgroundColor: 'rgba(0, 0, 0, 0.2)', 
               borderRadius: '0.375rem',
-              padding: '0.75rem',
-              marginBottom: '1.5rem',
-              border: '1px solid rgba(59, 130, 246, 0.2)'
+              padding: '0.625rem 0.75rem',
+              marginBottom: '1rem',
+              border: '1px solid rgba(255, 255, 255, 0.04)'
             }}>
               <p style={{ 
-                color: '#93c5fd', 
-                fontSize: '0.85rem',
+                color: '#64748b', 
+                fontSize: '0.75rem',
                 margin: '0', 
                 lineHeight: '1.4'
               }}>
-                <strong>Local Storage Notice:</strong> Settings are saved locally in your browser (up to 5MB limit). 
-                They will not transfer between browsers or devices and will be lost if you clear your browser data.
+                Settings are saved locally in your browser and will not sync across devices.
               </p>
             </div>
             
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 onClick={() => setShowSaveDialog(false)}
                 className="gallery-action-btn"
                 style={{
-                  padding: '0.75rem 1.5rem',
+                  padding: '0.625rem 1rem',
                   borderRadius: '0.375rem',
                   backgroundColor: 'transparent',
-                  border: '1px solid #4b5563',
-                  color: '#e5e7eb',
-                  cursor: 'pointer'
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
                 }}
               >
                 Cancel
@@ -1001,13 +1002,15 @@ export default function GenerationPage() {
                 className="gallery-action-btn"
                 disabled={!settingsName.trim()}
                 style={{
-                  padding: '0.75rem 1.5rem',
+                  padding: '0.625rem 1rem',
                   borderRadius: '0.375rem',
-                  backgroundColor: '#10b981',
+                  backgroundColor: '#f1f5f9',
                   border: 'none',
-                  color: 'white',
+                  color: '#0f172a',
                   cursor: settingsName.trim() ? 'pointer' : 'not-allowed',
-                  opacity: settingsName.trim() ? 1 : 0.7
+                  opacity: settingsName.trim() ? 1 : 0.5,
+                  fontSize: '0.85rem',
+                  fontWeight: 500
                 }}
               >
                 Save

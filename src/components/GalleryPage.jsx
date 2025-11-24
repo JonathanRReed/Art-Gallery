@@ -78,24 +78,23 @@ export default function GalleryPage() {
   return (
     <>
       <div className="storage-disclaimer" style={{
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        borderRadius: '0.5rem',
-        padding: '1rem',
+        backgroundColor: 'rgba(0, 0, 0, 0.2)',
+        borderRadius: '0.375rem',
+        padding: '0.75rem 1rem',
         marginBottom: '1.5rem',
-        border: '1px solid rgba(59, 130, 246, 0.2)',
-        maxWidth: '800px',
-        margin: '0 auto 2rem auto',
+        border: '1px solid rgba(255, 255, 255, 0.06)',
+        maxWidth: '700px',
+        margin: '0 auto 1.5rem auto',
       }}>
         <p style={{
-          color: '#93c5fd',
-          fontSize: '0.9rem',
+          color: '#64748b',
+          fontSize: '0.8rem',
           margin: '0',
           lineHeight: '1.4',
           textAlign: 'center'
         }}>
-          <strong>Local Storage Notice:</strong> Gallery images are saved locally in your browser 
-          (up to 5MB total limit). Large or many images may reach this limit. 
-          Images will not transfer between browsers or devices and will be lost if you clear your browser data.
+          Gallery images are saved locally in your browser (up to 5MB limit). 
+          Images will not transfer between browsers or devices.
         </p>
       </div>
       
