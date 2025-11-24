@@ -50,7 +50,7 @@ export default function ExportPanel({
         borderRadius: '0.375rem',
         textAlign: 'center'
       }}>
-        <div>Downloads will use the preview size.</div>
+        <div>Downloads export at 4096x4096 high resolution.</div>
       </div>
     </div>
   );

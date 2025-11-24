@@ -257,20 +257,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .about-header {
-    font-size: 3rem;
-    font-weight: 800;
-    color: #67e8f9;
-    margin-bottom: 2.5rem;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 2rem;
     text-align: center;
-    text-shadow: 0 0 16px #67e8f9, 0 2px 8px #1a2235;
   }
   
   .about-content {
-    background-color: rgba(26, 34, 53, 0.8);
-    backdrop-filter: blur(16px);
-    border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    padding: 2.5rem;
+    background-color: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0.75rem;
+    padding: 2rem;
     color: white;
   }
   
@@ -283,18 +281,17 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .about-subheader {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #67e8f9;
-    margin-bottom: 1.25rem;
-    text-shadow: 0 0 8px rgba(103, 232, 249, 0.3);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin-bottom: 1rem;
   }
   
   .about-content p {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    margin-bottom: 1.25rem;
-    color: #e2e8f0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    color: #94a3b8;
   }
   
   .parameter-list {
@@ -304,17 +301,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .parameter-list li {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: #e2e8f0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #94a3b8;
     margin-bottom: 0.5rem;
   }
   
   .feature-intro {
     text-align: center;
-    margin-bottom: 2rem;
-    font-style: italic;
-    color: #a5f3fc;
+    margin-bottom: 1.5rem;
+    font-style: normal;
+    color: #64748b;
+    font-size: 0.9rem;
   }
   
   .feature-grid {
@@ -325,25 +323,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .feature-item {
-    background-color: rgba(15, 23, 42, 0.6);
+    background-color: rgba(0, 0, 0, 0.2);
     border-radius: 0.5rem;
-    padding: 1.25rem;
-    border: 1px solid rgba(103, 232, 249, 0.2);
-    transition: all 0.3s ease;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: border-color 0.15s ease;
     cursor: pointer;
     overflow: hidden;
   }
   
   .feature-item:hover {
-    border-color: rgba(103, 232, 249, 0.4);
-    box-shadow: 0 0 15px rgba(103, 232, 249, 0.2);
-    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.12);
   }
   
   .feature-item.click-effect {
-    transform: scale(0.98);
-    box-shadow: 0 0 8px rgba(103, 232, 249, 0.4) inset;
-    background-color: rgba(15, 23, 42, 0.8);
+    opacity: 0.9;
   }
   
   .feature-header {
@@ -353,43 +347,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .feature-expand-icon {
-    color: #67e8f9;
-    font-size: 1.5rem;
+    color: #64748b;
+    font-size: 1.25rem;
     font-weight: 300;
     line-height: 1;
   }
   
   .feature-item h3 {
-    font-size: 1.25rem;
-    color: #67e8f9;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
+    font-size: 1rem;
+    color: #f1f5f9;
+    margin-bottom: 0.375rem;
+    font-weight: 500;
   }
   
   .feature-summary {
-    font-size: 1rem;
+    font-size: 0.85rem;
     margin-bottom: 0;
-    color: #e2e8f0;
+    color: #64748b;
   }
   
   .feature-details {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: all 0.5s ease;
+    transition: all 0.3s ease;
     margin-top: 0;
   }
   
   .feature-item.active {
-    background-color: rgba(15, 23, 42, 0.8);
+    background-color: rgba(0, 0, 0, 0.3);
   }
   
   .feature-item.active .feature-details {
     max-height: 500px;
     opacity: 1;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(103, 232, 249, 0.2);
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
   
   .feature-details ul {
@@ -398,10 +392,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .feature-details li {
-    margin-bottom: 0.75rem;
-    color: #e2e8f0;
-    font-size: 0.95rem;
-    line-height: 1.6;
+    margin-bottom: 0.5rem;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    line-height: 1.5;
   }
   
   .feature-details li:last-child {
@@ -414,9 +408,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .technical-specs li {
-    padding: 0.75rem 0;
-    font-size: 1.1rem;
-    border-bottom: 1px solid rgba(103, 232, 249, 0.2);
+    padding: 0.625rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
   }
   
   .technical-specs li:last-child {
@@ -424,14 +419,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .spec-label {
-    color: #67e8f9;
-    font-weight: 600;
+    color: #f1f5f9;
+    font-weight: 500;
     margin-right: 0.5rem;
   }
   
   strong {
-    color: #67e8f9;
-    font-weight: 600;
+    color: #e2e8f0;
+    font-weight: 500;
   }
   
   @media (max-width: 768px) {
@@ -467,10 +462,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     padding-bottom: 56.25%; /* 16:9 aspect ratio */
     height: 0;
     overflow: hidden;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     border-radius: 0.5rem;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(103, 232, 249, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
   
   .video-container iframe {
@@ -483,10 +477,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
   
   .video-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #67e8f9;
-    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #f1f5f9;
+    margin-bottom: 0.75rem;
     text-align: center;
   }
 </style> 
