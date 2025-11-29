@@ -193,10 +193,11 @@ export default function ControlsPanel({
           
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
-              <label className="control-label">
+              <label htmlFor="seed-input" className="control-label">
                 <LabelWithTooltip tooltip={tooltips.seed}>Seed</LabelWithTooltip>
               </label>
               <input
+                id="seed-input"
                 type="number"
                 className="control-input"
                 value={seed}
@@ -218,12 +219,13 @@ export default function ControlsPanel({
           </div>
           
           <div className="control-row" style={{ marginBottom: '1.5rem' }}>
-            <label className="control-label">
+            <label htmlFor="pattern-size-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.patternSize}>
                 Pattern Size
               </LabelWithTooltip>
             </label>
             <select 
+              id="pattern-size-select"
               className="control-select" 
               value={patternSize} 
               onChange={e => setPatternSize(Number(e.target.value))} 
@@ -235,12 +237,13 @@ export default function ControlsPanel({
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="growth-mode-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.growthMode[growthMode] || "Determines the overall growth pattern of the generation."}>
                 Growth Mode
               </LabelWithTooltip>
             </label>
             <select 
+              id="growth-mode-select"
               className="control-select" 
               value={growthMode} 
               onChange={e => setGrowthMode(e.target.value)} 
@@ -252,12 +255,13 @@ export default function ControlsPanel({
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="seed-shape-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.seedShape[seedShape] || "The initial shape from which the pattern grows."}>
                 Seed Shape
               </LabelWithTooltip>
             </label>
             <select 
+              id="seed-shape-select"
               className="control-select" 
               value={seedShape} 
               onChange={e => setSeedShape(e.target.value)} 
@@ -269,12 +273,13 @@ export default function ControlsPanel({
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="branching-factor-range" className="control-label">
               <LabelWithTooltip tooltip={tooltips.branchingFactor}>
                 Branching Factor
               </LabelWithTooltip>
             </label>
             <input 
+              id="branching-factor-range"
               type="range" 
               min={0} 
               max={1} 
@@ -283,16 +288,18 @@ export default function ControlsPanel({
               onChange={e => setBranchingFactor(Number(e.target.value))} 
               className="control-range" 
               disabled={loading} 
+              aria-label="Branching Factor"
             />
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="growth-rate-range" className="control-label">
               <LabelWithTooltip tooltip={tooltips.growthRate}>
                 Growth Rate
               </LabelWithTooltip>
             </label>
             <input 
+              id="growth-rate-range"
               type="range" 
               min={0.1} 
               max={2} 
@@ -301,16 +308,18 @@ export default function ControlsPanel({
               onChange={e => setGrowthRate(Number(e.target.value))} 
               className="control-range" 
               disabled={loading} 
+              aria-label="Growth Rate"
             />
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="randomness-range" className="control-label">
               <LabelWithTooltip tooltip={tooltips.randomness}>
                 Randomness
               </LabelWithTooltip>
             </label>
             <input 
+              id="randomness-range"
               type="range" 
               min={0} 
               max={50} 
@@ -319,6 +328,7 @@ export default function ControlsPanel({
               onChange={e => setRandomness(Number(e.target.value))} 
               className="control-range" 
               disabled={loading} 
+              aria-label="Randomness"
             />
           </div>
         </div>
@@ -327,12 +337,13 @@ export default function ControlsPanel({
           <h2 className="section-heading">Color & Symmetry</h2>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="color-progression-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.colorProgression[colorProgression] || "How colors progress through the pattern."}>
                 Color Progression
               </LabelWithTooltip>
             </label>
             <select 
+              id="color-progression-select"
               className="control-select" 
               value={colorProgression} 
               onChange={e => setColorProgression(e.target.value)} 
@@ -344,12 +355,13 @@ export default function ControlsPanel({
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="curve-type-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.curveType[curveType] || "The mathematical curve used to map colors to positions."}>
                 Curve Type
               </LabelWithTooltip>
             </label>
             <select 
+              id="curve-type-select"
               className="control-select" 
               value={curveType} 
               onChange={e => setCurveType(e.target.value)} 
@@ -361,12 +373,13 @@ export default function ControlsPanel({
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="color-ordering-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.colorOrdering[colorOrdering] || "How the RGB components are ordered for color mapping."}>
                 Color Ordering
               </LabelWithTooltip>
             </label>
             <select 
+              id="color-ordering-select"
               className="control-select" 
               value={colorOrdering} 
               onChange={e => setColorOrdering(e.target.value)} 
@@ -378,12 +391,13 @@ export default function ControlsPanel({
           </div>
           
           <div className="control-row">
-            <label className="control-label">
+            <label htmlFor="symmetry-mode-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.symmetryMode[symmetryMode] || "The type of symmetry applied to the pattern."}>
                 Symmetry
               </LabelWithTooltip>
             </label>
             <select 
+              id="symmetry-mode-select"
               className="control-select" 
               value={symmetryMode} 
               onChange={e => setSymmetryMode(e.target.value)} 
@@ -435,12 +449,13 @@ export default function ControlsPanel({
               placeholder="Color Sample Size"
             />
           </label>
-          <label className="control-label">
+          <label htmlFor="preview-size-range" className="control-label">
             <LabelWithTooltip tooltip={tooltips.previewSize} position="right">
               Preview Size
             </LabelWithTooltip>
           </label>
           <input
+            id="preview-size-range"
             type="range"
             min={64}
             max={512}
@@ -449,6 +464,7 @@ export default function ControlsPanel({
             onChange={e => setPreviewSize(Number(e.target.value))}
             className="control-range"
             disabled={loading}
+            aria-label="Preview Size"
           />
           <div style={{ fontSize: '1rem', color: '#a5f3fc', marginTop: '0.5rem', textAlign: 'center' }}>{previewSize} × {previewSize}</div>
         </div>
