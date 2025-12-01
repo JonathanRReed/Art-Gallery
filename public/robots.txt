@@ -1,5 +1,6 @@
 # robots.txt – art.jonathanrreed.com
-# Generated 2023-11-15 · SEO-optimised, AI-scraper-aware
+
+# Generated 2025‑05‑07 · SEO‑optimised, AI‑scraper‑aware
 # ------------------------------------------------------------------
 # ███ 1. MAJOR SEARCH ENGINES (full access) ███
 User-agent: Googlebot
@@ -25,55 +26,55 @@ Disallow: /search/
 Disallow: /*?s=
 Disallow: /*?q=
 
-# ███ 2. SOCIAL-PREVIEW BOTS (OG/meta only) ███
+# ███ 2. SOCIAL‑PREVIEW BOTS (OG/meta only) ███
 User-agent: FacebookBot
 User-agent: meta-externalagent
 User-agent: LinkedInBot
 Allow: /
 
-# ███ 3. MODEL-TRAINING & BULK-AI SCRAPERS (blocked) ███
-User-agent: GPTBot                     # OpenAI model-training
-Disallow: /
+# ███ 3. MODEL‑TRAINING & BULK‑AI SCRAPERS ███
+User-agent: GPTBot                     # OpenAI model‑training
+Allow: /
 User-agent: OAI-SearchBot              # OpenAI retrieval indexer
-Disallow: /
+Allow: /
 User-agent: ChatGPT-User
 User-agent: ChatGPT-User/2.0
-Disallow: /
+Allow: /
 
 User-agent: anthropic-ai               # Anthropic
 User-agent: ClaudeBot
 User-agent: claude-web
-Disallow: /
+Allow: /
 
 User-agent: PerplexityBot
-Disallow: /
+Allow: /
 User-agent: Perplexity-User/1.0
-Disallow: /
+Allow: /
 
 User-agent: Google-Extended            # Gemini training
-Disallow: /
+Allow: /
 
 User-agent: Amazonbot                  # Alexa / AI tasks
-Disallow: /
+Allow: /
 User-agent: Applebot-Extended          # Apple AI training
-Disallow: /
+Allow: /
 
 User-agent: Bytespider                 # ByteDance / TikTok AI
-Disallow: /
+Allow: /
 
-User-agent: MistralAI-User/1.0         # Mistral "Le Chat" crawler
-Disallow: /
+User-agent: MistralAI-User/1.0         # Mistral “Le Chat” crawler
+Allow: /
 
 User-agent: AI2Bot                     # Allen AI / Semantic Scholar
-Disallow: /
+Allow: /
 
 User-agent: CCBot                      # Common Crawl
-Disallow: /
+Allow: /
 
 User-agent: cohere-ai                  # Cohere
-Disallow: /
+Allow: /
 
-# Placeholder — xAI Grok crawler (token unknown as of May-2025)
+# Placeholder — xAI Grok crawler (token unknown as of May‑2025)
 # User-agent: GrokBot
 # Disallow: /
 
@@ -81,8 +82,18 @@ Disallow: /
 User-agent: Applebot                   # Siri / Spotlight search
 Allow: /
 
-# ███ 5. CATCH-ALL ███
+# ███ 5. CATCH‑ALL ███
 User-agent: *
+Disallow: /cgi-bin/
+Disallow: /wp-admin/
+Disallow: /admin/
+Disallow: /backend/
+Disallow: /dashboard/
+Disallow: /login/
+Disallow: /private/
+Disallow: /temp/
+Disallow: /includes/
+Disallow: /search/
+Disallow: /*?s=
+Disallow: /*?q=
 Allow: /
-
-Sitemap: https://art.jonathanrreed.com/sitemap.xml
