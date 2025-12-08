@@ -107,12 +107,12 @@ export default function ControlsPanel({
   patternSize, setPatternSize,
 }) {
   const settingsButtonRef = useRef(null);
-  
+
   // Helper function to find the selected option label
   const getSelectedLabel = (options, value) => {
     return options.find(opt => opt.value === value)?.label || value;
   };
-  
+
   // Pattern complexity options
   const patternOptions = [
     { label: 'Small (128)', value: 128 },
@@ -122,16 +122,16 @@ export default function ControlsPanel({
     { label: 'Ultra (2048)', value: 2048 },
     { label: 'Extreme (4096)', value: 4096 }
   ];
-  
+
   return (
     <div className="panel-container">
       <div className="two-column-grid">
         <div className="panel-section">
           <h2 className="section-heading">Seed & Growth</h2>
-          
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
             marginBottom: '1rem',
             paddingBottom: '0.5rem',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
@@ -141,7 +141,7 @@ export default function ControlsPanel({
               onClick={() => {
                 const rect = settingsButtonRef.current.getBoundingClientRect();
                 window.dispatchEvent(new CustomEvent('toggle-settings-panel', {
-                  detail: { 
+                  detail: {
                     position: {
                       top: rect.bottom + window.scrollY,
                       left: rect.left + window.scrollX
@@ -167,7 +167,7 @@ export default function ControlsPanel({
             >
               Saved Settings
             </button>
-            
+
             <button
               onClick={() => window.dispatchEvent(new CustomEvent('show-save-dialog'))}
               className="save-settings-button gallery-action-btn"
@@ -190,7 +190,7 @@ export default function ControlsPanel({
               Save Current Settings
             </button>
           </div>
-          
+
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
             <div style={{ flex: 1 }}>
               <label htmlFor="seed-input" className="control-label">
@@ -217,201 +217,201 @@ export default function ControlsPanel({
               Random
             </button>
           </div>
-          
+
           <div className="control-row" style={{ marginBottom: '1.5rem' }}>
             <label htmlFor="pattern-size-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.patternSize}>
                 Pattern Size
               </LabelWithTooltip>
             </label>
-            <select 
+            <select
               id="pattern-size-select"
-              className="control-select" 
-              value={patternSize} 
-              onChange={e => setPatternSize(Number(e.target.value))} 
+              className="control-select"
+              value={patternSize}
+              onChange={e => setPatternSize(Number(e.target.value))}
               disabled={loading}
               title={getSelectedLabel(patternOptions, patternSize)}
             >
               {patternOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="growth-mode-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.growthMode[growthMode] || "Determines the overall growth pattern of the generation."}>
                 Growth Mode
               </LabelWithTooltip>
             </label>
-            <select 
+            <select
               id="growth-mode-select"
-              className="control-select" 
-              value={growthMode} 
-              onChange={e => setGrowthMode(e.target.value)} 
-              disabled={loading} 
+              className="control-select"
+              value={growthMode}
+              onChange={e => setGrowthMode(e.target.value)}
+              disabled={loading}
               title={getSelectedLabel(growthModes, growthMode)}
             >
               {growthModes.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="seed-shape-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.seedShape[seedShape] || "The initial shape from which the pattern grows."}>
                 Seed Shape
               </LabelWithTooltip>
             </label>
-            <select 
+            <select
               id="seed-shape-select"
-              className="control-select" 
-              value={seedShape} 
-              onChange={e => setSeedShape(e.target.value)} 
+              className="control-select"
+              value={seedShape}
+              onChange={e => setSeedShape(e.target.value)}
               disabled={loading}
               title={getSelectedLabel(seedShapes, seedShape)}
             >
               {seedShapes.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="branching-factor-range" className="control-label">
               <LabelWithTooltip tooltip={tooltips.branchingFactor}>
                 Branching Factor
               </LabelWithTooltip>
             </label>
-            <input 
+            <input
               id="branching-factor-range"
-              type="range" 
-              min={0} 
-              max={1} 
-              step={0.01} 
-              value={branchingFactor} 
-              onChange={e => setBranchingFactor(Number(e.target.value))} 
-              className="control-range" 
-              disabled={loading} 
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={branchingFactor}
+              onChange={e => setBranchingFactor(Number(e.target.value))}
+              className="control-range"
+              disabled={loading}
               aria-label="Branching Factor"
             />
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="growth-rate-range" className="control-label">
               <LabelWithTooltip tooltip={tooltips.growthRate}>
                 Growth Rate
               </LabelWithTooltip>
             </label>
-            <input 
+            <input
               id="growth-rate-range"
-              type="range" 
-              min={0.1} 
-              max={2} 
-              step={0.01} 
-              value={growthRate} 
-              onChange={e => setGrowthRate(Number(e.target.value))} 
-              className="control-range" 
-              disabled={loading} 
+              type="range"
+              min={0.1}
+              max={2}
+              step={0.01}
+              value={growthRate}
+              onChange={e => setGrowthRate(Number(e.target.value))}
+              className="control-range"
+              disabled={loading}
               aria-label="Growth Rate"
             />
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="randomness-range" className="control-label">
               <LabelWithTooltip tooltip={tooltips.randomness}>
                 Randomness
               </LabelWithTooltip>
             </label>
-            <input 
+            <input
               id="randomness-range"
-              type="range" 
-              min={0} 
-              max={50} 
-              step={0.1} 
-              value={randomness} 
-              onChange={e => setRandomness(Number(e.target.value))} 
-              className="control-range" 
-              disabled={loading} 
+              type="range"
+              min={0}
+              max={50}
+              step={0.1}
+              value={randomness}
+              onChange={e => setRandomness(Number(e.target.value))}
+              className="control-range"
+              disabled={loading}
               aria-label="Randomness"
             />
           </div>
         </div>
-        
+
         <div className="panel-section">
           <h2 className="section-heading">Color & Symmetry</h2>
-          
+
           <div className="control-row">
             <label htmlFor="color-progression-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.colorProgression[colorProgression] || "How colors progress through the pattern."}>
                 Color Progression
               </LabelWithTooltip>
             </label>
-            <select 
+            <select
               id="color-progression-select"
-              className="control-select" 
-              value={colorProgression} 
-              onChange={e => setColorProgression(e.target.value)} 
+              className="control-select"
+              value={colorProgression}
+              onChange={e => setColorProgression(e.target.value)}
               disabled={loading}
               title={getSelectedLabel(colorProgressions, colorProgression)}
             >
               {colorProgressions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="curve-type-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.curveType[curveType] || "The mathematical curve used to map colors to positions."}>
                 Curve Type
               </LabelWithTooltip>
             </label>
-            <select 
+            <select
               id="curve-type-select"
-              className="control-select" 
-              value={curveType} 
-              onChange={e => setCurveType(e.target.value)} 
+              className="control-select"
+              value={curveType}
+              onChange={e => setCurveType(e.target.value)}
               disabled={loading}
               title={getSelectedLabel(curveTypes, curveType)}
             >
               {curveTypes.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="color-ordering-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.colorOrdering[colorOrdering] || "How the RGB components are ordered for color mapping."}>
                 Color Ordering
               </LabelWithTooltip>
             </label>
-            <select 
+            <select
               id="color-ordering-select"
-              className="control-select" 
-              value={colorOrdering} 
-              onChange={e => setColorOrdering(e.target.value)} 
+              className="control-select"
+              value={colorOrdering}
+              onChange={e => setColorOrdering(e.target.value)}
               disabled={loading}
               title={getSelectedLabel(colorOrderings, colorOrdering)}
             >
               {colorOrderings.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
             </select>
           </div>
-          
+
           <div className="control-row">
             <label htmlFor="symmetry-mode-select" className="control-label">
               <LabelWithTooltip tooltip={tooltips.symmetryMode[symmetryMode] || "The type of symmetry applied to the pattern."}>
                 Symmetry
               </LabelWithTooltip>
             </label>
-            <select 
+            <select
               id="symmetry-mode-select"
-              className="control-select" 
-              value={symmetryMode} 
-              onChange={e => setSymmetryMode(e.target.value)} 
+              className="control-select"
+              value={symmetryMode}
+              onChange={e => setSymmetryMode(e.target.value)}
               disabled={loading}
               title={getSelectedLabel(symmetryModes, symmetryMode)}
             >
-              {symmetryModes.map(opt => 
+              {symmetryModes.map(opt =>
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               )}
             </select>
           </div>
         </div>
       </div>
-      
+
       <details className="control-row">
         <summary className="advanced-summary">Advanced Settings</summary>
         <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

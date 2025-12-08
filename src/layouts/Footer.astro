@@ -3,58 +3,93 @@
     <div class="footer-column footer-center">
       <div class="footer-header">
         <div class="footer-product-block">
-          <span class="footer-product-main">Algorithmic<span class="footer-product-company"> Art Gallery</span></span>
+          <span class="footer-product-main"
+            >Algorithmic<span class="footer-product-company">
+              Art Gallery</span
+            ></span
+          >
           <span class="footer-product-author">From Jonathan Reed</span>
         </div>
       </div>
-      
+
       <div class="footer-links">
         <div class="footer-links-row">
-          <img src="/jonathan.avif" alt="Jonathan Reed" width="32" height="32" class="footer-icon-img" />
-          <a href="https://JonathanRReed.com/" class="footer-link-text" target="_blank" rel="noopener noreferrer">
-            JonathanRReed.com
+          <img
+            src="/jonathan.avif"
+            alt="Jonathan Reed"
+            width="32"
+            height="32"
+            class="footer-icon-img"
+          />
+          <a
+            href="https://JonathanRReed.com/"
+            class="footer-link-text"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Jonathan Reed's Portfolio
           </a>
         </div>
         <div class="footer-links-row">
-          <img src="/Logo.svg" alt="Logo" width="32" height="32" class="footer-icon-img" />
-          <a href="https://helloworldfirm.com/" class="footer-link-text" target="_blank" rel="noopener noreferrer">
-            helloworldfirm.com
+          <img
+            src="/Logo.svg"
+            alt="Hello World Consulting Logo"
+            width="32"
+            height="32"
+            class="footer-icon-img"
+          />
+          <a
+            href="https://helloworldfirm.com/"
+            class="footer-link-text"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Hello World Consulting
+          </a>
+        </div>
+        <div class="footer-links-row">
+          <span class="footer-icon-emoji">⌨️</span>
+          <a
+            href="https://zentype.jonathanrreed.com/"
+            class="footer-link-text"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ZenType Typing Trainer
           </a>
         </div>
       </div>
-      
+
       <button class="share-button" id="shareButton" title="Share this website">
         <span class="share-icon">🔗</span>
         <span class="share-text">Share</span>
       </button>
     </div>
   </div>
-  <div class="footer-copyright">
-    2025 &copy; All Rights Reserved
-  </div>
+  <div class="footer-copyright">2025 &copy; All Rights Reserved</div>
 </footer>
 
 <script>
   // Add Web Share API functionality
-  document.addEventListener('DOMContentLoaded', () => {
-    const shareButton = document.getElementById('shareButton');
-    
+  document.addEventListener("DOMContentLoaded", () => {
+    const shareButton = document.getElementById("shareButton");
+
     if (shareButton && navigator.share) {
-      shareButton.addEventListener('click', async () => {
+      shareButton.addEventListener("click", async () => {
         try {
           await navigator.share({
-            title: 'Algorithmic Art Gallery',
-            text: 'Check out this amazing algorithmic art generator!',
-            url: window.location.href
+            title: "Algorithmic Art Gallery",
+            text: "Check out this amazing algorithmic art generator!",
+            url: window.location.href,
           });
-          console.log('Successfully shared');
+          console.log("Successfully shared");
         } catch (err) {
-          console.error('Error sharing:', err);
+          console.error("Error sharing:", err);
         }
       });
     } else if (shareButton) {
       // Hide share button if Web Share API is not supported
-      shareButton.style.display = 'none';
+      shareButton.style.display = "none";
     }
   });
 </script>
@@ -138,6 +173,18 @@
     padding: 2px;
   }
 
+  .footer-icon-emoji {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    border-radius: 50%;
+    background-color: rgba(103, 232, 249, 0.1);
+    box-shadow: 0 0 10px rgba(103, 232, 249, 0.2);
+  }
+
   .footer-link-text {
     color: #e2e8f0;
     text-decoration: none;
@@ -189,13 +236,13 @@
     .footer-container {
       padding: 0 1.5rem;
     }
-    
+
     .footer-product-main {
       font-size: 1.1rem;
     }
-    
+
     .footer-product-author {
       font-size: 0.9rem;
     }
   }
-</style> 
+</style>

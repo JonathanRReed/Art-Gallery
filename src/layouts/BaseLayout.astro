@@ -1,11 +1,16 @@
 ---
-import '../assets/global.css';
-import '../assets/panel-styles.css';
-import Footer from './Footer.astro';
+import "../assets/global.css";
+import "../assets/panel-styles.css";
+import Footer from "./Footer.astro";
 
 const { pathname } = Astro.url;
-const { title = "Algorithmic Art", description = "Create beautiful algorithmic art using space-filling curves and mathematical patterns. Generate, customize, and download unique digital artwork." } = Astro.props;
+const {
+	title = "Algorithmic Art by Jonathan Reed",
+	description = "Create beautiful algorithmic art using space-filling curves and mathematical patterns. Generate, customize, and download unique digital artwork.",
+} = Astro.props;
+const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 ---
+
 <!doctype html>
 <html lang="en">
 	<head>
@@ -14,70 +19,131 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 		<link rel="icon" type="image/png" href="/icon.png" />
 		<link rel="apple-touch-icon" href="/icon.png" />
 		<meta name="generator" content={Astro.generator} />
-		
+
 		<!-- Primary Meta Tags -->
 		<title>{title}</title>
 		<meta name="title" content={title} />
 		<meta name="description" content={description} />
-		
+		<meta name="robots" content="index, follow" />
+		<link rel="canonical" href={canonicalUrl} />
+
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
-		<meta property="og:url" content={`https://art.jonathanrreed.com${pathname}`} />
+		<meta
+			property="og:url"
+			content={`https://art.jonathanrreed.com${pathname}`}
+		/>
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
-		<meta property="og:image" content="https://art.jonathanrreed.com/og-image.png" />
-		
+		<meta
+			property="og:image"
+			content="https://art.jonathanrreed.com/og-image.png"
+		/>
+
 		<!-- Twitter -->
 		<meta property="twitter:card" content="summary_large_image" />
-		<meta property="twitter:url" content={`https://art.jonathanrreed.com${pathname}`} />
+		<meta
+			property="twitter:url"
+			content={`https://art.jonathanrreed.com${pathname}`}
+		/>
 		<meta property="twitter:title" content={title} />
 		<meta property="twitter:description" content={description} />
-		<meta property="twitter:image" content="https://art.jonathanrreed.com/og-image.png" />
-		
+		<meta
+			property="twitter:image"
+			content="https://art.jonathanrreed.com/og-image.png"
+		/>
+
 		<!-- Performance optimizations -->
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link rel="preload" href="/fonts/NebulaSans-Book.ttf" as="font" type="font/ttf" crossorigin />
-		<link rel="preload" href="/fonts/NebulaSans-BoldItalic.ttf" as="font" type="font/ttf" crossorigin />
-		
+		<link
+			rel="preload"
+			href="/fonts/NebulaSans-Book.ttf"
+			as="font"
+			type="font/ttf"
+			crossorigin
+		/>
+		<link
+			rel="preload"
+			href="/fonts/NebulaSans-BoldItalic.ttf"
+			as="font"
+			type="font/ttf"
+			crossorigin
+		/>
+
 		<!-- DNS prefetching -->
 		<link rel="dns-prefetch" href="https://art.jonathanrreed.com" />
-		
+
 		<!-- Link to manifest.json for PWA support -->
-		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
-		
+		<link
+			rel="manifest"
+			href="/manifest.json"
+			crossorigin="use-credentials"
+		/>
+
 		<!-- Structured Data / JSON-LD -->
-		<script type="application/ld+json">
-		{
-			"@context": "https://schema.org",
-			"@type": "WebApplication",
-			"name": "Algorithmic Art by Jonathan Reed",
-			"description": "Create beautiful algorithmic art using space-filling curves and mathematical patterns",
-			"applicationCategory": "MultimediaApplication",
-			"operatingSystem": "Web",
-			"offers": {
-				"@type": "Offer",
-				"price": "0",
-				"priceCurrency": "USD"
-			},
-			"author": {
-				"@type": "Person",
-				"name": "Jonathan Reed",
-				"url": "https://jonathanrreed.com"
-			}
-		}
-		</script>
+		<script
+			type="application/ld+json"
+			set:html={JSON.stringify({
+				"@context": "https://schema.org",
+				"@type": "WebApplication",
+				name: "Algorithmic Art by Jonathan Reed",
+				url: "https://art.jonathanrreed.com",
+				description:
+					"Create beautiful algorithmic art using space-filling curves and mathematical patterns",
+				applicationCategory: "MultimediaApplication",
+				operatingSystem: "Web",
+				offers: {
+					"@type": "Offer",
+					price: "0",
+					priceCurrency: "USD",
+				},
+				author: {
+					"@type": "Person",
+					name: "Jonathan Reed",
+					url: "https://jonathanrreed.com",
+					sameAs: [
+						"https://jonathanrreed.com",
+						"https://zentype.jonathanrreed.com",
+					],
+				},
+				image: {
+					"@type": "ImageObject",
+					url: "https://art.jonathanrreed.com/og-image.png",
+					width: 1200,
+					height: 630,
+					caption:
+						"Algorithmic Art - Space-filling curve artwork generated with mathematical patterns",
+				},
+			})}
+		/>
 	</head>
 	<body>
 		<div class="page-background"></div>
 		<header class="site-header">
 			<div class="nav-container">
-				<a href="/" class="site-logo" aria-label="Algorithmic Art Gallery Home">
+				<a
+					href="/"
+					class="site-logo"
+					aria-label="Algorithmic Art Gallery Home"
+				>
 					<span class="site-logo-text">Algorithmic Art Gallery</span>
 				</a>
 				<nav class="main-nav">
-					<a href="/" class={`nav-link ${pathname === '/' ? 'active' : ''}`}>Generator</a>
-					<a href="/gallery" class={`nav-link ${pathname === '/gallery' ? 'active' : ''}`}>Gallery</a>
-					<a href="/about" class={`nav-link ${pathname === '/about' ? 'active' : ''}`}>About</a>
+					<a
+						href="/"
+						class={`nav-link ${pathname === "/" ? "active" : ""}`}
+						>Generator</a
+					>
+					<a
+						href="/gallery"
+						class={`nav-link ${pathname === "/gallery" ? "active" : ""}`}
+						>Gallery</a
+					>
+					<a
+						href="/about"
+						class={`nav-link ${pathname === "/about" ? "active" : ""}`}
+						>About</a
+					>
 				</nav>
 			</div>
 		</header>
@@ -88,53 +154,67 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 
 		<script is:inline defer>
 			// Global click effect for all buttons using event delegation
-			document.addEventListener('DOMContentLoaded', () => {
+			document.addEventListener("DOMContentLoaded", () => {
 				// Function to add click effect to an element
 				function addClickEffect(element) {
 					if (!element) return;
-					
+
 					// Add click effect class
-					element.classList.add('click-effect');
-					
+					element.classList.add("click-effect");
+
 					// Remove the class after animation completes
 					setTimeout(() => {
-						element.classList.remove('click-effect');
+						element.classList.remove("click-effect");
 					}, 150);
 				}
-				
+
 				// Use event delegation for mouse clicks
-				document.body.addEventListener('click', (e) => {
+				document.body.addEventListener("click", (e) => {
 					// Check if the clicked element is a button, has role="button", or is one of our interactive elements
-					const target = e.target.closest('button, [role="button"], .nav-link, .site-logo, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete');
+					const target = e.target.closest(
+						'button, [role="button"], .nav-link, .site-logo, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete',
+					);
 					if (target) {
 						addClickEffect(target);
 					}
 				});
-				
+
 				// Support keyboard interaction for accessibility
-				document.body.addEventListener('keydown', (e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
+				document.body.addEventListener("keydown", (e) => {
+					if (e.key === "Enter" || e.key === " ") {
 						// Find the active element that's interactive
 						const target = document.activeElement;
-						if (target && target.matches('button, [role="button"], .nav-link, .site-logo, a, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete')) {
+						if (
+							target &&
+							target.matches(
+								'button, [role="button"], .nav-link, .site-logo, a, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete',
+							)
+						) {
 							addClickEffect(target);
 						}
 					}
 				});
 			});
 		</script>
-		
+
 		<!-- Service Worker Registration -->
 		<script is:inline defer>
 			// Register service worker for caching and offline support
-			if ('serviceWorker' in navigator) {
-				window.addEventListener('load', () => {
-					navigator.serviceWorker.register('/worker/service-worker.js')
-						.then(registration => {
-							console.log('ServiceWorker registration successful with scope: ', registration.scope);
+			if ("serviceWorker" in navigator) {
+				window.addEventListener("load", () => {
+					navigator.serviceWorker
+						.register("/worker/service-worker.js")
+						.then((registration) => {
+							console.log(
+								"ServiceWorker registration successful with scope: ",
+								registration.scope,
+							);
 						})
-						.catch(error => {
-							console.log('ServiceWorker registration failed: ', error);
+						.catch((error) => {
+							console.log(
+								"ServiceWorker registration failed: ",
+								error,
+							);
 						});
 				});
 			}
@@ -144,31 +224,34 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 
 <style is:global>
 	@font-face {
-		font-family: 'Nebula';
-		src: url('/fonts/NebulaSans-Book.ttf') format('truetype');
+		font-family: "Nebula";
+		src: url("/fonts/NebulaSans-Book.ttf") format("truetype");
 		font-weight: 400;
 		font-style: normal;
 		font-display: swap;
 	}
 
 	@font-face {
-		font-family: 'Nebula';
-		src: url('/fonts/NebulaSans-BoldItalic.ttf') format('truetype');
+		font-family: "Nebula";
+		src: url("/fonts/NebulaSans-BoldItalic.ttf") format("truetype");
 		font-weight: 700;
 		font-style: italic;
 		font-display: swap;
 	}
 
-	*, *::before, *::after {
+	*,
+	*::before,
+	*::after {
 		box-sizing: border-box;
 	}
 
-	html, body {
+	html,
+	body {
 		margin: 0;
 		padding: 0;
 		width: 100%;
 		height: 100%;
-		font-family: 'Nebula', 'Inter', 'ui-sans-serif', 'system-ui', sans-serif;
+		font-family: "Nebula", "Inter", "ui-sans-serif", "system-ui", sans-serif;
 		background: #080a0e;
 		overflow-x: hidden;
 	}
@@ -210,7 +293,7 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 
 	.site-logo {
 		color: #f1f5f9;
-		font-family: 'Nebula', 'Inter', 'ui-sans-serif', 'system-ui', sans-serif;
+		font-family: "Nebula", "Inter", "ui-sans-serif", "system-ui", sans-serif;
 		font-weight: 700;
 		font-style: italic;
 		font-size: 1.25rem;
@@ -221,7 +304,7 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 		height: 40px;
 		line-height: 40px;
 	}
-	
+
 	.site-logo-text {
 		display: inline-block;
 	}
@@ -241,7 +324,9 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 		font-size: 0.9rem;
 		padding: 0.5rem 0.75rem;
 		border-radius: 0.375rem;
-		transition: color 0.15s, background-color 0.15s;
+		transition:
+			color 0.15s,
+			background-color 0.15s;
 		font-weight: 500;
 		position: relative;
 	}
@@ -250,7 +335,7 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 		color: #f1f5f9;
 		background-color: rgba(255, 255, 255, 0.05);
 	}
-	
+
 	.nav-link.active {
 		color: #f1f5f9;
 		background-color: rgba(255, 255, 255, 0.08);
@@ -268,7 +353,7 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 			flex-wrap: wrap;
 			justify-content: center;
 		}
-		
+
 		.site-logo {
 			font-size: 1.1rem;
 			height: 32px;
@@ -277,41 +362,41 @@ const { title = "Algorithmic Art", description = "Create beautiful algorithmic a
 			width: 100%;
 			text-align: center;
 		}
-		
+
 		.main-nav {
 			width: 100%;
 			justify-content: center;
 			gap: 0.5rem;
 		}
-		
+
 		.nav-link {
 			font-size: 0.85rem;
 			padding: 0.4rem 0.6rem;
 		}
-		
+
 		.content-wrapper {
 			padding-top: 100px; /* Increase padding to accommodate the taller header */
 			padding-left: 1rem;
 			padding-right: 1rem;
 		}
 	}
-	
+
 	@media (max-width: 375px) {
 		.site-logo {
 			font-size: 1rem;
 			height: 28px;
 			line-height: 28px;
 		}
-		
+
 		.main-nav {
 			gap: 0.25rem;
 		}
-		
+
 		.nav-link {
 			font-size: 0.8rem;
 			padding: 0.3rem 0.5rem;
 		}
-		
+
 		.content-wrapper {
 			padding-top: 90px; /* Slightly reduced for very small screens */
 		}

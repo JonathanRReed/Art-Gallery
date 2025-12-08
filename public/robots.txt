@@ -1,6 +1,11 @@
 # robots.txt – art.jonathanrreed.com
 
-# Generated 2025‑05‑07 · SEO‑optimised, AI‑scraper‑aware
+# LLM-friendly content guide
+# See https://llmstxt.org for specification
+# llms.txt: https://art.jonathanrreed.com/llms.txt
+
+
+# Generated 2025‑12‑08 · SEO‑optimised, AI‑scraper‑aware
 # ------------------------------------------------------------------
 # ███ 1. MAJOR SEARCH ENGINES (full access) ███
 User-agent: Googlebot
@@ -97,3 +102,6 @@ Disallow: /search/
 Disallow: /*?s=
 Disallow: /*?q=
 Allow: /
+
+# ███ 6. GLOBAL SITEMAP REFERENCE ███
+Sitemap: https://art.jonathanrreed.com/sitemap.xml

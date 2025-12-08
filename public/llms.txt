@@ -1,0 +1,47 @@
+# Algorithmic Art Gallery
+
+> A web application for creating and exploring generative algorithmic art using space-filling curves and mathematical patterns. Built by Jonathan Reed.
+
+## About
+
+Algorithmic Art Gallery is a free, browser-based tool for generating unique digital artwork. It uses space-filling curves (Hilbert, Morton) and color mapping algorithms to create visually stunning patterns that are mathematically precise yet artistically beautiful.
+
+Key features:
+- Real-time pattern generation with customizable parameters
+- Multiple curve types: Hilbert and Morton (Z-order)
+- Various growth modes: Crystal, Nebula, Rings
+- Symmetry options: None, Bilateral, Quadrantal, Radial
+- Color progression controls: Sequential, Shuffled, Base Distance
+- Export to PNG and PDF at up to 4096×4096 resolution
+- Local gallery for saving favorite creations
+
+## Pages
+
+- [Generator](https://art.jonathanrreed.com/): Create new algorithmic art with customizable parameters
+- [Gallery](https://art.jonathanrreed.com/gallery): Browse and manage saved artworks
+- [About](https://art.jonathanrreed.com/about): Learn how the algorithms work and explore pattern options
+
+## Technical Details
+
+The application is built with:
+- Astro (static site framework)
+- React (interactive components)
+- Web Workers (background processing for large patterns)
+- Canvas API (rendering)
+- Local Storage (gallery persistence)
+
+Pattern generation uses:
+- Hilbert Curve: Space-filling curve preserving locality for smooth color transitions
+- Morton Curve: Z-order curve creating blocky, quadrant-based patterns
+- Seed-based randomization for reproducible results
+
+## Author
+
+Created by Jonathan Reed
+- Portfolio: https://jonathanrreed.com
+- ZenType Typing Trainer: https://zentype.jonathanrreed.com
+- Hello World Consulting: https://helloworldfirm.com
+
+## Optional
+
+- [GitHub](https://github.com/JonathanRReed): Source code and other projects
