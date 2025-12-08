@@ -1,11 +1,15 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import GalleryPage from '../components/GalleryPage.jsx';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GalleryPage from "../components/GalleryPage.jsx";
 ---
 
-<BaseLayout>
+<BaseLayout
+  title="Gallery | Algorithmic Art by Jonathan Reed"
+  description="Browse saved algorithmic artworks created with space-filling curves and mathematical patterns."
+>
   <div class="gallery-container">
     <h1 class="gallery-header">Gallery</h1>
     <GalleryPage client:load />
   </div>
-</BaseLayout> 
+</BaseLayout>
+

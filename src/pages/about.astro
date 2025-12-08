@@ -1,74 +1,92 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout>
+<BaseLayout
+  title="About | Algorithmic Art by Jonathan Reed"
+  description="Learn how the Algorithmic Art Gallery creates generative art using space-filling curves and mathematical algorithms."
+>
   <div class="about-container">
     <h1 class="about-header">About</h1>
-    
+
     <div class="about-content">
       <section class="about-section">
         <h2 class="about-subheader">The Project</h2>
         <p>
-          Algorithmic Art Gallery is a modern, minimal web application that showcases generative art created through
-          mathematical algorithms. The gallery generates trippy beautiful visual patterns using space-filling curves
-          and color mapping algorithms, creating unique and vibrant algorithmic artwork.
+          Algorithmic Art Gallery is a modern, minimal web application that
+          showcases generative art created through mathematical algorithms. The
+          gallery generates trippy beautiful visual patterns using space-filling
+          curves and color mapping algorithms, creating unique and vibrant
+          algorithmic artwork.
         </p>
         <p>
-          Each artwork is a unique manifestation of algorithmic processes, seed values, and color mappings,
-          creating an endless possibility of visually stunning patterns. The combination of different parameters
+          Each artwork is a unique manifestation of algorithmic processes, seed
+          values, and color mappings, creating an endless possibility of
+          visually stunning patterns. The combination of different parameters
           allows for virtually infinite unique generations.
         </p>
       </section>
-      
+
       <section class="about-section">
         <h2 class="about-subheader">The Technology</h2>
         <p>
-          Built with Astro and React, this application uses modern web technologies to provide a fast, 
-          responsive experience. An interface inpired by frosted-glass aesthetic, featuring a dark mode theme with cyan accents
-          that complements the vibrant colors of the generated art.
+          Built with Astro and React, this application uses modern web
+          technologies to provide a fast, responsive experience. An interface
+          inpired by frosted-glass aesthetic, featuring a dark mode theme with
+          cyan accents that complements the vibrant colors of the generated art.
         </p>
-        <p>
-          This project was inspired by a video from Corridor Crew:
-        </p>
+        <p>This project was inspired by a video from Corridor Crew:</p>
         <h3 class="video-title">I Made Art That HACKS Your Eyes</h3>
         <div class="video-container">
-          <iframe 
-            width="560" 
-            height="315" 
-            src="https://www.youtube.com/embed/SxsN6FRXMWQ?si=p4sz9KDZs15OeUoL" 
-            title="YouTube video player" 
-            style="border: none;" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-            referrerpolicy="strict-origin-when-cross-origin" 
-            allowfullscreen>
+          <iframe
+            width="560"
+            height="315"
+            src="https://www.youtube.com/embed/SxsN6FRXMWQ?si=p4sz9KDZs15OeUoL"
+            title="YouTube video player"
+            style="border: none;"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+          >
           </iframe>
         </div>
       </section>
-      
+
       <section class="about-section">
         <h2 class="about-subheader">How It Works</h2>
         <p>
-          1. <strong>Select Parameters</strong>: Customize your artwork by adjusting parameters in two main categories:
+          1. <strong>Select Parameters</strong>: Customize your artwork by
+          adjusting parameters in two main categories:
         </p>
         <ul class="parameter-list">
-          <li><strong>Seed & Growth</strong>: Control the seed value, pattern size, growth mode, seed shape, and more</li>
-          <li><strong>Color & Symmetry</strong>: Define color progression, curve type, color ordering, and symmetry options</li>
+          <li>
+            <strong>Seed & Growth</strong>: Control the seed value, pattern
+            size, growth mode, seed shape, and more
+          </li>
+          <li>
+            <strong>Color & Symmetry</strong>: Define color progression, curve
+            type, color ordering, and symmetry options
+          </li>
         </ul>
         <p>
-          2. <strong>Generate</strong>: Our algorithm processes your parameters to create a unique piece of algorithmic art
+          2. <strong>Generate</strong>: Our algorithm processes your parameters
+          to create a unique piece of algorithmic art
         </p>
         <p>
-          3. <strong>Export</strong>: Download your creation as a PNG or PDF file
+          3. <strong>Export</strong>: Download your creation as a PNG or PDF
+          file
         </p>
         <p>
-          4. <strong>Save</strong>: Add your favorite generations to your personal gallery to revisit later
+          4. <strong>Save</strong>: Add your favorite generations to your
+          personal gallery to revisit later
         </p>
       </section>
-      
+
       <section class="about-section">
         <h2 class="about-subheader">Pattern Generation Options</h2>
-        <p class="feature-intro">Click on any option below to learn more about it:</p>
+        <p class="feature-intro">
+          Click on any option below to learn more about it:
+        </p>
         <div class="feature-grid">
           <div class="feature-item" data-feature="growth-modes">
             <div class="feature-header">
@@ -78,9 +96,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <p class="feature-summary">Crystal, Nebula, Rings</p>
             <div class="feature-details">
               <ul>
-                <li><strong>Crystal:</strong> Creates crystalline formations with angular structures, growing in a more geometric pattern.</li>
-                <li><strong>Nebula:</strong> Produces cloud-like, organic shapes with diffused edges that resemble cosmic nebulae.</li>
-                <li><strong>Rings:</strong> Generates concentric circles and orbital patterns that expand outward like ripples.</li>
+                <li>
+                  <strong>Crystal:</strong> Creates crystalline formations with angular
+                  structures, growing in a more geometric pattern.
+                </li>
+                <li>
+                  <strong>Nebula:</strong> Produces cloud-like, organic shapes with
+                  diffused edges that resemble cosmic nebulae.
+                </li>
+                <li>
+                  <strong>Rings:</strong> Generates concentric circles and orbital
+                  patterns that expand outward like ripples.
+                </li>
               </ul>
             </div>
           </div>
@@ -92,9 +119,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <p class="feature-summary">Point, Circle, Line</p>
             <div class="feature-details">
               <ul>
-                <li><strong>Point:</strong> Starts growth from a single point at the center, creating a radial expansion pattern.</li>
-                <li><strong>Circle:</strong> Begins with a circular boundary that expands outward, creating ring-like structures.</li>
-                <li><strong>Line:</strong> Initiates growth from a line across the center, creating mirror-like patterns.</li>
+                <li>
+                  <strong>Point:</strong> Starts growth from a single point at the
+                  center, creating a radial expansion pattern.
+                </li>
+                <li>
+                  <strong>Circle:</strong> Begins with a circular boundary that expands
+                  outward, creating ring-like structures.
+                </li>
+                <li>
+                  <strong>Line:</strong> Initiates growth from a line across the
+                  center, creating mirror-like patterns.
+                </li>
               </ul>
             </div>
           </div>
@@ -106,10 +142,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <p class="feature-summary">None, Bilateral, Quadrantal, Radial</p>
             <div class="feature-details">
               <ul>
-                <li><strong>None:</strong> No symmetry applied - pattern grows freely in all directions without mirroring.</li>
-                <li><strong>Bilateral:</strong> Mirror symmetry along a central axis, like a butterfly's wings.</li>
-                <li><strong>Quadrantal:</strong> Four-way symmetry, mirrored in four quadrants from the center.</li>
-                <li><strong>Radial:</strong> Circular symmetry, repeating pattern radiates from the center point.</li>
+                <li>
+                  <strong>None:</strong> No symmetry applied - pattern grows freely
+                  in all directions without mirroring.
+                </li>
+                <li>
+                  <strong>Bilateral:</strong> Mirror symmetry along a central axis,
+                  like a butterfly's wings.
+                </li>
+                <li>
+                  <strong>Quadrantal:</strong> Four-way symmetry, mirrored in four
+                  quadrants from the center.
+                </li>
+                <li>
+                  <strong>Radial:</strong> Circular symmetry, repeating pattern radiates
+                  from the center point.
+                </li>
               </ul>
             </div>
           </div>
@@ -121,9 +169,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <p class="feature-summary">Sequential, Shuffled, Base Distance</p>
             <div class="feature-details">
               <ul>
-                <li><strong>Sequential:</strong> Colors follow a strict sequence based on their position in the RGB space.</li>
-                <li><strong>Shuffled:</strong> Colors are randomly arranged while maintaining visual coherence.</li>
-                <li><strong>Base Distance:</strong> Colors are distributed based on their distance from a base color.</li>
+                <li>
+                  <strong>Sequential:</strong> Colors follow a strict sequence based
+                  on their position in the RGB space.
+                </li>
+                <li>
+                  <strong>Shuffled:</strong> Colors are randomly arranged while maintaining
+                  visual coherence.
+                </li>
+                <li>
+                  <strong>Base Distance:</strong> Colors are distributed based on
+                  their distance from a base color.
+                </li>
               </ul>
             </div>
           </div>
@@ -135,8 +192,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <p class="feature-summary">Hilbert, Morton</p>
             <div class="feature-details">
               <ul>
-                <li><strong>Hilbert:</strong> A space-filling curve that preserves locality well, creating smoother color transitions and more organic patterns.</li>
-                <li><strong>Morton:</strong> Also known as Z-order curve, creates more blocky, quadrant-based patterns with distinct regions.</li>
+                <li>
+                  <strong>Hilbert:</strong> A space-filling curve that preserves
+                  locality well, creating smoother color transitions and more organic
+                  patterns.
+                </li>
+                <li>
+                  <strong>Morton:</strong> Also known as Z-order curve, creates more
+                  blocky, quadrant-based patterns with distinct regions.
+                </li>
               </ul>
             </div>
           </div>
@@ -148,25 +212,54 @@ import BaseLayout from '../layouts/BaseLayout.astro';
             <p class="feature-summary">HSV, HVS, SHV, SVH, VHS, VSH</p>
             <div class="feature-details">
               <ul>
-                <li><strong>HSV:</strong> Arranges colors by Hue, Saturation, Value - emphasizing color families.</li>
-                <li><strong>HVS:</strong> Arranges by Hue, Value, Saturation - emphasizing brightness variations within hues.</li>
-                <li><strong>SHV:</strong> Arranges by Saturation, Hue, Value - grouping by color intensity first.</li>
-                <li><strong>SVH:</strong> Arranges by Saturation, Value, Hue - emphasizing intensity and brightness patterns.</li>
-                <li><strong>VHS:</strong> Arranges by Value, Hue, Saturation - creating bands of brightness.</li>
-                <li><strong>VSH:</strong> Arranges by Value, Saturation, Hue - emphasizing brightness and intensity patterns.</li>
+                <li>
+                  <strong>HSV:</strong> Arranges colors by Hue, Saturation, Value
+                  - emphasizing color families.
+                </li>
+                <li>
+                  <strong>HVS:</strong> Arranges by Hue, Value, Saturation - emphasizing
+                  brightness variations within hues.
+                </li>
+                <li>
+                  <strong>SHV:</strong> Arranges by Saturation, Hue, Value - grouping
+                  by color intensity first.
+                </li>
+                <li>
+                  <strong>SVH:</strong> Arranges by Saturation, Value, Hue - emphasizing
+                  intensity and brightness patterns.
+                </li>
+                <li>
+                  <strong>VHS:</strong> Arranges by Value, Hue, Saturation - creating
+                  bands of brightness.
+                </li>
+                <li>
+                  <strong>VSH:</strong> Arranges by Value, Saturation, Hue - emphasizing
+                  brightness and intensity patterns.
+                </li>
               </ul>
             </div>
           </div>
         </div>
       </section>
-      
+
       <section class="about-section technical-specs">
         <h2 class="about-subheader">Technical Specifications</h2>
         <ul>
-          <li><span class="spec-label">Pattern Sizes:</span> From 128×128 to 4096×4096 pixels</li>
-          <li><span class="spec-label">Algorithms:</span> Hilbert Curve, Morton Curve (Z-order)</li>
-          <li><span class="spec-label">Export Options:</span> PNG and PDF formats</li>
-          <li><span class="spec-label">Settings Storage:</span> Browser local storage for saved settings</li>
+          <li>
+            <span class="spec-label">Pattern Sizes:</span> From 128×128 to 4096×4096
+            pixels
+          </li>
+          <li>
+            <span class="spec-label">Algorithms:</span> Hilbert Curve, Morton Curve
+            (Z-order)
+          </li>
+          <li>
+            <span class="spec-label">Export Options:</span> PNG and PDF formats
+          </li>
+          <li>
+            <span class="spec-label">Settings Storage:</span> Browser local storage
+            for saved settings
+          </li>
         </ul>
       </section>
     </div>
@@ -175,33 +268,36 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
 <script is:inline>
   // Feature cards expand/collapse functionality
-  document.addEventListener('DOMContentLoaded', () => {
-    const featureItems = document.querySelectorAll('.feature-item');
-    
-    featureItems.forEach(item => {
+  document.addEventListener("DOMContentLoaded", () => {
+    const featureItems = document.querySelectorAll(".feature-item");
+
+    featureItems.forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
-      
+
       // Set initial ARIA attributes
-      item.setAttribute('role', 'button');
-      item.setAttribute('tabindex', '0');
-      item.setAttribute('aria-expanded', 'false');
-      const dataFeature = item.getAttribute('data-feature') || 'feature';
+      item.setAttribute("role", "button");
+      item.setAttribute("tabindex", "0");
+      item.setAttribute("aria-expanded", "false");
+      const dataFeature = item.getAttribute("data-feature") || "feature";
       const detailsId = `details-${dataFeature}`;
-      const details = item.querySelector('.feature-details');
+      const details = item.querySelector(".feature-details");
       if (details) {
         details.id = detailsId;
-        item.setAttribute('aria-controls', detailsId);
+        item.setAttribute("aria-controls", detailsId);
       }
-      
+
       // Add click and keyboard event handlers
-      item.addEventListener('click', (e) => {
+      item.addEventListener("click", (e) => {
         // Add click effect
         addClickEffect(item);
         toggleFeature(item, featureItems);
       });
-      item.addEventListener('keydown', (e) => {
+      item.addEventListener("keydown", (e) => {
         // Ensure e is a KeyboardEvent before accessing key property
-        if (e instanceof KeyboardEvent && (e.key === 'Enter' || e.key === ' ')) {
+        if (
+          e instanceof KeyboardEvent &&
+          (e.key === "Enter" || e.key === " ")
+        ) {
           e.preventDefault();
           // Add click effect
           addClickEffect(item);
@@ -209,41 +305,41 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         }
       });
     });
-    
+
     function addClickEffect(item) {
       if (!(item instanceof HTMLElement)) return;
-      
+
       // Add click effect class
-      item.classList.add('click-effect');
-      
+      item.classList.add("click-effect");
+
       // Remove the class after animation completes
       setTimeout(() => {
-        item.classList.remove('click-effect');
+        item.classList.remove("click-effect");
       }, 150);
     }
-    
+
     function toggleFeature(item, allItems) {
       if (!(item instanceof HTMLElement)) return;
-      
+
       // Toggle active class
-      const wasActive = item.classList.contains('active');
-      
+      const wasActive = item.classList.contains("active");
+
       // Close all items
-      allItems.forEach(otherItem => {
+      allItems.forEach((otherItem) => {
         if (!(otherItem instanceof HTMLElement)) return;
-        
-        otherItem.classList.remove('active');
-        otherItem.setAttribute('aria-expanded', 'false');
-        const otherIcon = otherItem.querySelector('.feature-expand-icon');
-        if (otherIcon) otherIcon.textContent = '+';
+
+        otherItem.classList.remove("active");
+        otherItem.setAttribute("aria-expanded", "false");
+        const otherIcon = otherItem.querySelector(".feature-expand-icon");
+        if (otherIcon) otherIcon.textContent = "+";
       });
-      
+
       // If the clicked item wasn't active before, make it active
       if (!wasActive) {
-        item.classList.add('active');
-        item.setAttribute('aria-expanded', 'true');
-        const expandIcon = item.querySelector('.feature-expand-icon');
-        if (expandIcon) expandIcon.textContent = '−';
+        item.classList.add("active");
+        item.setAttribute("aria-expanded", "true");
+        const expandIcon = item.querySelector(".feature-expand-icon");
+        if (expandIcon) expandIcon.textContent = "−";
       }
     }
   });
@@ -255,7 +351,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     margin: 0 auto;
     padding: 2rem;
   }
-  
+
   .about-header {
     font-size: 2rem;
     font-weight: 600;
@@ -263,7 +359,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     margin-bottom: 2rem;
     text-align: center;
   }
-  
+
   .about-content {
     background-color: rgba(15, 23, 42, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -271,42 +367,42 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     padding: 2rem;
     color: white;
   }
-  
+
   .about-section {
     margin-bottom: 3rem;
   }
-  
+
   .about-section:last-child {
     margin-bottom: 0;
   }
-  
+
   .about-subheader {
     font-size: 1.25rem;
     font-weight: 600;
     color: #f1f5f9;
     margin-bottom: 1rem;
   }
-  
+
   .about-content p {
     font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 1rem;
     color: #94a3b8;
   }
-  
+
   .parameter-list {
     list-style-type: disc;
     padding-left: 2rem;
     margin-bottom: 1.25rem;
   }
-  
+
   .parameter-list li {
     font-size: 0.95rem;
     line-height: 1.6;
     color: #94a3b8;
     margin-bottom: 0.5rem;
   }
-  
+
   .feature-intro {
     text-align: center;
     margin-bottom: 1.5rem;
@@ -314,14 +410,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     color: #64748b;
     font-size: 0.9rem;
   }
-  
+
   .feature-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
     margin-top: 1rem;
   }
-  
+
   .feature-item {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 0.5rem;
@@ -331,41 +427,41 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     cursor: pointer;
     overflow: hidden;
   }
-  
+
   .feature-item:hover {
     border-color: rgba(255, 255, 255, 0.12);
   }
-  
+
   .feature-item.click-effect {
     opacity: 0.9;
   }
-  
+
   .feature-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  
+
   .feature-expand-icon {
     color: #64748b;
     font-size: 1.25rem;
     font-weight: 300;
     line-height: 1;
   }
-  
+
   .feature-item h3 {
     font-size: 1rem;
     color: #f1f5f9;
     margin-bottom: 0.375rem;
     font-weight: 500;
   }
-  
+
   .feature-summary {
     font-size: 0.85rem;
     margin-bottom: 0;
     color: #64748b;
   }
-  
+
   .feature-details {
     max-height: 0;
     opacity: 0;
@@ -373,11 +469,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     transition: all 0.3s ease;
     margin-top: 0;
   }
-  
+
   .feature-item.active {
     background-color: rgba(0, 0, 0, 0.3);
   }
-  
+
   .feature-item.active .feature-details {
     max-height: 500px;
     opacity: 1;
@@ -385,78 +481,78 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     padding-top: 0.75rem;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
-  
+
   .feature-details ul {
     padding-left: 1.25rem;
     margin: 0;
   }
-  
+
   .feature-details li {
     margin-bottom: 0.5rem;
     color: #94a3b8;
     font-size: 0.85rem;
     line-height: 1.5;
   }
-  
+
   .feature-details li:last-child {
     margin-bottom: 0;
   }
-  
+
   .technical-specs ul {
     list-style: none;
     padding: 0;
   }
-  
+
   .technical-specs li {
     padding: 0.625rem 0;
     font-size: 0.9rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     color: #94a3b8;
   }
-  
+
   .technical-specs li:last-child {
     border-bottom: none;
   }
-  
+
   .spec-label {
     color: #f1f5f9;
     font-weight: 500;
     margin-right: 0.5rem;
   }
-  
+
   strong {
     color: #e2e8f0;
     font-weight: 500;
   }
-  
+
   @media (max-width: 768px) {
     .about-container {
       padding: 1.5rem;
     }
-    
+
     .about-content {
       padding: 1.75rem;
     }
-    
+
     .about-header {
       font-size: 2.5rem;
       margin-bottom: 2rem;
     }
-    
+
     .about-subheader {
       font-size: 1.5rem;
     }
-    
+
     .about-content p {
       font-size: 1rem;
     }
-    
+
     .feature-grid {
       grid-template-columns: 1fr;
       gap: 1rem;
     }
   }
-  
+
   .video-container {
     position: relative;
     padding-bottom: 56.25%; /* 16:9 aspect ratio */
@@ -466,7 +562,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     border-radius: 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
-  
+
   .video-container iframe {
     position: absolute;
     top: 0;
@@ -475,7 +571,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     height: 100%;
     border-radius: 0.5rem;
   }
-  
+
   .video-title {
     font-size: 1rem;
     font-weight: 500;
@@ -483,4 +579,5 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     margin-bottom: 0.75rem;
     text-align: center;
   }
-</style> 
+</style>
+

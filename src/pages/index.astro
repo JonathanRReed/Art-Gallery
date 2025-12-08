@@ -1,6 +1,6 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import GenerationPage from '../components/GenerationPage.jsx';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import GenerationPage from "../components/GenerationPage.jsx";
 // import ControlsPanel from '../components/ControlsPanel.jsx';
 // import PreviewCanvas from '../components/PreviewCanvas.jsx';
 // import ExportPanel from '../components/ExportPanel.jsx';
@@ -9,28 +9,62 @@ import GenerationPage from '../components/GenerationPage.jsx';
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<BaseLayout title="Algorithmic Art - Generate Beautiful Pattern Art" description="Create unique algorithmic art patterns with customizable parameters. Generate, save, and export your own mathematical art.">
-	<div class="loading-skeleton">
-		<div class="skeleton-header"></div>
+<BaseLayout
+	title="Algorithmic Art Generator | Create Pattern Art by Jonathan Reed"
+	description="Create unique algorithmic art patterns with customizable parameters. Generate, save, and export your own mathematical art."
+>
+	<div class="loading-skeleton" id="loading-skeleton">
+		<div class="skeleton-welcome">
+			<div class="skeleton-logo-pulse"></div>
+			<div class="skeleton-title-line"></div>
+			<div class="skeleton-subtitle-line"></div>
+		</div>
 		<div class="skeleton-content">
-			<div class="skeleton-panel"></div>
+			<div class="skeleton-panel">
+				<div class="skeleton-panel-header"></div>
+				<div class="skeleton-panel-item"></div>
+				<div class="skeleton-panel-item"></div>
+				<div class="skeleton-panel-item short"></div>
+				<div class="skeleton-panel-item"></div>
+				<div class="skeleton-panel-item short"></div>
+			</div>
 			<div class="skeleton-preview">
-				<div class="skeleton-canvas"></div>
-				<div class="skeleton-buttons">
-					<div class="skeleton-button-lg"></div>
-					<div class="skeleton-buttons-row">
-						<div class="skeleton-button-sm"></div>
-						<div class="skeleton-button-sm"></div>
-					</div>
+				<div class="skeleton-canvas">
+					<div class="skeleton-canvas-icon">🎨</div>
+				</div>
+				<div class="skeleton-button-lg"></div>
+				<div class="skeleton-buttons-row">
+					<div class="skeleton-button-sm"></div>
+					<div class="skeleton-button-sm"></div>
 				</div>
 			</div>
 		</div>
 	</div>
-	
+
 	<div class="generator-container">
 		<GenerationPage client:only="react" />
 	</div>
 </BaseLayout>
+
+<script is:inline>
+	// Hide skeleton when React component loads
+	const checkReactLoaded = () => {
+		const skeleton = document.getElementById("loading-skeleton");
+		const generator = document.querySelector(".generator-container");
+		if (generator && generator.children.length > 0) {
+			if (skeleton) {
+				skeleton.classList.add("fade-out");
+				setTimeout(() => {
+					skeleton.style.display = "none";
+				}, 300);
+			}
+		} else {
+			requestAnimationFrame(checkReactLoaded);
+		}
+	};
+	// Start checking after a brief delay
+	setTimeout(checkReactLoaded, 100);
+</script>
 
 <style>
 	/* Loading skeleton styles */
@@ -38,106 +72,229 @@ import GenerationPage from '../components/GenerationPage.jsx';
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-		animation: fade-out 0.5s forwards;
-		animation-delay: 0.8s; /* Allow time for React to load */
+		padding: 1rem;
 		position: absolute;
 		top: 80px;
 		left: 0;
 		right: 0;
+		opacity: 1;
+		transition: opacity 0.3s ease-out;
 	}
-	
-	@keyframes fade-out {
-		from { opacity: 1; }
-		to { opacity: 0; visibility: hidden; }
+
+	.loading-skeleton.fade-out {
+		opacity: 0;
+		pointer-events: none;
 	}
-	
-	.skeleton-header {
-		height: 40px;
-		width: 70%;
-		background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(43, 58, 84, 0.8) 50%, rgba(30, 41, 59, 0.8) 100%);
-		border-radius: 8px;
-		margin: 20px auto;
+
+	/* Welcome section */
+	.skeleton-welcome {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		margin-bottom: 2rem;
+		padding: 1.5rem;
+	}
+
+	.skeleton-logo-pulse {
+		width: 60px;
+		height: 60px;
+		border-radius: 50%;
+		background: linear-gradient(
+			135deg,
+			rgba(103, 232, 249, 0.2),
+			rgba(103, 232, 249, 0.05)
+		);
+		margin-bottom: 1rem;
+		animation: pulse 1.5s ease-in-out infinite;
+	}
+
+	.skeleton-title-line {
+		height: 28px;
+		width: 280px;
+		max-width: 80%;
+		background: linear-gradient(
+			90deg,
+			rgba(30, 41, 59, 0.6) 0%,
+			rgba(51, 65, 85, 0.6) 50%,
+			rgba(30, 41, 59, 0.6) 100%
+		);
+		border-radius: 6px;
+		margin-bottom: 0.75rem;
 		background-size: 200% 100%;
-		animation: loading-shimmer 1.5s infinite linear;
+		animation: shimmer 2s infinite linear;
 	}
-	
+
+	.skeleton-subtitle-line {
+		height: 16px;
+		width: 200px;
+		max-width: 60%;
+		background: linear-gradient(
+			90deg,
+			rgba(30, 41, 59, 0.4) 0%,
+			rgba(51, 65, 85, 0.4) 50%,
+			rgba(30, 41, 59, 0.4) 100%
+		);
+		border-radius: 4px;
+		background-size: 200% 100%;
+		animation: shimmer 2s infinite linear;
+		animation-delay: 0.2s;
+	}
+
 	.skeleton-content {
 		display: flex;
-		gap: 20px;
-		padding: 16px;
+		gap: 1.5rem;
+		padding: 0.5rem;
 	}
-	
+
 	.skeleton-panel {
-		flex: 0 0 300px;
-		height: 500px;
-		background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(43, 58, 84, 0.8) 50%, rgba(30, 41, 59, 0.8) 100%);
-		border-radius: 8px;
-		background-size: 200% 100%;
-		animation: loading-shimmer 1.5s infinite linear;
+		flex: 0 0 280px;
+		background: rgba(15, 23, 42, 0.6);
+		border-radius: 12px;
+		padding: 1.25rem;
+		border: 1px solid rgba(255, 255, 255, 0.05);
 	}
-	
+
+	.skeleton-panel-header {
+		height: 20px;
+		width: 60%;
+		background: linear-gradient(
+			90deg,
+			rgba(51, 65, 85, 0.6) 0%,
+			rgba(71, 85, 105, 0.6) 50%,
+			rgba(51, 65, 85, 0.6) 100%
+		);
+		border-radius: 4px;
+		margin-bottom: 1.25rem;
+		background-size: 200% 100%;
+		animation: shimmer 2s infinite linear;
+	}
+
+	.skeleton-panel-item {
+		height: 42px;
+		width: 100%;
+		background: linear-gradient(
+			90deg,
+			rgba(30, 41, 59, 0.5) 0%,
+			rgba(51, 65, 85, 0.5) 50%,
+			rgba(30, 41, 59, 0.5) 100%
+		);
+		border-radius: 8px;
+		margin-bottom: 0.875rem;
+		background-size: 200% 100%;
+		animation: shimmer 2s infinite linear;
+	}
+
+	.skeleton-panel-item.short {
+		width: 75%;
+	}
+
 	.skeleton-preview {
 		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: 20px;
+		gap: 1rem;
 	}
-	
+
 	.skeleton-canvas {
 		aspect-ratio: 1/1;
-		background: linear-gradient(90deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 50%, rgba(15, 23, 42, 0.8) 100%);
-		border-radius: 8px;
-		background-size: 200% 100%;
-		animation: loading-shimmer 1.5s infinite linear;
-	}
-	
-	.skeleton-buttons {
+		max-width: 400px;
+		background: linear-gradient(
+			135deg,
+			rgba(15, 23, 42, 0.8),
+			rgba(30, 41, 59, 0.6)
+		);
+		border-radius: 12px;
+		border: 1px solid rgba(255, 255, 255, 0.05);
 		display: flex;
-		flex-direction: column;
-		gap: 12px;
+		align-items: center;
+		justify-content: center;
 	}
-	
+
+	.skeleton-canvas-icon {
+		font-size: 3rem;
+		opacity: 0.3;
+		animation: pulse 2s ease-in-out infinite;
+	}
+
 	.skeleton-button-lg {
-		height: 40px;
-		background: linear-gradient(90deg, rgba(9, 107, 81, 0.8) 0%, rgba(16, 185, 129, 0.8) 50%, rgba(9, 107, 81, 0.8) 100%);
+		height: 44px;
+		max-width: 400px;
+		background: linear-gradient(
+			90deg,
+			rgba(16, 185, 129, 0.3) 0%,
+			rgba(16, 185, 129, 0.15) 50%,
+			rgba(16, 185, 129, 0.3) 100%
+		);
 		border-radius: 8px;
 		background-size: 200% 100%;
-		animation: loading-shimmer 1.5s infinite linear;
+		animation: shimmer 2s infinite linear;
+		animation-delay: 0.3s;
 	}
-	
+
 	.skeleton-buttons-row {
 		display: flex;
-		gap: 12px;
+		gap: 0.75rem;
+		max-width: 400px;
 	}
-	
+
 	.skeleton-button-sm {
 		height: 40px;
 		flex: 1;
-		background: linear-gradient(90deg, rgba(30, 41, 59, 0.8) 0%, rgba(43, 58, 84, 0.8) 50%, rgba(30, 41, 59, 0.8) 100%);
+		background: linear-gradient(
+			90deg,
+			rgba(30, 41, 59, 0.5) 0%,
+			rgba(51, 65, 85, 0.5) 50%,
+			rgba(30, 41, 59, 0.5) 100%
+		);
 		border-radius: 8px;
 		background-size: 200% 100%;
-		animation: loading-shimmer 1.5s infinite linear;
+		animation: shimmer 2s infinite linear;
+		animation-delay: 0.4s;
 	}
-	
-	@keyframes loading-shimmer {
-		0% { background-position: 200% 0; }
-		100% { background-position: -200% 0; }
+
+	@keyframes shimmer {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
 	}
-	
+
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 0.4;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.7;
+			transform: scale(1.02);
+		}
+	}
+
 	.generator-container {
 		width: 100%;
 	}
-	
+
 	/* Mobile responsiveness */
 	@media (max-width: 768px) {
 		.skeleton-content {
 			flex-direction: column;
 		}
-		
+
 		.skeleton-panel {
 			width: 100%;
 			flex: none;
-			height: 300px;
+		}
+
+		.skeleton-canvas {
+			max-width: 100%;
+		}
+
+		.skeleton-button-lg,
+		.skeleton-buttons-row {
+			max-width: 100%;
 		}
 	}
 </style>

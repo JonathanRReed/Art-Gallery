@@ -41,20 +41,20 @@ export default function GalleryPage() {
     try {
       const updated = [...gallery];
       updated.splice(idx, 1);
-      
+
       // Validate JSON serialization
       if (!checkSerializable(updated, 'updated gallery')) {
         console.error('Cannot serialize updated gallery');
         return;
       }
-      
+
       setGallery(updated);
       localStorage.setItem('gallery', JSON.stringify(updated));
     } catch (error) {
       console.error('Error deleting from gallery:', error);
     }
   }
-  
+
   function handleDownload(idx) {
     try {
       const item = gallery[idx];
@@ -62,7 +62,7 @@ export default function GalleryPage() {
         console.error('Missing image data for download');
         return;
       }
-      
+
       // Create download link
       const link = document.createElement('a');
       link.href = item.imageDataUrl;
@@ -93,11 +93,11 @@ export default function GalleryPage() {
           lineHeight: '1.4',
           textAlign: 'center'
         }}>
-          Gallery images are saved locally in your browser (up to 5MB limit). 
+          Gallery images are saved locally in your browser (up to 5MB limit).
           Images will not transfer between browsers or devices.
         </p>
       </div>
-      
+
       <div className="gallery-grid">
         {gallery.length === 0 && (
           <div className="empty-gallery">
@@ -108,7 +108,7 @@ export default function GalleryPage() {
           <div key={item.savedAt} className="gallery-card">
             <img
               src={item.imageDataUrl}
-              alt="Poster preview"
+              alt={`Algorithmic art with ${item.params.curveType} curve, seed ${item.params.seed}, ${item.params.colorOrdering} color ordering`}
               className="gallery-card-image"
             />
             <div className="gallery-card-info">
@@ -140,7 +140,7 @@ export default function GalleryPage() {
       {viewIndex !== null && gallery[viewIndex] && (
         <div className="gallery-modal" onClick={handleCloseModal}>
           <div className="gallery-modal-content" onClick={e => e.stopPropagation()}>
-            <button 
+            <button
               className="gallery-modal-close"
               onClick={handleCloseModal}
             >
@@ -148,7 +148,7 @@ export default function GalleryPage() {
             </button>
             <img
               src={gallery[viewIndex].imageDataUrl}
-              alt="Full size poster"
+              alt={`Full-size algorithmic art with ${gallery[viewIndex].params.curveType} curve, seed ${gallery[viewIndex].params.seed}`}
               className="gallery-modal-image"
             />
           </div>
