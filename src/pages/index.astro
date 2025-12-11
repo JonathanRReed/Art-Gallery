@@ -10,9 +10,16 @@ import GenerationPage from "../components/GenerationPage.jsx";
 ---
 
 <BaseLayout
-	title="Algorithmic Art Generator | Create Pattern Art by Jonathan Reed"
-	description="Create unique algorithmic art patterns with customizable parameters. Generate, save, and export your own mathematical art."
+	title="Algorithmic Art Gallery | Generative art by Jonathan R Reed"
+	description="Algorithmic Art Gallery showcases generative and algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design."
 >
+	<div class="intro-section">
+		<p class="intro-text">
+			<strong>Algorithmic Art Gallery</strong> is a collection of generative
+			& algorithmic pieces you create <em>by Jonathan R Reed</em>.
+		</p>
+	</div>
+
 	<div class="loading-skeleton" id="loading-skeleton">
 		<div class="skeleton-welcome">
 			<div class="skeleton-logo-pulse"></div>
@@ -271,6 +278,35 @@ import GenerationPage from "../components/GenerationPage.jsx";
 			opacity: 0.7;
 			transform: scale(1.02);
 		}
+	}
+
+	/* Intro section styles */
+	.intro-section {
+		width: 100%;
+		max-width: 700px;
+		margin: 0 auto 2rem;
+		padding: 1rem 1.5rem;
+		text-align: center;
+		background: rgba(15, 23, 42, 0.5);
+		border: 1px solid rgba(103, 232, 249, 0.1);
+		border-radius: 12px;
+	}
+
+	.intro-text {
+		color: #94a3b8;
+		font-size: 0.95rem;
+		line-height: 1.7;
+		margin: 0;
+	}
+
+	.intro-text strong {
+		color: #f1f5f9;
+		font-weight: 600;
+	}
+
+	.intro-text em {
+		color: #67e8f9;
+		font-style: normal;
 	}
 
 	.generator-container {

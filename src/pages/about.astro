@@ -3,8 +3,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
 <BaseLayout
-  title="About | Algorithmic Art by Jonathan Reed"
-  description="Learn how the Algorithmic Art Gallery creates generative art using space-filling curves and mathematical algorithms."
+  title="About | Algorithmic Art Gallery by Jonathan R Reed"
+  description="Learn how the Algorithmic Art Gallery by Jonathan R Reed creates generative art using space-filling curves and mathematical algorithms."
 >
   <div class="about-container">
     <h1 class="about-header">About</h1>
@@ -13,17 +13,25 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <section class="about-section">
         <h2 class="about-subheader">The Project</h2>
         <p>
-          Algorithmic Art Gallery is a modern, minimal web application that
-          showcases generative art created through mathematical algorithms. The
-          gallery generates trippy beautiful visual patterns using space-filling
-          curves and color mapping algorithms, creating unique and vibrant
-          algorithmic artwork.
+          This is a small generative art project by me, Jonathan Reed! It uses
+          space-filling curves (Hilbert and Morton) combined with color mapping
+          to produce patterns. You control the seed value, growth mode,
+          symmetry, and color ordering—then let the algorithm fill in the
+          pixels.
         </p>
         <p>
-          Each artwork is a unique manifestation of algorithmic processes, seed
-          values, and color mappings, creating an endless possibility of
-          visually stunning patterns. The combination of different parameters
-          allows for virtually infinite unique generations.
+          Every output is deterministic: same settings produce the same image.
+          Change a parameter and you get something new. It's mostly an
+          experiment in seeing what happens when you let math do the drawing.
+        </p>
+        <p class="about-link">
+          <a
+            href="https://jonathanrreed.com/projects/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            See more projects by Jonathan Reed →
+          </a>
         </p>
       </section>
 
@@ -128,8 +136,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
                   outward, creating ring-like structures.
                 </li>
                 <li>
-                  <strong>Line:</strong> Initiates growth from a line across the
-                  center, creating mirror-like patterns.
+                  <strong>Line:</strong> Initiates growth from a line across the center,
+                  creating mirror-like patterns.
                 </li>
               </ul>
             </div>
@@ -193,9 +201,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <div class="feature-details">
               <ul>
                 <li>
-                  <strong>Hilbert:</strong> A space-filling curve that preserves
-                  locality well, creating smoother color transitions and more organic
-                  patterns.
+                  <strong>Hilbert:</strong> A space-filling curve that preserves locality
+                  well, creating smoother color transitions and more organic patterns.
                 </li>
                 <li>
                   <strong>Morton:</strong> Also known as Z-order curve, creates more
@@ -579,5 +586,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     margin-bottom: 0.75rem;
     text-align: center;
   }
-</style>
 
+  .about-link {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .about-link a {
+    color: #67e8f9;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .about-link a:hover {
+    color: #22d3ee;
+    text-decoration: underline;
+  }
+</style>
