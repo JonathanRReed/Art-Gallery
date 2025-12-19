@@ -155,6 +155,132 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 		</div>
 		<Footer />
 
+		<!-- Premium Interactive Effects -->
+		<script is:inline defer>
+			document.addEventListener("DOMContentLoaded", () => {
+				// ========================================
+				// CURSOR SPOTLIGHT EFFECT (Linear/Raycast style)
+				// ========================================
+				const spotlightContainers = document.querySelectorAll(
+					".panel-container, .preview-container, .intro-section, .gallery-card",
+				);
+
+				spotlightContainers.forEach((container) => {
+					// Create spotlight overlay
+					const spotlight = document.createElement("div");
+					spotlight.className = "cursor-spotlight";
+					spotlight.style.cssText = `
+						position: absolute;
+						inset: 0;
+						pointer-events: none;
+						opacity: 0;
+						transition: opacity 0.3s ease;
+						z-index: 1;
+						border-radius: inherit;
+						overflow: hidden;
+					`;
+
+					// Ensure container has relative positioning
+					const computedStyle = getComputedStyle(container);
+					if (computedStyle.position === "static") {
+						container.style.position = "relative";
+					}
+					container.appendChild(spotlight);
+
+					container.addEventListener("mousemove", (e) => {
+						const rect = container.getBoundingClientRect();
+						const x = e.clientX - rect.left;
+						const y = e.clientY - rect.top;
+
+						spotlight.style.background = `
+							radial-gradient(
+								400px circle at ${x}px ${y}px,
+								rgba(103, 232, 249, 0.06) 0%,
+								transparent 60%
+							)
+						`;
+						spotlight.style.opacity = "1";
+					});
+
+					container.addEventListener("mouseleave", () => {
+						spotlight.style.opacity = "0";
+					});
+				});
+
+				// ========================================
+				// SCROLL FADE-IN ANIMATIONS
+				// ========================================
+				const observerOptions = {
+					threshold: 0.1,
+					rootMargin: "0px 0px -50px 0px",
+				};
+
+				const fadeInObserver = new IntersectionObserver((entries) => {
+					entries.forEach((entry) => {
+						if (entry.isIntersecting) {
+							entry.target.classList.add("fade-in-visible");
+							// Optional: unobserve after animation
+							// fadeInObserver.unobserve(entry.target);
+						}
+					});
+				}, observerOptions);
+
+				// Add fade-in to elements
+				const fadeElements = document.querySelectorAll(
+					".intro-section, .panel-container, .preview-container, .gallery-card, .footer-section",
+				);
+				fadeElements.forEach((el) => {
+					el.classList.add("fade-in-element");
+					fadeInObserver.observe(el);
+				});
+
+				// ========================================
+				// ANIMATED GRADIENT BORDER (premium intro)
+				// ========================================
+				const gradientBorderElements =
+					document.querySelectorAll(".intro-section");
+				gradientBorderElements.forEach((el) => {
+					el.classList.add("gradient-border-animated");
+				});
+
+				// ========================================
+				// FLOATING PARTICLES (subtle ambient effect)
+				// ========================================
+				const pageBackground =
+					document.querySelector(".page-background");
+				if (pageBackground) {
+					const particleContainer = document.createElement("div");
+					particleContainer.className = "floating-particles";
+					particleContainer.style.cssText = `
+						position: absolute;
+						inset: 0;
+						overflow: hidden;
+						pointer-events: none;
+					`;
+
+					// Create a few floating orbs
+					for (let i = 0; i < 3; i++) {
+						const orb = document.createElement("div");
+						orb.className = "floating-orb";
+						orb.style.cssText = `
+							position: absolute;
+							width: ${200 + i * 100}px;
+							height: ${200 + i * 100}px;
+							border-radius: 50%;
+							background: radial-gradient(circle, rgba(103, 232, 249, 0.03) 0%, transparent 70%);
+							filter: blur(40px);
+							animation: float-orb ${15 + i * 5}s ease-in-out infinite;
+							animation-delay: ${i * -5}s;
+							left: ${20 + i * 30}%;
+							top: ${10 + i * 20}%;
+						`;
+						particleContainer.appendChild(orb);
+					}
+					pageBackground.appendChild(particleContainer);
+				}
+			});
+		</script>
+
 		<script is:inline defer>
 			// Global click effect for all buttons using event delegation
 			document.addEventListener("DOMContentLoaded", () => {
@@ -282,6 +408,9 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 			"Nebula", "Inter", "ui-sans-serif", "system-ui", sans-serif;
 		background: #080a0e;
 		overflow-x: hidden;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		text-rendering: optimizeLegibility;
 	}
 
 	.content-wrapper {
@@ -304,10 +433,13 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 		left: 0;
 		width: 100%;
 		z-index: 10;
-		background-color: rgba(8, 10, 14, 0.85);
-		backdrop-filter: blur(12px);
-		border-bottom: 1px solid rgba(103, 232, 249, 0.15);
-		box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.5);
+		background-color: rgba(8, 10, 14, 0.8);
+		backdrop-filter: blur(20px) saturate(180%);
+		-webkit-backdrop-filter: blur(20px) saturate(180%);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		box-shadow:
+			0 4px 30px -4px rgba(0, 0, 0, 0.5),
+			inset 0 -0.5px 0 0 rgba(255, 255, 255, 0.05);
 	}
 
 	.nav-container {
@@ -353,27 +485,185 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 		font-size: 0.9rem;
 		padding: 0.5rem 0.75rem;
 		border-radius: 0.375rem;
-		transition:
-			color 0.15s,
-			background-color 0.15s;
+		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 		font-weight: 500;
 		position: relative;
 	}
 
 	.nav-link:hover {
 		color: #f1f5f9;
-		background-color: rgba(255, 255, 255, 0.05);
+		background-color: rgba(255, 255, 255, 0.06);
 	}
 
 	.nav-link.active {
 		color: #f1f5f9;
-		background-color: rgba(255, 255, 255, 0.08);
+		background-color: rgba(255, 255, 255, 0.1);
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 	}
 
 	/* Subtle click feedback */
 	.click-effect {
 		opacity: 0.8 !important;
 		transition: opacity 0.1s ease !important;
+	}
+
+	/* Premium noise texture overlay */
+	.page-background::after {
+		content: "";
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		pointer-events: none;
+		opacity: 0.015;
+		background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+		z-index: 9999;
+	}
+
+	/* Smooth focus rings for all interactive elements */
+	button:focus-visible,
+	a:focus-visible,
+	input:focus-visible,
+	select:focus-visible {
+		outline: 2px solid rgba(103, 232, 249, 0.5);
+		outline-offset: 2px;
+	}
+
+	/* Global smooth transitions */
+	a,
+	button {
+		transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	/* ========================================
+	   SCROLL FADE-IN ANIMATIONS
+	   ======================================== */
+	.fade-in-element {
+		opacity: 0;
+		transform: translateY(20px);
+		transition:
+			opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.fade-in-visible {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	/* Staggered animations for child elements */
+	.fade-in-visible > *:nth-child(1) {
+		transition-delay: 0.05s;
+	}
+	.fade-in-visible > *:nth-child(2) {
+		transition-delay: 0.1s;
+	}
+	.fade-in-visible > *:nth-child(3) {
+		transition-delay: 0.15s;
+	}
+	.fade-in-visible > *:nth-child(4) {
+		transition-delay: 0.2s;
+	}
+
+	/* ========================================
+	   ANIMATED GRADIENT BORDER
+	   ======================================== */
+	.gradient-border-animated {
+		position: relative;
+		border: 1px solid transparent;
+		background-clip: padding-box;
+	}
+
+	.gradient-border-animated::before {
+		content: "";
+		position: absolute;
+		inset: -1px;
+		border-radius: inherit;
+		padding: 1px;
+		background: linear-gradient(
+			135deg,
+			rgba(103, 232, 249, 0.3) 0%,
+			rgba(103, 232, 249, 0.05) 25%,
+			rgba(139, 92, 246, 0.1) 50%,
+			rgba(103, 232, 249, 0.05) 75%,
+			rgba(103, 232, 249, 0.3) 100%
+		);
+		background-size: 300% 300%;
+		animation: gradient-shift 8s ease-in-out infinite;
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+		z-index: -1;
+	}
+
+	@keyframes gradient-shift {
+		0%,
+		100% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
+	}
+
+	/* ========================================
+	   FLOATING ORB ANIMATION
+	   ======================================== */
+	@keyframes float-orb {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+			opacity: 0.5;
+		}
+		25% {
+			transform: translate(50px, -30px) scale(1.1);
+			opacity: 0.7;
+		}
+		50% {
+			transform: translate(20px, 40px) scale(0.95);
+			opacity: 0.4;
+		}
+		75% {
+			transform: translate(-30px, 20px) scale(1.05);
+			opacity: 0.6;
+		}
+	}
+
+	/* ========================================
+	   GLOW PULSE EFFECT (for buttons/accents)
+	   ======================================== */
+	@keyframes glow-pulse {
+		0%,
+		100% {
+			box-shadow: 0 0 20px rgba(103, 232, 249, 0.1);
+		}
+		50% {
+			box-shadow: 0 0 30px rgba(103, 232, 249, 0.2);
+		}
+	}
+
+	/* Reduced motion preference */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+		}
+
+		.fade-in-element {
+			opacity: 1;
+			transform: none;
+		}
+
+		.gradient-border-animated::before {
+			animation: none;
+		}
 	}
 
 	@media (max-width: 640px) {
