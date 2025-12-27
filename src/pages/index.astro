@@ -11,67 +11,28 @@ import GenerationPage from "../components/GenerationPage.jsx";
 
 <BaseLayout
 	title="Algorithmic Art Gallery | Generative art by Jonathan R Reed"
-	description="Algorithmic Art Gallery showcases generative and algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design."
+	description="Algorithmic Art Gallery showcases algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design."
 >
 	<div class="intro-section">
 		<p class="intro-text">
-			<strong>Algorithmic Art Gallery</strong> is a collection of generative
-			& algorithmic pieces you create <em>by Jonathan R Reed</em>.
+			<strong>Algorithmic Art Gallery</strong> is a collection of algorithmic
+			pieces you create <em>by Jonathan R Reed</em>.
 		</p>
 	</div>
 
-	<div class="loading-skeleton" id="loading-skeleton">
-		<div class="skeleton-layout">
-			<!-- Controls Panel Skeleton -->
-			<div class="skeleton-panel">
-				<div class="skeleton-section">
-					<div class="skeleton-heading"></div>
-					<div class="skeleton-grid">
-						<div class="skeleton-field">
-							<div class="skeleton-label"></div>
-							<div class="skeleton-input"></div>
-						</div>
-						<div class="skeleton-field">
-							<div class="skeleton-label"></div>
-							<div class="skeleton-input"></div>
-						</div>
-						<div class="skeleton-field">
-							<div class="skeleton-label"></div>
-							<div class="skeleton-input"></div>
-						</div>
-						<div class="skeleton-field">
-							<div class="skeleton-label short"></div>
-							<div class="skeleton-input"></div>
-						</div>
-					</div>
-				</div>
-				<div class="skeleton-section">
-					<div class="skeleton-heading short"></div>
-					<div class="skeleton-grid">
-						<div class="skeleton-field">
-							<div class="skeleton-label"></div>
-							<div class="skeleton-input"></div>
-						</div>
-						<div class="skeleton-field">
-							<div class="skeleton-label short"></div>
-							<div class="skeleton-input"></div>
-						</div>
-					</div>
-				</div>
-				<div class="skeleton-button-generate"></div>
-			</div>
-			<!-- Preview Panel Skeleton -->
-			<div class="skeleton-preview">
-				<div class="skeleton-canvas">
-					<div class="skeleton-canvas-loader">
-						<div class="skeleton-spinner"></div>
-					</div>
-				</div>
-				<div class="skeleton-actions">
-					<div class="skeleton-action-btn"></div>
-					<div class="skeleton-action-btn"></div>
-				</div>
-			</div>
+	<!-- Artistic Loader -->
+	<div class="art-loader" id="art-loader">
+		<div class="loader-container">
+			<svg class="loader-shape" viewBox="0 0 100 100" fill="none">
+				<circle
+					class="loader-circle"
+					cx="50"
+					cy="50"
+					r="40"
+					stroke-width="2"></circle>
+				<circle class="loader-dot" cx="50" cy="10" r="4"></circle>
+			</svg>
+			<span class="loader-text">Creating...</span>
 		</div>
 	</div>
 
@@ -81,16 +42,16 @@ import GenerationPage from "../components/GenerationPage.jsx";
 </BaseLayout>
 
 <script is:inline>
-	// Hide skeleton when React component loads
+	// Hide loader when React component loads
 	const checkReactLoaded = () => {
-		const skeleton = document.getElementById("loading-skeleton");
+		const loader = document.getElementById("art-loader");
 		const generator = document.querySelector(".generator-container");
 		if (generator && generator.children.length > 0) {
-			if (skeleton) {
-				skeleton.classList.add("fade-out");
+			if (loader) {
+				loader.classList.add("fade-out");
 				setTimeout(() => {
-					skeleton.style.display = "none";
-				}, 300);
+					loader.style.display = "none";
+				}, 500);
 			}
 		} else {
 			requestAnimationFrame(checkReactLoaded);
@@ -101,180 +62,88 @@ import GenerationPage from "../components/GenerationPage.jsx";
 </script>
 
 <style>
-	/* Premium Skeleton Loading Styles */
-	.loading-skeleton {
-		width: 100%;
-		max-width: 1400px;
-		margin: 0 auto;
-		padding: 2rem;
-		position: absolute;
-		top: 80px;
-		left: 0;
-		right: 0;
+	/* ========================================
+	   ARTISTIC LOADER STYLES
+	   ======================================== */
+	.art-loader {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 50;
+		background: rgba(8, 10, 14, 0.95);
+		backdrop-filter: blur(8px);
 		opacity: 1;
-		transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+		transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 	}
 
-	.loading-skeleton.fade-out {
+	.art-loader.fade-out {
 		opacity: 0;
 		pointer-events: none;
 	}
 
-	/* Layout matching actual content */
-	.skeleton-layout {
-		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: flex-start;
-		gap: 2rem;
-	}
-
-	/* Controls Panel Skeleton */
-	.skeleton-panel {
-		flex: 0 0 auto;
-		width: 600px;
-		background: rgba(255, 255, 255, 0.02);
-		border: 1px solid rgba(255, 255, 255, 0.04);
-		border-radius: 0.75rem;
-		padding: 1.5rem;
+	.loader-container {
 		display: flex;
 		flex-direction: column;
+		align-items: center;
 		gap: 1.5rem;
 	}
 
-	.skeleton-section {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.skeleton-heading {
-		height: 20px;
-		width: 140px;
-		background: rgba(255, 255, 255, 0.06);
-		border-radius: 4px;
-		animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-	}
-
-	.skeleton-heading.short {
-		width: 100px;
-	}
-
-	.skeleton-grid {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 1.25rem;
-	}
-
-	.skeleton-field {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.skeleton-label {
-		height: 12px;
+	.loader-shape {
 		width: 80px;
-		background: rgba(255, 255, 255, 0.04);
-		border-radius: 3px;
-		animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-		animation-delay: 0.1s;
+		height: 80px;
 	}
 
-	.skeleton-label.short {
-		width: 60px;
+	.loader-circle {
+		stroke: rgba(251, 146, 60, 0.3);
+		fill: none;
+		stroke-dasharray: 251;
+		stroke-dashoffset: 251;
+		stroke-linecap: round;
+		animation: draw-circle 2s ease-in-out infinite;
+		transform-origin: center;
 	}
 
-	.skeleton-input {
-		height: 40px;
-		width: 100%;
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px solid rgba(255, 255, 255, 0.04);
-		border-radius: 6px;
-		animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-		animation-delay: 0.2s;
+	.loader-dot {
+		fill: rgba(251, 146, 60, 0.9);
+		animation: orbit-dot 2s linear infinite;
+		transform-origin: 50px 50px;
 	}
 
-	.skeleton-button-generate {
-		height: 44px;
-		width: 100%;
-		background: rgba(255, 255, 255, 0.05);
-		border-radius: 6px;
-		margin-top: 0.5rem;
-		animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-		animation-delay: 0.3s;
+	@keyframes draw-circle {
+		0% {
+			stroke-dashoffset: 251;
+			stroke: rgba(251, 146, 60, 0.2);
+		}
+		50% {
+			stroke-dashoffset: 0;
+			stroke: rgba(251, 146, 60, 0.6);
+		}
+		100% {
+			stroke-dashoffset: -251;
+			stroke: rgba(251, 146, 60, 0.2);
+		}
 	}
 
-	/* Preview Panel Skeleton */
-	.skeleton-preview {
-		flex: 1 0 auto;
-		max-width: 600px;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1rem;
+	@keyframes orbit-dot {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
 	}
 
-	.skeleton-canvas {
-		width: 100%;
-		max-width: 400px;
-		aspect-ratio: 1/1;
-		background: rgba(255, 255, 255, 0.02);
-		border: 1px solid rgba(255, 255, 255, 0.04);
-		border-radius: 12px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		position: relative;
-		overflow: hidden;
+	.loader-text {
+		color: #94a3b8;
+		font-size: 0.9rem;
+		font-weight: 500;
+		letter-spacing: 0.05em;
+		animation: pulse-text 2s ease-in-out infinite;
 	}
 
-	.skeleton-canvas::before {
-		content: "";
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(
-			ellipse at center,
-			rgba(103, 232, 249, 0.03) 0%,
-			transparent 70%
-		);
-		animation: skeleton-glow 3s ease-in-out infinite;
-	}
-
-	.skeleton-canvas-loader {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.skeleton-spinner {
-		width: 32px;
-		height: 32px;
-		border: 2px solid rgba(255, 255, 255, 0.06);
-		border-top-color: rgba(103, 232, 249, 0.3);
-		border-radius: 50%;
-		animation: skeleton-spin 1s linear infinite;
-	}
-
-	.skeleton-actions {
-		display: flex;
-		gap: 0.75rem;
-		width: 100%;
-		max-width: 400px;
-	}
-
-	.skeleton-action-btn {
-		flex: 1;
-		height: 40px;
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px solid rgba(255, 255, 255, 0.04);
-		border-radius: 6px;
-		animation: skeleton-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-		animation-delay: 0.4s;
-	}
-
-	/* Premium Animations */
-	@keyframes skeleton-pulse {
+	@keyframes pulse-text {
 		0%,
 		100% {
 			opacity: 0.5;
@@ -284,120 +153,64 @@ import GenerationPage from "../components/GenerationPage.jsx";
 		}
 	}
 
-	@keyframes skeleton-glow {
-		0%,
-		100% {
-			opacity: 0.3;
-			transform: scale(0.95);
-		}
-		50% {
-			opacity: 0.6;
-			transform: scale(1.05);
-		}
-	}
-
-	@keyframes skeleton-spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	/* Intro section styles */
+	/* ========================================
+	   INTRO SECTION STYLES
+	   ======================================== */
 	.intro-section {
 		width: 100%;
 		max-width: 700px;
 		margin: 0 auto 2rem;
-		padding: 1rem 1.5rem;
+		padding: 1.25rem 1.75rem;
 		text-align: center;
-		background: rgba(15, 23, 42, 0.5);
-		border: 1px solid rgba(103, 232, 249, 0.1);
-		border-radius: 12px;
+		background: rgba(15, 23, 42, 0.4);
+		border: 1px solid rgba(251, 146, 60, 0.15);
+		border-radius: 16px;
 	}
 
 	.intro-text {
-		color: #94a3b8;
-		font-size: 0.95rem;
-		line-height: 1.7;
+		color: #cbd5e1;
+		font-size: 1rem;
+		line-height: 1.8;
 		margin: 0;
 	}
 
 	.intro-text strong {
-		color: #f1f5f9;
-		font-weight: 600;
+		background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		font-weight: 700;
 	}
 
 	.intro-text em {
-		color: #67e8f9;
+		color: #fb923c;
 		font-style: normal;
+		font-weight: 500;
 	}
 
 	.generator-container {
 		width: 100%;
 	}
 
-	/* Mobile responsiveness */
-	@media (max-width: 1200px) {
-		.skeleton-panel {
-			width: 550px;
-		}
-	}
-
-	@media (max-width: 1100px) {
-		.skeleton-grid {
-			grid-template-columns: 1fr;
-		}
-
-		.skeleton-panel {
-			width: 400px;
-		}
-	}
-
-	@media (max-width: 900px) {
-		.skeleton-layout {
-			flex-direction: column;
-			align-items: center;
-		}
-
-		.skeleton-panel {
-			width: 100%;
-			max-width: 600px;
-			order: 1;
-		}
-
-		.skeleton-preview {
-			width: 100%;
-			order: 0;
-			margin-bottom: 1.5rem;
-		}
-
-		.skeleton-canvas {
-			max-width: 100%;
-		}
-
-		.skeleton-actions {
-			max-width: 100%;
-		}
-	}
-
 	/* Reduced motion preference */
 	@media (prefers-reduced-motion: reduce) {
-		.skeleton-heading,
-		.skeleton-label,
-		.skeleton-input,
-		.skeleton-button-generate,
-		.skeleton-action-btn {
+		.loader-circle,
+		.loader-dot,
+		.loader-text {
 			animation: none;
-			opacity: 0.7;
 		}
 
-		.skeleton-spinner {
-			animation: none;
-			border-color: rgba(103, 232, 249, 0.3);
+		.loader-circle {
+			stroke-dashoffset: 0;
+			stroke: rgba(251, 146, 60, 0.5);
 		}
 
-		.skeleton-canvas::before {
-			animation: none;
-			opacity: 0.4;
+		.loader-dot {
+			display: none;
+		}
+
+		.loader-text {
+			opacity: 1;
 		}
 	}
 </style>

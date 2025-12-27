@@ -40,8 +40,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p>
           Built with Astro and React, this application uses modern web
           technologies to provide a fast, responsive experience. An interface
-          inpired by frosted-glass aesthetic, featuring a dark mode theme with
-          cyan accents that complements the vibrant colors of the generated art.
+          inspired by a frosted-glass aesthetic, featuring a dark mode theme
+          with warm coral accents that complements the vibrant colors of the
+          generated art.
         </p>
         <p>This project was inspired by a video from Corridor Crew:</p>
         <h3 class="video-title">I Made Art That HACKS Your Eyes</h3>
@@ -361,23 +362,30 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   .about-header {
     font-size: 2rem;
-    font-weight: 600;
-    color: #f1f5f9;
+    font-weight: 700;
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 2rem;
     text-align: center;
   }
 
   .about-content {
-    background: rgba(15, 23, 42, 0.85);
+    background: linear-gradient(
+      145deg,
+      rgba(20, 18, 24, 0.9) 0%,
+      rgba(15, 12, 20, 0.95) 100%
+    );
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 0.75rem;
+    border: 1px solid rgba(251, 146, 60, 0.1);
+    border-radius: 1rem;
     padding: 2rem;
     color: white;
     box-shadow:
-      inset 0 0.5px 0 0 rgba(255, 255, 255, 0.08),
-      0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+      0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   .about-section {
@@ -391,15 +399,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   .about-subheader {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #f1f5f9;
+    color: #f8fafc;
     margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(251, 146, 60, 0.15);
   }
 
   .about-content p {
     font-size: 0.95rem;
-    line-height: 1.6;
+    line-height: 1.7;
     margin-bottom: 1rem;
-    color: #94a3b8;
+    color: #cbd5e1;
   }
 
   .parameter-list {
@@ -411,7 +421,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   .parameter-list li {
     font-size: 0.95rem;
     line-height: 1.6;
-    color: #94a3b8;
+    color: #cbd5e1;
     margin-bottom: 0.5rem;
   }
 
@@ -419,7 +429,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     text-align: center;
     margin-bottom: 1.5rem;
     font-style: normal;
-    color: #64748b;
+    color: #94a3b8;
     font-size: 0.9rem;
   }
 
@@ -431,9 +441,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .feature-item {
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 0.5rem;
-    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
     border: 1px solid rgba(255, 255, 255, 0.06);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
@@ -441,10 +451,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .feature-item:hover {
-    border-color: rgba(103, 232, 249, 0.25);
-    background: rgba(0, 0, 0, 0.35);
+    border-color: rgba(251, 146, 60, 0.3);
+    background: rgba(251, 146, 60, 0.05);
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 20px -8px rgba(251, 146, 60, 0.2);
   }
 
   .feature-item.click-effect {
@@ -458,23 +468,23 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .feature-expand-icon {
-    color: #64748b;
+    color: #fb923c;
     font-size: 1.25rem;
-    font-weight: 300;
+    font-weight: 400;
     line-height: 1;
   }
 
   .feature-item h3 {
     font-size: 1rem;
-    color: #f1f5f9;
+    color: #f8fafc;
     margin-bottom: 0.375rem;
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .feature-summary {
     font-size: 0.85rem;
     margin-bottom: 0;
-    color: #64748b;
+    color: #94a3b8;
   }
 
   .feature-details {
@@ -486,7 +496,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .feature-item.active {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(251, 146, 60, 0.08);
+    border-color: rgba(251, 146, 60, 0.25);
   }
 
   .feature-item.active .feature-details {
@@ -494,7 +505,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     opacity: 1;
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(251, 146, 60, 0.15);
   }
 
   .feature-details ul {
@@ -504,7 +515,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   .feature-details li {
     margin-bottom: 0.5rem;
-    color: #94a3b8;
+    color: #cbd5e1;
     font-size: 0.85rem;
     line-height: 1.5;
   }
@@ -519,10 +530,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .technical-specs li {
-    padding: 0.625rem 0;
+    padding: 0.75rem 0;
     font-size: 0.9rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: #94a3b8;
+    border-bottom: 1px solid rgba(251, 146, 60, 0.1);
+    color: #cbd5e1;
   }
 
   .technical-specs li:last-child {
@@ -530,14 +541,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   }
 
   .spec-label {
-    color: #f1f5f9;
-    font-weight: 500;
+    color: #fb923c;
+    font-weight: 600;
     margin-right: 0.5rem;
   }
 
   strong {
-    color: #e2e8f0;
-    font-weight: 500;
+    color: #f8fafc;
+    font-weight: 600;
   }
 
   @media (max-width: 768px) {
@@ -574,8 +585,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     height: 0;
     overflow: hidden;
     margin-bottom: 1.5rem;
-    border-radius: 0.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0.75rem;
+    border: 1px solid rgba(251, 146, 60, 0.15);
   }
 
   .video-container iframe {
@@ -584,13 +595,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     left: 0;
     width: 100%;
     height: 100%;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
   }
 
   .video-title {
     font-size: 1rem;
     font-weight: 500;
-    color: #f1f5f9;
+    color: #f8fafc;
     margin-bottom: 0.75rem;
     text-align: center;
   }
@@ -598,18 +609,18 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   .about-link {
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(251, 146, 60, 0.15);
   }
 
   .about-link a {
-    color: #67e8f9;
+    color: #fb923c;
     text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
+    font-weight: 600;
+    transition: all 0.2s;
   }
 
   .about-link a:hover {
-    color: #22d3ee;
+    color: #fdba74;
     text-decoration: underline;
   }
 </style>

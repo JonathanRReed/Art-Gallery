@@ -263,11 +263,12 @@ self.onmessage = function (e) {
       // Calculate color steps - simplified to avoid excessive computation
       const steps = optimizeForLargeExport ? 16 : Math.min(32, Math.max(16, Math.floor(16 * Math.sqrt(patternScale))));
 
-      // For exports, reduce sample size and randomness to improve performance
-      const actualSampleSize = optimizeForLargeExport ? Math.min(30, colorSampleSize) :
-        isExport ? Math.min(50, colorSampleSize) : colorSampleSize;
-      const actualRandomness = optimizeForLargeExport ? randomness * 0.5 :
-        isExport ? randomness * 0.7 : randomness;
+      // For exports, use larger sample size for SMOOTH crystal patterns
+      // Higher sample = better color matching = smoother gradients (like AllRGB reference)
+      const actualSampleSize = optimizeForLargeExport ? Math.min(500, colorSampleSize) :
+        isExport ? Math.min(300, colorSampleSize) : Math.max(colorSampleSize, 200);
+      const actualRandomness = optimizeForLargeExport ? randomness * 0.3 :
+        isExport ? randomness * 0.5 : randomness;
 
       // ========== HILBERT CURVE IMPLEMENTATION ==========
       // Convert (x, y) to Hilbert curve index
@@ -387,6 +388,24 @@ self.onmessage = function (e) {
             const distB = colorDistSq(b, baseColor);
             return distA - distB;
           });
+        } else if (mode === 'saturation') {
+          // SATURATION PRIORITY: Most saturated colors first (center)
+          // This creates the beautiful starburst effect from AllRGB reference images
+          return colors.sort((a, b) => {
+            const [, sA, vA] = rgbToHSV(a[0], a[1], a[2]);
+            const [, sB, vB] = rgbToHSV(b[0], b[1], b[2]);
+            // Sort by saturation DESC (most saturated first), then by value DESC
+            const scoreA = sA * 100 + vA;
+            const scoreB = sB * 100 + vB;
+            return scoreB - scoreA; // Descending - highest saturation first
+          });
+        } else if (mode === 'brightness') {
+          // BRIGHTNESS PRIORITY: Brightest colors first
+          return colors.sort((a, b) => {
+            const [, , vA] = rgbToHSV(a[0], a[1], a[2]);
+            const [, , vB] = rgbToHSV(b[0], b[1], b[2]);
+            return vB - vA; // Descending - brightest first
+          });
         } else {
           // 'shuffled' - use seeded shuffle (already implemented)
           seededShuffle(colors, seed);
@@ -450,11 +469,17 @@ self.onmessage = function (e) {
 
       } else {
         // Original non-AllRGB color generation
-        // Limit colors for export to improve performance
-        const maxColors = isExport ? (optimizeForLargeExport ? 10000 : 20000) : 100000;
+        // FIXED: Generate enough colors to fill the ENTIRE canvas
+        // For 4K (4096x4096) we need 16.7M colors, not just 10K-20K
+        const maxColors = Math.min(totalPixels + 1000, 16777216); // Up to all RGB colors
 
-        // Generate a smaller palette for exports
-        const localColorSteps = isExport ? Math.min(steps, 24) : steps;
+        // Calculate color steps to generate enough colors
+        // Need cube root of maxColors to get steps per channel
+        const neededColors = Math.min(maxColors, totalPixels + 1000);
+        const localColorSteps = Math.ceil(Math.cbrt(neededColors)); // Cube root gives per-channel steps
+
+        console.log(`Generating colors: need ${totalPixels} pixels, maxColors=${maxColors}, colorSteps=${localColorSteps}`);
+
         for (let r = 0; r < localColorSteps; r++) {
           for (let g = 0; g < localColorSteps; g++) {
             for (let b = 0; b < localColorSteps; b++) {
@@ -471,6 +496,8 @@ self.onmessage = function (e) {
           }
           if (colorList.length >= maxColors) break;
         }
+
+        console.log(`Generated ${colorList.length} colors for ${totalPixels} pixels`);
       }
 
       // Define colorSteps for curve ordering (256 for AllRGB, calculated for normal mode)
@@ -613,6 +640,15 @@ self.onmessage = function (e) {
       // Add initial seeds
       if (seedShape === 'point') {
         pq.push([(width / 2) | 0, (height / 2) | 0], 0);
+      } else if (seedShape === 'dual') {
+        // DUAL SEED: Two points for symmetrical starburst (AllRGB style)
+        const cx = (width / 2) | 0, cy = (height / 2) | 0;
+        const offset = Math.max(2, Math.floor(Math.min(width, height) / 100));
+        // Two points offset horizontally from center
+        pq.push([cx - offset, cy], 0);
+        pq.push([cx + offset, cy], 0);
+        // Also add the center point
+        pq.push([cx, cy], 0);
       } else if (seedShape === 'circle') {
         const cx = (width / 2) | 0, cy = (height / 2) | 0;
         // Improve circle radius calculation - make it more substantial
@@ -737,15 +773,29 @@ self.onmessage = function (e) {
             } else {
               const avg = [nr / count, ng / count, nb / count];
 
-              // Simplified color selection for better performance
-              if (isExport || optimizeForLargeExport) {
-                const randIdx = Math.floor(Math.random() * Math.min(colorList.length, 10));
-                color = colorList.splice(randIdx, 1)[0];
+              // IMPROVED COLOR SELECTION - Key to smooth crystal patterns!
+              // For small images: EXHAUSTIVE search (true closest color)
+              // For large images: High sample size for quality
+              let bestIdx = 0, bestDist = Infinity;
+
+              // Determine search strategy based on image size and remaining colors
+              const useExhaustive = totalPixels <= 262144; // ≤512x512
+              const searchSize = useExhaustive ?
+                colorList.length : // Search ALL remaining colors
+                Math.min(colorList.length, actualSampleSize);
+
+              if (useExhaustive) {
+                // EXHAUSTIVE SEARCH: Find the TRUE closest color (like AllRGB algorithm)
+                for (let j = 0; j < colorList.length; j++) {
+                  const dist = colorDistSq(colorList[j], avg);
+                  if (dist < bestDist) {
+                    bestDist = dist;
+                    bestIdx = j;
+                  }
+                }
               } else {
-                // Use more advanced color selection for preview
-                let bestIdx = 0, bestDist = Infinity;
-                const sampleSize = Math.min(colorList.length, actualSampleSize);
-                for (let j = 0; j < sampleSize; j++) {
+                // SAMPLED SEARCH: Sample many colors for larger images
+                for (let j = 0; j < searchSize; j++) {
                   const idx = Math.floor(Math.random() * colorList.length);
                   const dist = colorDistSq(colorList[idx], avg);
                   if (dist < bestDist) {
@@ -753,8 +803,9 @@ self.onmessage = function (e) {
                     bestIdx = idx;
                   }
                 }
-                color = colorList.splice(bestIdx, 1)[0];
               }
+
+              color = colorList.splice(bestIdx, 1)[0];
               r = color[0]; g = color[1]; b = color[2];
             }
 
@@ -769,10 +820,9 @@ self.onmessage = function (e) {
 
             // Add neighbors - simplified for export
             // BUT NOT for AllRGB - we need to reach ALL pixels
-            if (!allRGBMode && isExport && pq.length > width * height / 4) {
-              // For exports, limit queue size to improve performance
-              continue;
-            }
+            // REMOVED: Queue size limit was preventing corners from being filled
+            // Previously: if (pq.length > width * height / 4) continue;
+            // This caused the pattern to stop before reaching canvas edges
 
             for (const [dx2, dy2] of neighbors) {
               const nx = mx + dx2, ny = my + dy2;
@@ -781,10 +831,11 @@ self.onmessage = function (e) {
                 if (!filled[ni]) {
                   // ========== BRANCHING FACTOR IMPLEMENTATION ==========
                   // branchingFactor controls how many neighbors get added
-                  // 0 = very few branches (linear growth), 1 = all branches (full expansion)
                   // Skip for AllRGB - we need to fill ALL pixels
-                  if (!allRGBMode) {
-                    const branchProbability = 0.25 + branchingFactor * 0.75; // Range: 0.25 to 1.0
+                  // FIXED: Also ensure edge pixels are ALWAYS added
+                  const isEdgePixel = nx === 0 || nx === width - 1 || ny === 0 || ny === height - 1;
+                  if (!allRGBMode && !isEdgePixel && branchingFactor < 1) {
+                    const branchProbability = 0.5 + branchingFactor * 0.5; // Range: 0.5 to 1.0 (less aggressive)
                     if (Math.random() > branchProbability) {
                       continue; // Skip this neighbor to create less branching
                     }
@@ -820,61 +871,40 @@ self.onmessage = function (e) {
           // Update filled pixel count for progress reporting
           filledPixels += pixelsFilled;
 
-          // Send progress updates periodically
+          // Send progress updates and LIVE PREVIEW periodically
           const now = Date.now();
           if (now - lastProgressUpdate > progressUpdateInterval) {
             const progressPercent = Math.min(100, Math.floor((filledPixels / totalPixels) * 100));
-            self.postMessage({ progress: progressPercent });
+
+            // Send live preview every ~5% of progress (or more frequently for small images)
+            const previewInterval = Math.max(5, Math.floor(100 / 20)); // At least 20 previews total
+            const shouldSendPreview = !allRGBMode && (progressPercent % previewInterval === 0 || progressPercent < 10);
+
+            if (shouldSendPreview && progressPercent > 0) {
+              // Send a copy of the current buffer for live preview
+              const previewBuffer = buffer.slice(); // Copy buffer
+              self.postMessage({
+                preview: true,
+                buffer: previewBuffer,
+                progress: progressPercent,
+                metadata: {
+                  width: outputWidth,
+                  height: outputHeight,
+                  colorSpace,
+                  filledPixels,
+                  totalPixels
+                }
+              });
+            } else {
+              self.postMessage({ progress: progressPercent });
+            }
             lastProgressUpdate = now;
           }
         }
 
         // Check if we need to continue processing or if we're done
         if (pq.length > 0 && (allRGBMode ? allRGBColorIndex > 0 : colorList.length > 0) && !isPaused) {
-          // If export and more than 80% filled, finish early for better performance
-          // BUT NOT for AllRGB - we need ALL pixels filled with unique colors
-          if (isExport && !allRGBMode && filledPixels / totalPixels > 0.8) {
-            console.log("Export 80% complete, finishing early");
-            self.postMessage({ progress: 100 });
-
-            // Verify buffer is valid before sending
-            if (!buffer || buffer.length === 0) {
-              self.postMessage({ error: "Failed to generate image - buffer is empty" });
-              return;
-            }
-
-            try {
-              self.postMessage({
-                buffer,
-                metadata: {
-                  width: outputWidth,
-                  height: outputHeight,
-                  colorSpace,
-                  patternComplexity: actualPatternComplexity,
-                  transparent,
-                  dpi
-                }
-              }, [buffer.buffer]);
-            } catch (err) {
-              console.error("Error transferring buffer:", err);
-              // Try creating a copy if transfer failed
-              const bufferCopy = new Uint8ClampedArray(buffer.length);
-              bufferCopy.set(buffer);
-              self.postMessage({
-                buffer: bufferCopy.buffer,
-                metadata: {
-                  width: outputWidth,
-                  height: outputHeight,
-                  colorSpace,
-                  patternComplexity: actualPatternComplexity,
-                  transparent,
-                  dpi
-                }
-              }, [bufferCopy.buffer]);
-            }
-            return;
-          }
-
+          // Continue processing - REMOVED 80% early exit that prevented full fill
           // Send a progress update 
           const progressPercent = Math.min(100, Math.floor((filledPixels / totalPixels) * 100));
           self.postMessage({ progress: progressPercent });
