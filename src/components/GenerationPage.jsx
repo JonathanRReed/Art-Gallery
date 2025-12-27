@@ -271,6 +271,24 @@ export default function GenerationPage() {
             return;
           }
 
+          // Handle LIVE PREVIEW during generation (watch the crystal grow!)
+          if (e.data.preview && e.data.buffer) {
+            const metadata = e.data.metadata || { width: previewSize, height: previewSize };
+
+            // Convert buffer if needed
+            let imageBuffer = e.data.buffer;
+            if (imageBuffer instanceof ArrayBuffer) {
+              imageBuffer = new Uint8ClampedArray(imageBuffer);
+            }
+
+            // Update preview (but keep loading state)
+            setImageData(imageBuffer);
+            setImageMeta(metadata);
+            setRenderKey(k => k + 1);
+            setProgress(e.data.progress || 0);
+            return;
+          }
+
           if (e.data.progress) {
             // Update progress
             setProgress(e.data.progress);

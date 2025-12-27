@@ -7,6 +7,7 @@ const growthModes = [
 ];
 const seedShapes = [
   { label: 'Point', value: 'point' },
+  { label: 'Dual (2 points)', value: 'dual' },
   { label: 'Circle', value: 'circle' },
   { label: 'Line', value: 'line' },
 ];
@@ -20,6 +21,8 @@ const colorProgressions = [
   { label: 'Sequential', value: 'sequential' },
   { label: 'Shuffled', value: 'shuffled' },
   { label: 'Base Distance', value: 'base-distance' },
+  { label: 'Saturation (AllRGB style)', value: 'saturation' },
+  { label: 'Brightness', value: 'brightness' },
 ];
 const curveTypes = [
   { label: 'Hilbert', value: 'hilbert' },

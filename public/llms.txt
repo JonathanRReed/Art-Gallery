@@ -1,10 +1,10 @@
 # Algorithmic Art Gallery
 
-> A web application for creating and exploring generative algorithmic art using space-filling curves and mathematical patterns. Built by Jonathan Reed.
+> A web application for creating and exploring algorithmic art using space filling curves and mathematical patterns. Built by Jonathan R. Reed.
 
 ## About
 
-Algorithmic Art Gallery is a free, browser-based tool for generating unique digital artwork. It uses space-filling curves (Hilbert, Morton) and color mapping algorithms to create visually stunning patterns that are mathematically precise yet artistically beautiful.
+Algorithmic Art Gallery is a free, browser-based tool for generating unique digital artwork. It uses space filling curves (Hilbert, Morton) and color mapping algorithms to create visually stunning patterns that are mathematically precise yet artistically beautiful.
 
 Key features:
 - Real-time pattern generation with customizable parameters
