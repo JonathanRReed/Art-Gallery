@@ -85,18 +85,11 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 			type="application/ld+json"
 			set:html={JSON.stringify({
 				"@context": "https://schema.org",
-				"@type": "WebApplication",
+				"@type": "WebSite",
 				name: "Algorithmic Art Gallery",
 				url: "https://art.jonathanrreed.com",
 				description:
 					"Algorithmic Art Gallery showcases generative and algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design.",
-				applicationCategory: "MultimediaApplication",
-				operatingSystem: "Web",
-				offers: {
-					"@type": "Offer",
-					price: "0",
-					priceCurrency: "USD",
-				},
 				author: {
 					"@type": "Person",
 					name: "Jonathan Reed",
