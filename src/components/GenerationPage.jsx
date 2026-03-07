@@ -778,52 +778,54 @@ export default function GenerationPage() {
           {loading && (
             <div className="progress-container" style={{
               width: '100%',
-              marginTop: '0.5rem',
-              marginBottom: loading && patternSize > 512 ? '0.5rem' : '0',
+              marginTop: '1.5rem',
+              border: 'var(--border-ink)',
+              padding: '0.5rem',
+              backgroundColor: 'var(--color-paper-alt)'
             }}>
               <div className="progress-bar" style={{
                 width: '100%',
-                height: '6px',
-                backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                borderRadius: '9999px',
-                overflow: 'hidden',
-                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.1)'
+                height: '0.5rem',
+                backgroundColor: 'var(--color-paper)',
+                border: 'var(--border-ink)',
+                overflow: 'hidden'
               }}>
                 <div style={{
                   height: '100%',
                   width: `${progress}%`,
-                  background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
-                  boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)',
-                  transition: 'width 0.2s ease-out',
-                  borderRadius: '9999px'
+                  backgroundColor: 'var(--color-accent)',
+                  transition: 'width 0.2s cubic-bezier(0.2, 0, 0, 1)'
                 }}></div>
               </div>
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginTop: '0.375rem',
+                marginTop: '0.5rem',
+                fontFamily: 'var(--font-mono)',
                 fontSize: '0.75rem',
-                color: '#64748b',
+                textTransform: 'uppercase',
+                color: 'var(--color-ink)',
               }}>
-                <div>{progress}% completed</div>
+                <div>[PROGRESS_REQ: {progress}%]</div>
                 {patternSize > 512 && (
                   <button
                     onClick={handlePauseResume}
                     style={{
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      color: '#94a3b8',
+                      backgroundColor: 'var(--color-ink)',
+                      border: 'var(--border-ink)',
+                      color: 'var(--color-paper)',
+                      fontFamily: 'var(--font-mono)',
+                      textTransform: 'uppercase',
                       cursor: 'pointer',
                       fontSize: '0.75rem',
                       padding: '0.25rem 0.5rem',
-                      borderRadius: '0.25rem',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.25rem',
+                      boxShadow: '2px 2px 0 0 var(--color-ink-light)',
                     }}
                   >
-                    {isPaused ? 'Resume' : 'Pause'}
+                    {isPaused ? 'RESUME' : 'PAUSE'}
                   </button>
                 )}
               </div>
@@ -879,44 +881,32 @@ export default function GenerationPage() {
           top: `${settingsButtonPosition.top}px`,
           left: `${settingsButtonPosition.left}px`,
           zIndex: 1000,
-          padding: '1rem',
-          backgroundColor: '#1e293b',
-          borderRadius: '0.5rem',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+          padding: '1.5rem',
+          backgroundColor: 'var(--color-paper)',
+          border: 'var(--border-ink)',
+          boxShadow: '8px 8px 0 0 var(--color-ink)',
           maxHeight: '320px',
           maxWidth: '300px',
           overflowY: 'auto'
         }}>
-          {/* Dropdown triangle pointer */}
-          <div style={{
-            position: 'absolute',
-            top: '-6px',
-            left: '24px',
-            width: '12px',
-            height: '12px',
-            backgroundColor: '#1e293b',
-            transform: 'rotate(45deg)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
-            zIndex: '-1'
-          }} />
+          {/* Dropdown triangle pointer removed for flat aesthetic */}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <h3 style={{ margin: 0, color: '#f1f5f9', fontSize: '0.9rem', fontWeight: 500 }}>Saved Settings</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid var(--color-ink)', paddingBottom: '0.5rem' }}>
+            <h3 style={{ margin: 0, color: 'var(--color-ink)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Saved Configurations</h3>
             <button
               onClick={() => setShowSettingsPanel(false)}
               className="gallery-action-btn"
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
-                color: '#e5e7eb',
+                color: 'var(--color-ink)',
                 cursor: 'pointer',
                 fontSize: '1.25rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '0.25rem'
+                padding: '0',
+                lineHeight: 1
               }}
               aria-label="Close settings panel"
             >
@@ -936,31 +926,32 @@ export default function GenerationPage() {
                   className="settings-item"
                   style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    padding: '0.5rem 0.625rem',
-                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                    borderRadius: '0.375rem',
-                    border: '1px solid rgba(255, 255, 255, 0.04)',
-                    transition: 'border-color 0.15s ease',
-                    cursor: 'pointer'
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    padding: '0.75rem',
+                    backgroundColor: 'var(--color-paper-alt)',
+                    border: 'var(--border-ink)',
+                    marginBottom: '0.5rem'
                   }}
                 >
-                  <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{
-                      color: '#e2e8f0',
-                      fontWeight: 500,
-                      fontSize: '0.8rem'
+                      color: 'var(--color-ink)',
+                      fontFamily: 'var(--font-mono)',
+                      fontWeight: 600,
+                      fontSize: '0.8rem',
+                      textTransform: 'uppercase'
                     }}>{setting.name}</div>
                     <div style={{
-                      color: '#64748b',
-                      fontSize: '0.7rem'
+                      color: 'var(--color-ink-light)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.65rem'
                     }}>
                       {new Date(setting.timestamp).toLocaleDateString()}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
                     <button
                       className="load-button gallery-action-btn"
                       onClick={(e) => {
@@ -968,18 +959,13 @@ export default function GenerationPage() {
                         handleLoadSettings(setting);
                       }}
                       style={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: '#e2e8f0',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '0.25rem',
-                        cursor: 'pointer',
-                        fontSize: '0.7rem',
-                        fontWeight: 500,
-                        transition: 'background-color 0.15s ease'
+                        backgroundColor: 'var(--color-ink)',
+                        border: 'var(--border-ink)',
+                        color: 'var(--color-paper)',
+                        flex: 1
                       }}
                     >
-                      Load
+                      LOAD
                     </button>
 
                     <button
@@ -990,17 +976,12 @@ export default function GenerationPage() {
                       }}
                       style={{
                         backgroundColor: 'transparent',
-                        border: '1px solid rgba(255, 255, 255, 0.06)',
-                        color: '#64748b',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '0.25rem',
-                        cursor: 'pointer',
-                        fontSize: '0.7rem',
-                        fontWeight: 500,
-                        transition: 'color 0.15s ease'
+                        border: 'var(--border-ink)',
+                        color: 'var(--color-accent)',
+                        flex: 1
                       }}
                     >
-                      Delete
+                      DELETE
                     </button>
                   </div>
                 </div>
@@ -1018,74 +999,77 @@ export default function GenerationPage() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backgroundColor: 'rgba(240, 238, 233, 0.9)',
+          backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000
         }}>
           <div style={{
-            backgroundColor: '#1e293b',
-            borderRadius: '0.5rem',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            padding: '1.5rem',
-            maxWidth: '400px',
-            width: '90%'
+            backgroundColor: 'var(--color-paper)',
+            border: 'var(--border-ink)',
+            padding: '2rem',
+            maxWidth: '450px',
+            width: '90%',
+            boxShadow: '12px 12px 0 0 var(--color-ink)'
           }}>
-            <h2 style={{ margin: '0 0 1rem 0', color: '#f1f5f9', fontSize: '1.1rem', fontWeight: 500 }}>Save Settings</h2>
+            <h2 style={{ margin: '0 0 1.5rem 0', color: 'var(--color-ink)', fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '-0.02em', borderBottom: '2px solid var(--color-ink)', paddingBottom: '0.5rem' }}>Save Conf.</h2>
 
-            <label style={{ display: 'block', marginBottom: '0.375rem', color: '#94a3b8', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
-              Name
+            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--color-ink)', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+              Configuration Name
             </label>
             <input
               type="text"
               value={settingsName}
               onChange={(e) => setSettingsName(e.target.value)}
-              placeholder="My pattern"
+              placeholder="e.g. MONOCHROME_VOID"
               style={{
                 width: '100%',
-                padding: '0.625rem 0.75rem',
-                borderRadius: '0.375rem',
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: 'white',
-                marginBottom: '1rem',
-                fontSize: '0.9rem'
+                padding: '0.75rem',
+                backgroundColor: 'var(--color-paper-alt)',
+                border: 'var(--border-ink)',
+                color: 'var(--color-ink)',
+                marginBottom: '1.5rem',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.9rem',
+                textTransform: 'uppercase'
               }}
             />
 
             <div style={{
-              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-              borderRadius: '0.375rem',
-              padding: '0.625rem 0.75rem',
-              marginBottom: '1rem',
-              border: '1px solid rgba(255, 255, 255, 0.04)'
+              backgroundColor: 'var(--color-paper-alt)',
+              padding: '0.75rem',
+              marginBottom: '1.5rem',
+              border: '1px dashed var(--color-ink-light)'
             }}>
               <p style={{
-                color: '#64748b',
-                fontSize: '0.75rem',
+                color: 'var(--color-ink-light)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.7rem',
                 margin: '0',
-                lineHeight: '1.4'
+                lineHeight: '1.5',
+                textTransform: 'uppercase'
               }}>
-                Settings are saved locally in your browser and will not sync across devices.
+                [SYS_NOTE] Settings are preserved in local browser cache. Cross-device synchronization is unavailable.
               </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
               <button
                 onClick={() => setShowSaveDialog(false)}
                 className="gallery-action-btn"
                 style={{
-                  padding: '0.625rem 1rem',
-                  borderRadius: '0.375rem',
+                  padding: '0.75rem 1.25rem',
                   backgroundColor: 'transparent',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#94a3b8',
+                  border: 'var(--border-ink)',
+                  color: 'var(--color-ink)',
+                  fontFamily: 'var(--font-mono)',
                   cursor: 'pointer',
                   fontSize: '0.85rem'
                 }}
               >
-                Cancel
+                CANCEL
               </button>
 
               <button
@@ -1093,18 +1077,19 @@ export default function GenerationPage() {
                 className="gallery-action-btn"
                 disabled={!settingsName.trim()}
                 style={{
-                  padding: '0.625rem 1rem',
-                  borderRadius: '0.375rem',
-                  backgroundColor: '#f1f5f9',
-                  border: 'none',
-                  color: '#0f172a',
+                  padding: '0.75rem 1.25rem',
+                  backgroundColor: 'var(--color-ink)',
+                  border: 'var(--border-ink)',
+                  color: 'var(--color-paper)',
+                  fontFamily: 'var(--font-mono)',
                   cursor: settingsName.trim() ? 'pointer' : 'not-allowed',
                   opacity: settingsName.trim() ? 1 : 0.5,
                   fontSize: '0.85rem',
-                  fontWeight: 500
+                  fontWeight: 600,
+                  boxShadow: '4px 4px 0 0 var(--color-ink-light)'
                 }}
               >
-                Save
+                COMMIT
               </button>
             </div>
           </div>

@@ -5,8 +5,8 @@ import Footer from "./Footer.astro";
 
 const { pathname } = Astro.url;
 const {
-	title = "Algorithmic Art Gallery | Generative art by Jonathan R Reed",
-	description = "Algorithmic Art Gallery showcases generative and algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design.",
+	title = "Avant-Garde Algorithmic Exhibition | Jonathan R Reed",
+	description = "An algorithmic art gallery showcasing generative pieces by Jonathan R Reed. Exploring systems, code, and beauty through computational rules.",
 } = Astro.props;
 const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 ---
@@ -20,19 +20,14 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 		<link rel="apple-touch-icon" href="/icon.png" />
 		<meta name="generator" content={Astro.generator} />
 
-		<!-- Primary Meta Tags -->
 		<title>{title}</title>
 		<meta name="title" content={title} />
 		<meta name="description" content={description} />
 		<meta name="robots" content="index, follow" />
 		<link rel="canonical" href={canonicalUrl} />
 
-		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
-		<meta
-			property="og:url"
-			content={`https://art.jonathanrreed.com${pathname}`}
-		/>
+		<meta property="og:url" content={canonicalUrl} />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta
@@ -40,372 +35,155 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 			content="https://art.jonathanrreed.com/og-image.png"
 		/>
 
-		<!-- Twitter -->
-		<meta property="twitter:card" content="summary_large_image" />
-		<meta
-			property="twitter:url"
-			content={`https://art.jonathanrreed.com${pathname}`}
-		/>
-		<meta property="twitter:title" content={title} />
-		<meta property="twitter:description" content={description} />
-		<meta
-			property="twitter:image"
-			content="https://art.jonathanrreed.com/og-image.png"
-		/>
-
-		<!-- Performance optimizations -->
+		<!-- Editorial Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			rel="preload"
-			href="/fonts/NebulaSans-Book.ttf"
-			as="font"
-			type="font/ttf"
-			crossorigin
-		/>
-		<link
-			rel="preload"
-			href="/fonts/NebulaSans-BoldItalic.ttf"
-			as="font"
-			type="font/ttf"
-			crossorigin
+			href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap"
+			rel="stylesheet"
 		/>
 
-		<!-- DNS prefetching -->
-		<link rel="dns-prefetch" href="https://art.jonathanrreed.com" />
-
-		<!-- Link to manifest.json for PWA support -->
 		<link
 			rel="manifest"
 			href="/manifest.json"
 			crossorigin="use-credentials"
 		/>
 
-		<!-- Structured Data / JSON-LD -->
 		<script
 			type="application/ld+json"
 			set:html={JSON.stringify({
 				"@context": "https://schema.org",
 				"@type": "WebSite",
-				name: "Algorithmic Art Gallery",
+				name: "Avant-Garde Algorithmic Exhibition",
 				url: "https://art.jonathanrreed.com",
-				description:
-					"Algorithmic Art Gallery showcases generative and algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design.",
+				description: description,
 				author: {
 					"@type": "Person",
 					name: "Jonathan Reed",
-					alternateName: "Jonathan R Reed",
-					url: "https://jonathanrreed.com",
-					sameAs: [
-						"https://jonathanrreed.com",
-						"https://github.com/JonathanRReed",
-						"https://www.linkedin.com/in/jonathan-reed-000913314",
-						"https://helloworldfirm.com",
-					],
-				},
-				image: {
-					"@type": "ImageObject",
-					url: "https://art.jonathanrreed.com/og-image.png",
-					width: 1200,
-					height: 630,
-					caption:
-						"Algorithmic Art Gallery - Generative art by Jonathan R Reed",
 				},
 			})}
 		/>
+
+		<script is:inline>
+			(function () {
+				try {
+					const localTheme = localStorage.getItem("theme");
+					if (
+						localTheme === "dark" ||
+						(!localTheme &&
+							window.matchMedia("(prefers-color-scheme: dark)")
+								.matches)
+					) {
+						document.documentElement.classList.add("dark-theme");
+					}
+				} catch (e) {}
+			})();
+		</script>
 	</head>
 	<body>
 		<div class="page-background"></div>
+
 		<header class="site-header">
 			<div class="nav-container">
 				<a
 					href="/"
 					class="site-logo"
-					aria-label="Algorithmic Art Gallery Home"
+					aria-label="Algorithmic Art Exhibition Home"
 				>
-					<span class="site-logo-text">Algorithmic Art Gallery</span>
+					<span class="site-logo-text">ALG.ART.EXHIBITION.</span>
 				</a>
-				<nav class="main-nav">
+				<nav class="main-nav mono-text">
 					<a
 						href="/"
 						class={`nav-link ${pathname === "/" ? "active" : ""}`}
-						>Generator</a
+						>[01] GENERATOR</a
 					>
 					<a
 						href="/gallery"
 						class={`nav-link ${pathname === "/gallery" ? "active" : ""}`}
-						>Gallery</a
+						>[02] ARCHIVE</a
 					>
 					<a
 						href="/about"
 						class={`nav-link ${pathname === "/about" ? "active" : ""}`}
-						>About</a
+						>[03] COLOPHON</a
 					>
+					<button
+						id="theme-toggle"
+						class="nav-link theme-toggle-btn"
+						aria-label="Toggle Dark Mode"
+					>
+						[☼/☾] THEME
+					</button>
 				</nav>
 			</div>
 		</header>
+
 		<div class="content-wrapper">
 			<slot />
 		</div>
+
 		<Footer />
 
-		<!-- Premium Interactive Effects -->
 		<script is:inline defer>
 			document.addEventListener("DOMContentLoaded", () => {
-				// ========================================
-				// CURSOR SPOTLIGHT EFFECT (Linear/Raycast style)
-				// ========================================
-				const spotlightContainers = document.querySelectorAll(
-					".panel-container, .preview-container, .intro-section, .gallery-card",
-				);
-
-				spotlightContainers.forEach((container) => {
-					// Create spotlight overlay
-					const spotlight = document.createElement("div");
-					spotlight.className = "cursor-spotlight";
-					spotlight.style.cssText = `
-						position: absolute;
-						inset: 0;
-						pointer-events: none;
-						opacity: 0;
-						transition: opacity 0.3s ease;
-						z-index: 1;
-						border-radius: inherit;
-						overflow: hidden;
-					`;
-
-					// Ensure container has relative positioning
-					const computedStyle = getComputedStyle(container);
-					if (computedStyle.position === "static") {
-						container.style.position = "relative";
-					}
-					container.appendChild(spotlight);
-
-					container.addEventListener("mousemove", (e) => {
-						const rect = container.getBoundingClientRect();
-						const x = e.clientX - rect.left;
-						const y = e.clientY - rect.top;
-
-						spotlight.style.background = `
-							radial-gradient(
-								400px circle at ${x}px ${y}px,
-								rgba(251, 146, 60, 0.06) 0%,
-								transparent 60%
-							)
-						`;
-						spotlight.style.opacity = "1";
-					});
-
-					container.addEventListener("mouseleave", () => {
-						spotlight.style.opacity = "0";
-					});
-				});
-
-				// ========================================
-				// SCROLL FADE-IN ANIMATIONS
-				// ========================================
 				const observerOptions = {
 					threshold: 0.1,
 					rootMargin: "0px 0px -50px 0px",
 				};
-
 				const fadeInObserver = new IntersectionObserver((entries) => {
 					entries.forEach((entry) => {
 						if (entry.isIntersecting) {
-							entry.target.classList.add("fade-in-visible");
-							// Optional: unobserve after animation
-							// fadeInObserver.unobserve(entry.target);
+							entry.target.classList.add("reveal-visible");
 						}
 					});
 				}, observerOptions);
 
-				// Add fade-in to elements
 				const fadeElements = document.querySelectorAll(
-					".intro-section, .panel-container, .preview-container, .gallery-card, .footer-section",
+					".intro-section, .panel-container, .preview-container, .gallery-card, .footer-section, .art-grid, .art-block",
 				);
 				fadeElements.forEach((el) => {
-					el.classList.add("fade-in-element");
+					el.classList.add("reveal-element");
 					fadeInObserver.observe(el);
 				});
 
-				// ========================================
-				// ANIMATED GRADIENT BORDER (premium intro)
-				// ========================================
-				const gradientBorderElements =
-					document.querySelectorAll(".intro-section");
-				gradientBorderElements.forEach((el) => {
-					el.classList.add("gradient-border-animated");
-				});
-
-				// ========================================
-				// FLOATING PARTICLES (subtle ambient effect)
-				// ========================================
-				const pageBackground =
-					document.querySelector(".page-background");
-				if (pageBackground) {
-					const particleContainer = document.createElement("div");
-					particleContainer.className = "floating-particles";
-					particleContainer.style.cssText = `
-						position: absolute;
-						inset: 0;
-						overflow: hidden;
-						pointer-events: none;
-					`;
-
-					// Create a few floating orbs
-					for (let i = 0; i < 3; i++) {
-						const orb = document.createElement("div");
-						orb.className = "floating-orb";
-						orb.style.cssText = `
-							position: absolute;
-							width: ${200 + i * 100}px;
-							height: ${200 + i * 100}px;
-							border-radius: 50%;
-							background: radial-gradient(circle, rgba(251, 146, 60, 0.03) 0%, transparent 70%);
-							filter: blur(40px);
-							animation: float-orb ${15 + i * 5}s ease-in-out infinite;
-							animation-delay: ${i * -5}s;
-							left: ${20 + i * 30}%;
-							top: ${10 + i * 20}%;
-						`;
-						particleContainer.appendChild(orb);
-					}
-					pageBackground.appendChild(particleContainer);
-				}
-			});
-		</script>
-
-		<script is:inline defer>
-			// Global click effect for all buttons using event delegation
-			document.addEventListener("DOMContentLoaded", () => {
-				// Function to add click effect to an element
-				function addClickEffect(element) {
-					if (!element) return;
-
-					// Add click effect class
-					element.classList.add("click-effect");
-
-					// Remove the class after animation completes
-					setTimeout(() => {
-						element.classList.remove("click-effect");
-					}, 150);
-				}
-
-				// Use event delegation for mouse clicks
+				// Utility: Click effect
 				document.body.addEventListener("click", (e) => {
-					// Check if the clicked element is a button, has role="button", or is one of our interactive elements
 					const target = e.target.closest(
-						'button, [role="button"], .nav-link, .site-logo, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete',
+						'button, [role="button"], .nav-link, .site-logo, .gallery-action-btn',
 					);
 					if (target) {
-						addClickEffect(target);
+						target.classList.add("click-effect");
+						setTimeout(
+							() => target.classList.remove("click-effect"),
+							150,
+						);
 					}
 				});
 
-				// Support keyboard interaction for accessibility
-				document.body.addEventListener("keydown", (e) => {
-					if (e.key === "Enter" || e.key === " ") {
-						// Find the active element that's interactive
-						const target = document.activeElement;
-						if (
-							target &&
-							target.matches(
-								'button, [role="button"], .nav-link, .site-logo, a, .gallery-action-btn, .gallery-btn-view, .gallery-btn-delete',
-							)
-						) {
-							addClickEffect(target);
-						}
-					}
-				});
+				// Theme Toggle
+				const themeBtn = document.getElementById("theme-toggle");
+				if (themeBtn) {
+					themeBtn.addEventListener("click", () => {
+						document.documentElement.classList.toggle("dark-theme");
+						const isDark =
+							document.documentElement.classList.contains(
+								"dark-theme",
+							);
+						try {
+							localStorage.setItem(
+								"theme",
+								isDark ? "dark" : "light",
+							);
+						} catch (e) {}
+					});
+				}
 			});
-		</script>
-
-		<!-- Service Worker Registration -->
-		<script is:inline defer>
-			// Register service worker for caching and offline support
-			if ("serviceWorker" in navigator) {
-				window.addEventListener("load", () => {
-					navigator.serviceWorker
-						.register("/worker/service-worker.js")
-						.then((registration) => {
-							console.log(
-								"ServiceWorker registration successful with scope: ",
-								registration.scope,
-							);
-						})
-						.catch((error) => {
-							console.log(
-								"ServiceWorker registration failed: ",
-								error,
-							);
-						});
-				});
-			}
-		</script>
-
-		<!-- Developer Console Easter Egg -->
-		<script is:inline>
-			(function () {
-				if (typeof window === "undefined") return;
-
-				const ascii = `
-    ___  ________  ________     
-   |\\  \\|\\   __  \\|\\   __  \\    
-   \\ \\  \\ \\  \\|\\  \\ \\  \\|\\  \\   
- __ \\ \\  \\ \\   _  _\\ \\   _  _\\  
-|\\  \\\\_\\  \\ \\  \\\\  \\\\ \\  \\\\  \\|
-\\ \\________\\ \\__\\\\ _\\\\ \\__\\\\ _\\
- \\|________|\\|__|\\|__|\\|__|\\|__|
-`;
-
-				console.log(ascii);
-				console.log("Hey there. Interested in code?");
-				console.log(
-					"Check out my GitHub: https://github.com/JonathanRReed",
-				);
-				console.log("Most of my sites repos are open source.");
-			})();
 		</script>
 	</body>
 </html>
 
 <style is:global>
-	@font-face {
-		font-family: "Nebula";
-		src: url("/fonts/NebulaSans-Book.ttf") format("truetype");
-		font-weight: 400;
-		font-style: normal;
-		font-display: swap;
-	}
-
-	@font-face {
-		font-family: "Nebula";
-		src: url("/fonts/NebulaSans-BoldItalic.ttf") format("truetype");
-		font-weight: 700;
-		font-style: italic;
-		font-display: swap;
-	}
-
-	*,
-	*::before,
-	*::after {
-		box-sizing: border-box;
-	}
-
-	html,
-	body {
-		margin: 0;
-		padding: 0;
-		width: 100%;
-		height: 100%;
-		font-family:
-			"Nebula", "Inter", "ui-sans-serif", "system-ui", sans-serif;
-		background: #080a0e;
-		overflow-x: hidden;
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-		text-rendering: optimizeLegibility;
-	}
-
 	.content-wrapper {
 		min-height: 100vh;
 		width: 100%;
@@ -414,10 +192,10 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
+		justify-content: flex-start;
 		overflow-x: hidden;
-		padding-top: 70px;
-		padding-bottom: 2rem;
+		padding-top: 5rem;
+		padding-bottom: 4rem;
 	}
 
 	.site-header {
@@ -425,82 +203,66 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 		top: 0;
 		left: 0;
 		width: 100%;
-		z-index: 10;
-		background-color: rgba(8, 10, 14, 0.8);
-		backdrop-filter: blur(20px) saturate(180%);
-		-webkit-backdrop-filter: blur(20px) saturate(180%);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-		box-shadow:
-			0 4px 30px -4px rgba(0, 0, 0, 0.5),
-			inset 0 -0.5px 0 0 rgba(255, 255, 255, 0.05);
+		z-index: 50;
+		background-color: var(--color-paper);
+		border-bottom: var(--border-ink);
 	}
 
 	.nav-container {
-		max-width: 1400px;
-		margin: 0 auto;
+		width: 100%;
 		display: flex;
 		justify-content: space-between;
-		align-items: center;
-		padding: 1rem 2rem;
+		align-items: stretch;
+		min-height: 3.5rem;
 	}
 
 	.site-logo {
-		color: #f1f5f9;
-		font-family:
-			"Nebula", "Inter", "ui-sans-serif", "system-ui", sans-serif;
-		font-weight: 700;
-		font-style: italic;
-		font-size: 1.25rem;
+		color: var(--color-ink);
+		font-family: var(--font-mono);
+		font-weight: 500;
+		font-size: 1.1rem;
 		text-decoration: none;
-		transition: color 0.15s;
-		letter-spacing: -0.01em;
-		display: inline-block;
-		height: 40px;
-		line-height: 40px;
-	}
-
-	.site-logo-text {
-		display: inline-block;
+		letter-spacing: 0.05em;
+		display: flex;
+		align-items: center;
+		padding: 0 2rem;
+		border-right: var(--border-ink);
+		background-color: var(--color-paper);
 	}
 
 	.site-logo:hover {
-		color: #94a3b8;
+		background-color: var(--color-ink);
+		color: var(--color-paper);
 	}
 
 	.main-nav {
 		display: flex;
-		gap: 1.5rem;
+		gap: 0;
 	}
 
 	.nav-link {
-		color: #94a3b8;
+		color: var(--color-ink);
 		text-decoration: none;
-		font-size: 0.9rem;
-		padding: 0.5rem 0.75rem;
-		border-radius: 0.375rem;
-		transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-		font-weight: 500;
-		position: relative;
+		display: flex;
+		align-items: center;
+		padding: 0 1.5rem;
+		border-left: var(--border-ink);
+		transition:
+			background-color 0s,
+			color 0s;
 	}
 
-	.nav-link:hover {
-		color: #f1f5f9;
-		background-color: rgba(255, 255, 255, 0.06);
-	}
-
+	.nav-link:hover,
 	.nav-link.active {
-		color: #f1f5f9;
-		background-color: rgba(255, 255, 255, 0.1);
-		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+		background-color: var(--color-ink);
+		color: var(--color-paper);
 	}
 
-	/* Subtle click feedback */
 	.click-effect {
-		opacity: 0.8 !important;
-		transition: opacity 0.1s ease !important;
+		filter: invert(1);
 	}
 
-	/* Premium noise texture overlay */
+	/* Paper noise texture */
 	.page-background::after {
 		content: "";
 		position: fixed;
@@ -509,208 +271,85 @@ const canonicalUrl = `https://art.jonathanrreed.com${pathname}`;
 		width: 100%;
 		height: 100%;
 		pointer-events: none;
-		opacity: 0.015;
-		background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+		opacity: 0.04;
+		background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='4' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 		z-index: 9999;
+		mix-blend-mode: multiply;
 	}
 
-	/* Smooth focus rings for all interactive elements */
+	/* Stark reveals */
+	.reveal-element {
+		opacity: 0;
+		clip-path: inset(100% 0 0 0);
+		transform: translateY(10px);
+		transition:
+			opacity 0.6s cubic-bezier(0.2, 0, 0, 1),
+			clip-path 0.8s cubic-bezier(0.2, 0, 0, 1),
+			transform 0.8s cubic-bezier(0.2, 0, 0, 1);
+	}
+
+	.reveal-visible {
+		opacity: 1;
+		clip-path: inset(0 0 0 0);
+		transform: translateY(0);
+	}
+
+	a,
+	button {
+		transition: none; /* Brutalist snap */
+	}
+
+	.theme-toggle-btn {
+		background: transparent;
+		border: none;
+		font-family: inherit;
+		font-size: inherit;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		padding: 0 1.5rem;
+		border-left: var(--border-ink);
+	}
+
 	button:focus-visible,
 	a:focus-visible,
 	input:focus-visible,
 	select:focus-visible {
-		outline: 2px solid rgba(251, 146, 60, 0.5);
+		outline: 2px solid var(--color-accent);
 		outline-offset: 2px;
 	}
 
-	/* Global smooth transitions */
-	a,
-	button {
-		transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	/* ========================================
-	   SCROLL FADE-IN ANIMATIONS
-	   ======================================== */
-	.fade-in-element {
-		opacity: 0;
-		transform: translateY(20px);
-		transition:
-			opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-			transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-	}
-
-	.fade-in-visible {
-		opacity: 1;
-		transform: translateY(0);
-	}
-
-	/* Staggered animations for child elements */
-	.fade-in-visible > *:nth-child(1) {
-		transition-delay: 0.05s;
-	}
-	.fade-in-visible > *:nth-child(2) {
-		transition-delay: 0.1s;
-	}
-	.fade-in-visible > *:nth-child(3) {
-		transition-delay: 0.15s;
-	}
-	.fade-in-visible > *:nth-child(4) {
-		transition-delay: 0.2s;
-	}
-
-	/* ========================================
-	   ANIMATED GRADIENT BORDER
-	   ======================================== */
-	.gradient-border-animated {
-		position: relative;
-		border: 1px solid transparent;
-		background-clip: padding-box;
-	}
-
-	.gradient-border-animated::before {
-		content: "";
-		position: absolute;
-		inset: -1px;
-		border-radius: inherit;
-		padding: 1px;
-		background: linear-gradient(
-			135deg,
-			rgba(251, 146, 60, 0.3) 0%,
-			rgba(251, 146, 60, 0.05) 25%,
-			rgba(245, 158, 11, 0.1) 50%,
-			rgba(251, 146, 60, 0.05) 75%,
-			rgba(251, 146, 60, 0.3) 100%
-		);
-		background-size: 300% 300%;
-		animation: gradient-shift 8s ease-in-out infinite;
-		-webkit-mask:
-			linear-gradient(#fff 0 0) content-box,
-			linear-gradient(#fff 0 0);
-		-webkit-mask-composite: xor;
-		mask-composite: exclude;
-		pointer-events: none;
-		z-index: -1;
-	}
-
-	@keyframes gradient-shift {
-		0%,
-		100% {
-			background-position: 0% 50%;
-		}
-		50% {
-			background-position: 100% 50%;
-		}
-	}
-
-	/* ========================================
-	   FLOATING ORB ANIMATION
-	   ======================================== */
-	@keyframes float-orb {
-		0%,
-		100% {
-			transform: translate(0, 0) scale(1);
-			opacity: 0.5;
-		}
-		25% {
-			transform: translate(50px, -30px) scale(1.1);
-			opacity: 0.7;
-		}
-		50% {
-			transform: translate(20px, 40px) scale(0.95);
-			opacity: 0.4;
-		}
-		75% {
-			transform: translate(-30px, 20px) scale(1.05);
-			opacity: 0.6;
-		}
-	}
-
-	/* ========================================
-	   GLOW PULSE EFFECT (for buttons/accents)
-	   ======================================== */
-	@keyframes glow-pulse {
-		0%,
-		100% {
-			box-shadow: 0 0 20px rgba(251, 146, 60, 0.1);
-		}
-		50% {
-			box-shadow: 0 0 30px rgba(251, 146, 60, 0.2);
-		}
-	}
-
-	/* Reduced motion preference */
 	@media (prefers-reduced-motion: reduce) {
-		*,
-		*::before,
-		*::after {
-			animation-duration: 0.01ms !important;
-			animation-iteration-count: 1 !important;
-			transition-duration: 0.01ms !important;
-		}
-
-		.fade-in-element {
+		.reveal-element {
 			opacity: 1;
+			clip-path: none;
 			transform: none;
-		}
-
-		.gradient-border-animated::before {
-			animation: none;
+			transition: none;
 		}
 	}
 
-	@media (max-width: 640px) {
+	@media (max-width: 768px) {
 		.nav-container {
+			flex-direction: column;
+		}
+		.site-logo {
+			border-right: none;
+			border-bottom: var(--border-ink);
+			justify-content: center;
 			padding: 0.75rem;
-			flex-wrap: wrap;
-			justify-content: center;
 		}
-
-		.site-logo {
-			font-size: 1.1rem;
-			height: 32px;
-			line-height: 32px;
-			margin-bottom: 0.5rem;
-			width: 100%;
-			text-align: center;
-		}
-
 		.main-nav {
 			width: 100%;
-			justify-content: center;
-			gap: 0.5rem;
+			overflow-x: auto;
 		}
-
 		.nav-link {
-			font-size: 0.85rem;
-			padding: 0.4rem 0.6rem;
+			border-left: none;
+			border-right: var(--border-ink);
+			padding: 0.75rem 1rem;
+			white-space: nowrap;
 		}
-
 		.content-wrapper {
-			padding-top: 100px; /* Increase padding to accommodate the taller header */
-			padding-left: 1rem;
-			padding-right: 1rem;
-		}
-	}
-
-	@media (max-width: 375px) {
-		.site-logo {
-			font-size: 1rem;
-			height: 28px;
-			line-height: 28px;
-		}
-
-		.main-nav {
-			gap: 0.25rem;
-		}
-
-		.nav-link {
-			font-size: 0.8rem;
-			padding: 0.3rem 0.5rem;
-		}
-
-		.content-wrapper {
-			padding-top: 90px; /* Slightly reduced for very small screens */
+			padding-top: 7rem;
 		}
 	}
 </style>

@@ -14,25 +14,18 @@ import GenerationPage from "../components/GenerationPage.jsx";
 	description="Algorithmic Art Gallery showcases algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design."
 >
 	<div class="intro-section">
-		<p class="intro-text">
-			<strong>Algorithmic Art Gallery</strong> is a collection of algorithmic
-			pieces you create <em>by Jonathan R Reed</em>.
+		<h1 class="intro-heading">THE GENERATOR</h1>
+		<p class="intro-text mono-text">
+			SELECT PARAMETERS. INITIALIZE GROWTH ALGORITHM. OBSERVE FORMATION.
+			<br /><span class="accent-text">A SYSTEM BY JONATHAN R REED.</span>
 		</p>
 	</div>
 
-	<!-- Artistic Loader -->
+	<!-- Minimalist Brutal Loader -->
 	<div class="art-loader" id="art-loader">
 		<div class="loader-container">
-			<svg class="loader-shape" viewBox="0 0 100 100" fill="none">
-				<circle
-					class="loader-circle"
-					cx="50"
-					cy="50"
-					r="40"
-					stroke-width="2"></circle>
-				<circle class="loader-dot" cx="50" cy="10" r="4"></circle>
-			</svg>
-			<span class="loader-text">Creating...</span>
+			<div class="brutal-spinner"></div>
+			<div class="loader-text mono-text">[INITIALIZING SYSTEM]</div>
 		</div>
 	</div>
 
@@ -63,7 +56,42 @@ import GenerationPage from "../components/GenerationPage.jsx";
 
 <style>
 	/* ========================================
-	   ARTISTIC LOADER STYLES
+	   INTRO SECTION
+	   ======================================== */
+	.intro-section {
+		width: 100%;
+		max-width: 800px;
+		margin: 0 auto 3rem;
+		padding: 2rem;
+		text-align: center;
+		background: var(--color-paper);
+		border-top: 4px solid var(--color-ink);
+		border-bottom: 4px solid var(--color-ink);
+		box-shadow: 8px 8px 0 0 var(--color-ink);
+	}
+
+	.intro-heading {
+		font-family: var(--font-serif);
+		font-size: 3rem;
+		font-weight: 400;
+		color: var(--color-ink);
+		margin-bottom: 1rem;
+		letter-spacing: -0.02em;
+	}
+
+	.intro-text {
+		color: var(--color-ink-light);
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	.accent-text {
+		color: var(--color-accent);
+		font-weight: 600;
+	}
+
+	/* ========================================
+	   BRUTAL MINIMAL LOADER
 	   ======================================== */
 	.art-loader {
 		position: fixed;
@@ -72,10 +100,9 @@ import GenerationPage from "../components/GenerationPage.jsx";
 		align-items: center;
 		justify-content: center;
 		z-index: 50;
-		background: rgba(8, 10, 14, 0.95);
-		backdrop-filter: blur(8px);
+		background: var(--color-paper);
 		opacity: 1;
-		transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+		transition: opacity 0.3s ease;
 	}
 
 	.art-loader.fade-out {
@@ -88,45 +115,27 @@ import GenerationPage from "../components/GenerationPage.jsx";
 		flex-direction: column;
 		align-items: center;
 		gap: 1.5rem;
+		background: var(--color-paper-alt);
+		padding: 2rem 4rem;
+		border: var(--border-ink);
+		box-shadow: 12px 12px 0 0 var(--color-ink);
 	}
 
-	.loader-shape {
-		width: 80px;
-		height: 80px;
+	.brutal-spinner {
+		width: 40px;
+		height: 40px;
+		border: 4px solid var(--color-ink);
+		border-right-color: transparent;
+		animation: spin 0.8s linear infinite;
 	}
 
-	.loader-circle {
-		stroke: rgba(251, 146, 60, 0.3);
-		fill: none;
-		stroke-dasharray: 251;
-		stroke-dashoffset: 251;
-		stroke-linecap: round;
-		animation: draw-circle 2s ease-in-out infinite;
-		transform-origin: center;
+	.loader-text {
+		color: var(--color-ink);
+		font-weight: 600;
+		animation: blink 1s step-end infinite;
 	}
 
-	.loader-dot {
-		fill: rgba(251, 146, 60, 0.9);
-		animation: orbit-dot 2s linear infinite;
-		transform-origin: 50px 50px;
-	}
-
-	@keyframes draw-circle {
-		0% {
-			stroke-dashoffset: 251;
-			stroke: rgba(251, 146, 60, 0.2);
-		}
-		50% {
-			stroke-dashoffset: 0;
-			stroke: rgba(251, 146, 60, 0.6);
-		}
-		100% {
-			stroke-dashoffset: -251;
-			stroke: rgba(251, 146, 60, 0.2);
-		}
-	}
-
-	@keyframes orbit-dot {
+	@keyframes spin {
 		from {
 			transform: rotate(0deg);
 		}
@@ -135,82 +144,37 @@ import GenerationPage from "../components/GenerationPage.jsx";
 		}
 	}
 
-	.loader-text {
-		color: #94a3b8;
-		font-size: 0.9rem;
-		font-weight: 500;
-		letter-spacing: 0.05em;
-		animation: pulse-text 2s ease-in-out infinite;
-	}
-
-	@keyframes pulse-text {
+	@keyframes blink {
 		0%,
 		100% {
-			opacity: 0.5;
-		}
-		50% {
 			opacity: 1;
 		}
-	}
-
-	/* ========================================
-	   INTRO SECTION STYLES
-	   ======================================== */
-	.intro-section {
-		width: 100%;
-		max-width: 700px;
-		margin: 0 auto 2rem;
-		padding: 1.25rem 1.75rem;
-		text-align: center;
-		background: rgba(15, 23, 42, 0.4);
-		border: 1px solid rgba(251, 146, 60, 0.15);
-		border-radius: 16px;
-	}
-
-	.intro-text {
-		color: #cbd5e1;
-		font-size: 1rem;
-		line-height: 1.8;
-		margin: 0;
-	}
-
-	.intro-text strong {
-		background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		font-weight: 700;
-	}
-
-	.intro-text em {
-		color: #fb923c;
-		font-style: normal;
-		font-weight: 500;
+		50% {
+			opacity: 0;
+		}
 	}
 
 	.generator-container {
 		width: 100%;
 	}
 
-	/* Reduced motion preference */
 	@media (prefers-reduced-motion: reduce) {
-		.loader-circle,
-		.loader-dot,
+		.brutal-spinner {
+			animation: none;
+			border-right-color: var(--color-ink);
+		}
 		.loader-text {
 			animation: none;
 		}
+	}
 
-		.loader-circle {
-			stroke-dashoffset: 0;
-			stroke: rgba(251, 146, 60, 0.5);
+	@media (max-width: 768px) {
+		.intro-section {
+			margin: 0 1rem 2rem;
+			width: auto;
 		}
-
-		.loader-dot {
-			display: none;
-		}
-
-		.loader-text {
-			opacity: 1;
+		.intro-heading {
+			font-size: 2rem;
 		}
 	}
 </style>
