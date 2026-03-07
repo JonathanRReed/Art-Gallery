@@ -1,3 +1,65 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --color-paper: #f0eee9;
+        --color-paper-alt: #e6e4de;
+        --color-ink: #050505;
+        --color-ink-light: #444444;
+        --color-accent: #e43d30;
+        --color-accent-hover: #d33529;
+
+        --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-serif: "Bodoni Moda", "Didot", "Times New Roman", Times, serif;
+        --font-mono: "IBM Plex Mono", "Menlo", "Monaco", "Courier New", monospace;
+
+        --border-ink: 1px solid var(--color-ink);
+    }
+
+    .dark-theme {
+        --color-paper: #0a0a09;
+        --color-paper-alt: #161614;
+        --color-ink: #f0eee9;
+        --color-ink-light: #9a9894;
+        --color-accent: #ff4538;
+        --color-accent-hover: #ff685e;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--color-paper);
+        color: var(--color-ink);
+        font-family: var(--font-sans);
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+}
+
+/* Base typographic hierarchy for the editorial look */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.mono-text {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+}

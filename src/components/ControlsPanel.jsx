@@ -134,10 +134,12 @@ export default function ControlsPanel({
 
           <div style={{
             display: 'flex',
+            flexWrap: 'wrap',
             justifyContent: 'space-between',
+            gap: '0.5rem',
             marginBottom: '1rem',
             paddingBottom: '0.5rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            borderBottom: '1px solid var(--color-ink-light)'
           }}>
             <button
               ref={settingsButtonRef}
@@ -153,22 +155,21 @@ export default function ControlsPanel({
                 }));
               }}
               className="settings-button gallery-action-btn"
-              title="Saved to browser's local storage (up to 5MB limit)"
+              title="Saved to browser's local storage"
               style={{
                 backgroundColor: 'transparent',
-                border: '1px solid #4b5563',
-                color: '#e5e7eb',
+                flex: '1 1 auto',
+                border: '1px solid var(--color-ink)',
+                color: 'var(--color-ink)',
                 padding: '0.5rem 1rem',
-                borderRadius: '0.375rem',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
+                fontSize: '0.75rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem'
               }}
             >
-              Saved Settings
+              LOAD CONFIG
             </button>
 
             <button
@@ -177,20 +178,19 @@ export default function ControlsPanel({
               title="Save current generation settings for later use"
               style={{
                 backgroundColor: 'transparent',
-                border: '1px solid #4b5563',
-                color: '#e5e7eb',
+                flex: '1 1 auto',
+                border: '1px solid var(--color-ink)',
+                color: 'var(--color-ink)',
                 padding: '0.5rem 1rem',
-                borderRadius: '0.375rem',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
+                fontSize: '0.75rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.5rem'
               }}
               disabled={loading}
             >
-              Save Current Settings
+              SAVE CONFIG
             </button>
           </div>
 

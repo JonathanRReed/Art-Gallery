@@ -175,11 +175,11 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
             aspectRatio: '1/1',
             objectFit: 'contain',
             display: 'block',
-            backgroundColor: '#0f172a',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '0.5rem',
-            filter: loading ? 'blur(8px)' : 'none',
-            transition: 'filter 0.3s ease-in-out',
+            backgroundColor: 'var(--color-paper-alt)',
+            border: 'var(--border-ink)',
+            borderRadius: '0',
+            filter: loading ? 'contrast(1.2) grayscale(0.2)' : 'none',
+            transition: 'filter 0.2s ease-in-out',
           }}
         />
         {loading && (
@@ -190,39 +190,48 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            borderRadius: '0.75rem',
+            backgroundColor: 'rgba(240, 238, 233, 0.8)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '0',
             maxWidth: '100%',
             width: '100%',
             aspectRatio: '1/1',
-            padding: '1rem'
+            padding: '1rem',
+            border: 'var(--border-ink)'
           }}>
             <style>{`
               @keyframes spin {
                 from { transform: rotate(0deg); }
                 to { transform: rotate(360deg); }
               }
+              @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+              }
             `}</style>
             <div className="loading-spinner" style={{
               animation: 'spin 1s linear infinite',
-              borderRadius: '9999px',
-              height: '4rem',
-              width: '4rem',
-              borderWidth: '4px',
+              borderRadius: '0',
+              height: '3rem',
+              width: '3rem',
+              borderWidth: '2px',
               borderStyle: 'solid',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
-              borderTopColor: '#3b82f6',
+              borderColor: 'var(--color-ink)',
+              borderTopColor: 'var(--color-accent)',
               marginBottom: '1.5rem'
             }} />
             <div style={{
-              color: 'white',
+              color: 'var(--color-ink)',
               textAlign: 'center',
-              fontSize: '0.9rem',
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              fontSize: '0.8rem',
               maxWidth: '80%',
               lineHeight: '1.4'
             }}>
-              <p style={{ marginBottom: '0.5rem', fontWeight: 500 }}>Generating Artwork...</p>
-              <p style={{ opacity: 0.7, fontSize: '0.8rem' }}>Larger patterns may take a moment.</p>
+              <p style={{ marginBottom: '0.5rem', fontWeight: 600 }}>[GENERATING_ARTWORK]<span style={{ animation: 'blink 1s step-end infinite' }}>_</span></p>
+              <p style={{ opacity: 0.7, fontSize: '0.7rem' }}>PROCESSING COMPLEX PATTERN</p>
             </div>
           </div>
         )}

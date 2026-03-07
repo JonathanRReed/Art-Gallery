@@ -78,30 +78,31 @@ export default function GalleryPage() {
   return (
     <>
       <div className="storage-disclaimer" style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.2)',
-        borderRadius: '0.375rem',
-        padding: '0.75rem 1rem',
-        marginBottom: '1.5rem',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
-        maxWidth: '700px',
-        margin: '0 auto 1.5rem auto',
+        backgroundColor: 'var(--color-paper-alt)',
+        padding: '1rem',
+        marginBottom: '2.5rem',
+        border: '1px dashed var(--color-ink-light)',
+        maxWidth: '800px',
+        margin: '0 auto 3rem auto',
       }}>
         <p style={{
-          color: '#64748b',
-          fontSize: '0.8rem',
+          color: 'var(--color-ink-light)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.75rem',
           margin: '0',
-          lineHeight: '1.4',
-          textAlign: 'center'
+          lineHeight: '1.5',
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em'
         }}>
-          Gallery images are saved locally in your browser (up to 5MB limit).
-          Images will not transfer between browsers or devices.
+          [ARCHIVE_NOTICE] Gallery elements are cached locally. Synchronization across nodes is unsupported. Storage quota: ~5MB.
         </p>
       </div>
 
       <div className="gallery-grid">
         {gallery.length === 0 && (
           <div className="empty-gallery">
-            No posters saved yet. Return to the generator to create some art!
+            [ARCHIVE_EMPTY] AWAITING GENERATOR INPUT.
           </div>
         )}
         {gallery.map((item, idx) => (
@@ -112,25 +113,25 @@ export default function GalleryPage() {
               className="gallery-card-image"
             />
             <div className="gallery-card-info">
-              <div>Curve: <b>{item.params.curveType}</b></div>
-              <div>Seed: <b>{item.params.seed}</b></div>
-              <div>Color Order: <b>{item.params.colorOrdering}</b></div>
-              <div>Date: <b>{new Date(item.savedAt).toLocaleDateString()}</b></div>
+              <div><span>CURVE_TYPE</span> <b>{item.params.curveType}</b></div>
+              <div><span>SEED_VAL</span> <b>{item.params.seed}</b></div>
+              <div><span>COLOR_SEQ</span> <b>{item.params.colorOrdering}</b></div>
+              <div><span>TIMESTAMP</span> <b>{new Date(item.savedAt).toLocaleDateString()}</b></div>
             </div>
             <div className="gallery-card-buttons">
               <button
-                className="gallery-btn-view gallery-action-btn"
+                className="gallery-btn-view"
                 type="button"
                 onClick={() => handleDownload(idx)}
               >
-                Download
+                DL_PNG
               </button>
               <button
-                className="gallery-btn-delete gallery-action-btn"
+                className="gallery-btn-delete"
                 type="button"
                 onClick={() => handleDelete(idx)}
               >
-                Delete
+                PURGE
               </button>
             </div>
           </div>
@@ -145,10 +146,7 @@ export default function GalleryPage() {
               onClick={handleCloseModal}
               aria-label="Close modal"
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
+              [X]
             </button>
             <img
               src={gallery[viewIndex].imageDataUrl}
