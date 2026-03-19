@@ -94,7 +94,7 @@
         </a>
       </div>
 
-      <button class="share-button" id="shareButton" title="Share this website">
+      <button class="share-button" id="shareButton" title="Share this website" type="button">
         <svg
           class="share-icon-svg"
           viewBox="0 0 24 24"
@@ -110,7 +110,7 @@
           <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
           <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
         </svg>
-        <span class="share-text">Share</span>
+        <span class="share-text" id="shareButtonText">Share</span>
       </button>
     </div>
   </div>
@@ -118,46 +118,59 @@
 </footer>
 
 <script>
-  // Add Web Share API functionality
   document.addEventListener("DOMContentLoaded", () => {
     const shareButton = document.getElementById("shareButton");
+    const shareButtonText = document.getElementById("shareButtonText");
 
-    if (shareButton && navigator.share) {
-      shareButton.addEventListener("click", async () => {
+    if (!shareButton || !shareButtonText) return;
+
+    const resetShareLabel = () => {
+      window.setTimeout(() => {
+        shareButtonText.textContent = "Share";
+      }, 1800);
+    };
+
+    shareButton.addEventListener("click", async () => {
+      const shareData = {
+        title: "Algorithmic Art Gallery",
+        text: "Explore this algorithmic art generator and create your own variation.",
+        url: window.location.href,
+      };
+
+      if (navigator.share) {
         try {
-          await navigator.share({
-            title: "Algorithmic Art Gallery",
-            text: "Check out this amazing algorithmic art generator!",
-            url: window.location.href,
-          });
-          console.log("Successfully shared");
+          await navigator.share(shareData);
+          shareButtonText.textContent = "Shared";
+          resetShareLabel();
+          return;
         } catch (err) {
-          console.error("Error sharing:", err);
+          if (err instanceof Error && err.name === "AbortError") {
+            return;
+          }
         }
-      });
-    } else if (shareButton) {
-      // Hide share button if Web Share API is not supported
-      shareButton.style.display = "none";
-    }
+      }
+
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        shareButtonText.textContent = "Link copied";
+      } catch (err) {
+        shareButtonText.textContent = "Copy link manually";
+      }
+
+      resetShareLabel();
+    });
   });
 </script>
 
 <style>
   .site-footer {
     width: 100%;
-    background: rgba(8, 10, 14, 0.85);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 1.5rem 0 1rem;
-    margin-top: 3rem;
-    box-shadow:
-      0 -4px 30px -4px rgba(0, 0, 0, 0.4),
-      inset 0 0.5px 0 0 rgba(255, 255, 255, 0.05);
+    padding: 1rem 0 0.5rem;
+    margin-top: 2rem;
   }
 
   .footer-container {
-    max-width: 1200px;
+    max-width: 1240px;
     margin: 0 auto;
     padding: 0 2rem;
   }
@@ -169,6 +182,10 @@
     justify-content: space-between;
     gap: 2rem;
     flex-wrap: wrap;
+    background: var(--color-paper-alt);
+    border: var(--border-ink);
+    padding: 1rem 1.25rem;
+    box-shadow: 5px 5px 0 0 var(--color-ink);
   }
 
   .footer-branding {
@@ -178,20 +195,20 @@
   }
 
   .footer-product-main {
-    color: #e2e8f0;
+    color: var(--color-ink);
     font-size: 1.1rem;
     font-weight: 700;
     font-style: italic;
   }
 
   .footer-product-company {
-    color: #67e8f9;
+    color: var(--color-accent);
     font-weight: 700;
     font-style: italic;
   }
 
   .footer-product-author {
-    color: #94a3b8;
+    color: var(--color-ink-light);
     font-size: 0.85rem;
     font-weight: 500;
   }
@@ -208,17 +225,18 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #94a3b8;
+    color: var(--color-ink-light);
     text-decoration: none;
     font-size: 0.9rem;
     padding: 0.4rem 0.6rem;
-    border-radius: 6px;
+    border: 1px solid transparent;
     transition: all 0.2s ease;
   }
 
   .footer-link:hover {
-    color: #67e8f9;
-    background-color: rgba(103, 232, 249, 0.1);
+    color: var(--color-ink);
+    background-color: var(--color-paper);
+    border-color: var(--color-ink-light);
   }
 
   .footer-icon-img {
@@ -245,24 +263,26 @@
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    background-color: rgba(103, 232, 249, 0.1);
-    color: #67e8f9;
-    border: 1px solid rgba(103, 232, 249, 0.2);
-    border-radius: 6px;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    border: var(--border-ink);
     padding: 0.4rem 0.8rem;
     font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 2px 2px 0 0 var(--color-ink);
   }
 
   .share-button:hover {
-    background-color: rgba(103, 232, 249, 0.2);
-    box-shadow: 0 0 10px rgba(103, 232, 249, 0.3);
-    transform: translateY(-1px);
+    background-color: var(--color-accent);
+    color: var(--color-paper);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 0 var(--color-ink);
   }
 
   .share-button:active {
-    transform: scale(0.98) translateY(0);
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 0 var(--color-ink);
   }
 
   .share-icon-svg {
@@ -272,11 +292,11 @@
 
   .footer-copyright {
     text-align: center;
-    color: #64748b;
+    color: var(--color-ink-light);
     font-size: 0.75rem;
     margin-top: 1rem;
     padding-top: 0.75rem;
-    border-top: 1px solid rgba(103, 232, 249, 0.08);
+    border-top: 1px solid color-mix(in srgb, var(--color-ink-light) 25%, transparent);
   }
 
   @media (max-width: 768px) {

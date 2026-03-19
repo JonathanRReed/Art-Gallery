@@ -1,11 +1,11 @@
 {
-  "name": "Algorithmic Art by Jonathan Reed",
-  "short_name": "Algo Art",
-  "description": "Create beautiful algorithmic art using space-filling curves and mathematical patterns",
+  "name": "Algorithmic Art Gallery",
+  "short_name": "Art Gallery",
+  "description": "Generate algorithmic artworks with curated controls, live previews, and high-resolution exports.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#080a0e",
-  "theme_color": "#67e8f9",
+  "background_color": "#f6f7fb",
+  "theme_color": "#5567ff",
   "icons": [
     {
       "src": "/icon.png",

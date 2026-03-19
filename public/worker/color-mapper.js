@@ -1,14 +1,15 @@
 // color-mapper.js (Web Worker)
 // Seeded shuffle (Fisher-Yates)
-function seededShuffle(array, seed) {
-  function mulberry32(a) {
-    return function () {
-      var t = a += 0x6D2B79F5;
-      t = Math.imul(t ^ t >>> 15, t | 1);
-      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    }
+function mulberry32(a) {
+  return function () {
+    var t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
   }
+}
+
+function seededShuffle(array, seed) {
   const rand = mulberry32(seed);
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -67,6 +68,55 @@ function pickClosestColorFromSample(palette, target, rand, sampleSize = 100) {
 function hsv2rgb(h, s, v) {
   let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
   return [f(5) * 255, f(3) * 255, f(1) * 255];
+}
+
+function rgbToHsv(r, g, b) {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+
+  let h = 0;
+  if (delta !== 0) {
+    if (max === r) h = 60 * (((g - b) / delta) % 6);
+    else if (max === g) h = 60 * (((b - r) / delta) + 2);
+    else h = 60 * (((r - g) / delta) + 4);
+  }
+
+  if (h < 0) h += 360;
+
+  const s = max === 0 ? 0 : delta / max;
+  const v = max;
+
+  return [h, s, v];
+}
+
+function applyColorProgression(colorList, colorProgression, seed) {
+  if (!Array.isArray(colorList) || colorList.length === 0) return;
+
+  switch (colorProgression) {
+    case 'sequential':
+      return;
+    case 'shuffled':
+      seededShuffle(colorList, seed);
+      return;
+    case 'base-distance': {
+      const baseColor = colorList[Math.abs(seed) % colorList.length];
+      colorList.sort((a, b) => colorDistSq(a, baseColor) - colorDistSq(b, baseColor));
+      return;
+    }
+    case 'saturation':
+      colorList.sort((a, b) => rgbToHsv(a[0], a[1], a[2])[1] - rgbToHsv(b[0], b[1], b[2])[1]);
+      return;
+    case 'brightness':
+      colorList.sort((a, b) => rgbToHsv(a[0], a[1], a[2])[2] - rgbToHsv(b[0], b[1], b[2])[2]);
+      return;
+    default:
+      seededShuffle(colorList, seed);
+  }
 }
 
 function permuteHSV(h, s, v, curveType, colorOrdering) {
@@ -138,11 +188,50 @@ function checkMemory() {
   }
 }
 
+function xyToHilbert(x, y, order) {
+  let rx;
+  let ry;
+  let d = 0;
+  const n = 1 << order;
+
+  x = Math.max(0, Math.min(n - 1, x));
+  y = Math.max(0, Math.min(n - 1, y));
+
+  for (let s = n / 2; s > 0; s = Math.floor(s / 2)) {
+    rx = (x & s) > 0 ? 1 : 0;
+    ry = (y & s) > 0 ? 1 : 0;
+    d += s * s * ((3 * rx) ^ ry);
+
+    if (ry === 0) {
+      if (rx === 1) {
+        x = n - 1 - x;
+        y = n - 1 - y;
+      }
+      [x, y] = [y, x];
+    }
+  }
+
+  return d;
+}
+
+function mortonEncode(x, y) {
+  x = Math.max(0, Math.floor(x));
+  y = Math.max(0, Math.floor(y));
+
+  let result = 0;
+  for (let i = 0; i < 16; i++) {
+    result |= ((x >> i) & 1) << (2 * i);
+    result |= ((y >> i) & 1) << (2 * i + 1);
+  }
+  return result;
+}
+
 // Track processing state
 let isPaused = false;
 let totalPixels = 0;
 let filledPixels = 0;
 let lastProgressUpdate = 0;
+let resumeProcessing = null;
 
 // Handle messages
 self.onmessage = function (e) {
@@ -150,12 +239,12 @@ self.onmessage = function (e) {
   if (e.data.command) {
     if (e.data.command === 'pause') {
       isPaused = true;
-      console.log("Worker paused");
       return;
     } else if (e.data.command === 'resume') {
       isPaused = false;
-      console.log("Worker resumed");
-      processBatch(); // Resume processing
+      if (typeof resumeProcessing === 'function') {
+        resumeProcessing();
+      }
       return;
     }
   }
@@ -182,15 +271,6 @@ self.onmessage = function (e) {
     const outputWidth = exactOutputSize || width;
     const outputHeight = exactOutputSize || height;
 
-    // Log important parameters for debugging
-    console.log(`Worker processing: width=${width}, height=${height}, patternComplexity=${patternComplexity}, outputSize=${outputWidth}x${outputHeight}`);
-    console.log(`Params: colorSpace=${colorSpace}, transparent=${transparent}, isExport=${exportMode}`);
-
-    // Additional debug for size settings
-    if (patternComplexity >= 4096) {
-      console.log('⚠️ EXTREME SIZE DETECTED: Using special processing for 4096px pattern');
-    }
-
     // First, check if this is an export or preview
     const isExport = exportMode || width > 256;
 
@@ -199,10 +279,6 @@ self.onmessage = function (e) {
       self.postMessage({ error: "Browser memory is constrained. Try closing other tabs or restarting your browser." });
       return;
     }
-
-    // Calculate expected memory usage
-    const estimatedMem = width * height * 4 * 2; // Image buffer plus overhead
-    console.log(`Estimated memory usage: ${Math.round(estimatedMem / (1024 * 1024))}MB`);
 
     // Reset tracking variables
     isPaused = false;
@@ -225,7 +301,6 @@ self.onmessage = function (e) {
 
       // Pre-allocate buffer for the requested output size
       const buffer = new Uint8ClampedArray(outputWidth * outputHeight * 4);
-      console.log(`Buffer allocated: ${buffer.byteLength} bytes for ${outputWidth}x${outputHeight} output image`);
 
       // Initialize buffer with transparency
       for (let i = 0; i < buffer.length; i += 4) {
@@ -244,15 +319,11 @@ self.onmessage = function (e) {
         actualPatternComplexity = patternComplexity >= 4096 ?
           patternComplexity : // Never reduce 4096 setting
           Math.min(patternComplexity, Math.ceil(patternComplexity * exportScale));
-        console.log(`Adjusted pattern complexity for export: ${actualPatternComplexity} (original: ${patternComplexity})`);
       }
 
       // Special color profile handling for Display P3
       // In the future, could implement color space transformations
       const useWideGamut = colorSpace === 'Display P3';
-      if (useWideGamut) {
-        console.log("Using Display P3 wide color gamut");
-      }
 
       // Define scaling factor based on pattern complexity
       // Allow full scaling for Extreme (4096) setting with no limits
@@ -263,172 +334,11 @@ self.onmessage = function (e) {
       // Calculate color steps - simplified to avoid excessive computation
       const steps = optimizeForLargeExport ? 16 : Math.min(32, Math.max(16, Math.floor(16 * Math.sqrt(patternScale))));
 
-      // For exports, use larger sample size for SMOOTH crystal patterns
-      // Higher sample = better color matching = smoother gradients (like AllRGB reference)
-      const actualSampleSize = optimizeForLargeExport ? Math.min(500, colorSampleSize) :
-        isExport ? Math.min(300, colorSampleSize) : Math.max(colorSampleSize, 200);
-      const actualRandomness = optimizeForLargeExport ? randomness * 0.3 :
-        isExport ? randomness * 0.5 : randomness;
-
-      // ========== HILBERT CURVE IMPLEMENTATION ==========
-      // Convert (x, y) to Hilbert curve index
-      function xyToHilbert(x, y, order) {
-        let rx, ry, s, d = 0;
-        const n = 1 << order; // 2^order
-        for (s = n / 2; s > 0; s = Math.floor(s / 2)) {
-          rx = (x & s) > 0 ? 1 : 0;
-          ry = (y & s) > 0 ? 1 : 0;
-          d += s * s * ((3 * rx) ^ ry);
-          // Rotate
-          if (ry === 0) {
-            if (rx === 1) {
-              x = n - 1 - x;
-              y = n - 1 - y;
-            }
-            [x, y] = [y, x];
-          }
-        }
-        return d;
-      }
-
-      // Convert Hilbert index to (x, y)
-      function hilbertToXY(d, order) {
-        let rx, ry, s, t = d;
-        const n = 1 << order;
-        let x = 0, y = 0;
-        for (s = 1; s < n; s *= 2) {
-          rx = 1 & Math.floor(t / 2);
-          ry = 1 & (t ^ rx);
-          // Rotate
-          if (ry === 0) {
-            if (rx === 1) {
-              x = s - 1 - x;
-              y = s - 1 - y;
-            }
-            [x, y] = [y, x];
-          }
-          x += s * rx;
-          y += s * ry;
-          t = Math.floor(t / 4);
-        }
-        return [x, y];
-      }
-
-      // ========== MORTON (Z-ORDER) CURVE IMPLEMENTATION ==========
-      // Interleave bits for Morton code
-      function mortonEncode(x, y) {
-        function spreadBits(v) {
-          v = (v | (v << 8)) & 0x00FF00FF;
-          v = (v | (v << 4)) & 0x0F0F0F0F;
-          v = (v | (v << 2)) & 0x33333333;
-          v = (v | (v << 1)) & 0x55555555;
-          return v;
-        }
-        return spreadBits(x) | (spreadBits(y) << 1);
-      }
-
-      // Decode Morton code to (x, y)
-      function mortonDecode(z) {
-        function compactBits(v) {
-          v = v & 0x55555555;
-          v = (v | (v >> 1)) & 0x33333333;
-          v = (v | (v >> 2)) & 0x0F0F0F0F;
-          v = (v | (v >> 4)) & 0x00FF00FF;
-          v = (v | (v >> 8)) & 0x0000FFFF;
-          return v;
-        }
-        return [compactBits(z), compactBits(z >> 1)];
-      }
-
-      // ========== RGB TO HSV CONVERSION ==========
-      function rgbToHSV(r, g, b) {
-        r /= 255; g /= 255; b /= 255;
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
-        const d = max - min;
-        let h = 0, s = max === 0 ? 0 : d / max, v = max;
-        if (max !== min) {
-          switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-          }
-          h /= 6;
-        }
-        return [h * 360, s, v]; // h in degrees, s and v normalized
-      }
-
-      // ========== COLOR ORDERING (HSV PERMUTATIONS) ==========
-      function getColorSortKey(color, ordering) {
-        const [h, s, v] = rgbToHSV(color[0], color[1], color[2]);
-        const order = (ordering || 'hsv').toLowerCase();
-        // Return sort key based on ordering - each component weighted for proper sorting
-        switch (order) {
-          case 'hsv': return h * 10000 + s * 100 + v;
-          case 'hvs': return h * 10000 + v * 100 + s;
-          case 'shv': return s * 10000 + h * 100 + v;
-          case 'svh': return s * 10000 + v * 100 + h / 360;
-          case 'vhs': return v * 10000 + h * 100 + s;
-          case 'vsh': return v * 10000 + s * 100 + h / 360;
-          default: return h * 10000 + s * 100 + v;
-        }
-      }
-
-      // ========== COLOR PROGRESSION MODES ==========
-      function applyColorProgression(colors, mode, seed) {
-        if (mode === 'sequential') {
-          // Sort by HSV for smooth gradient-like progression
-          return colors.sort((a, b) => getColorSortKey(a, colorOrdering) - getColorSortKey(b, colorOrdering));
-        } else if (mode === 'base-distance') {
-          // Sort by distance from a base color (seed-determined)
-          const rand = mulberry32(seed);
-          const baseIdx = Math.floor(rand() * colors.length);
-          const baseColor = colors[baseIdx] || [128, 128, 128];
-          return colors.sort((a, b) => {
-            const distA = colorDistSq(a, baseColor);
-            const distB = colorDistSq(b, baseColor);
-            return distA - distB;
-          });
-        } else if (mode === 'saturation') {
-          // SATURATION PRIORITY: Most saturated colors first (center)
-          // This creates the beautiful starburst effect from AllRGB reference images
-          return colors.sort((a, b) => {
-            const [, sA, vA] = rgbToHSV(a[0], a[1], a[2]);
-            const [, sB, vB] = rgbToHSV(b[0], b[1], b[2]);
-            // Sort by saturation DESC (most saturated first), then by value DESC
-            const scoreA = sA * 100 + vA;
-            const scoreB = sB * 100 + vB;
-            return scoreB - scoreA; // Descending - highest saturation first
-          });
-        } else if (mode === 'brightness') {
-          // BRIGHTNESS PRIORITY: Brightest colors first
-          return colors.sort((a, b) => {
-            const [, , vA] = rgbToHSV(a[0], a[1], a[2]);
-            const [, , vB] = rgbToHSV(b[0], b[1], b[2]);
-            return vB - vA; // Descending - brightest first
-          });
-        } else {
-          // 'shuffled' - use seeded shuffle (already implemented)
-          seededShuffle(colors, seed);
-          return colors;
-        }
-      }
-
-      // Seeded random generator for color progression
-      function mulberry32(a) {
-        return function () {
-          var t = a += 0x6D2B79F5;
-          t = Math.imul(t ^ t >>> 15, t | 1);
-          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-          return ((t ^ t >>> 14) >>> 0) / 4294967296;
-        }
-      }
-
       // ========== ALLRGB MODE: Generate ALL 16,777,216 unique colors ==========
       let colorList = [];
       let colorSet = null; // For AllRGB mode tracking
 
       if (allRGBMode) {
-        console.log('🎨 AllRGB Mode: Generating all 16,777,216 unique colors...');
         self.postMessage({ progress: 1 });
 
         // For AllRGB, we need exactly 4096x4096 = 16,777,216 pixels
@@ -446,7 +356,6 @@ self.onmessage = function (e) {
             }
           }
         }
-        console.log(`Generated ${allColors.length} packed colors`);
         self.postMessage({ progress: 5 });
 
         // Create a seeded random function for shuffling
@@ -457,14 +366,12 @@ self.onmessage = function (e) {
           const j = Math.floor(rand() * (i + 1));
           [allColors[i], allColors[j]] = [allColors[j], allColors[i]];
         }
-        console.log('Shuffled all colors');
         self.postMessage({ progress: 15 });
 
         // OPTIMIZATION: Keep colors packed as Uint32Array instead of unpacking
         // This saves ~50MB memory and avoids 16.7M array allocations
         // We'll unpack on-demand when setting pixels
         colorList = allColors; // Keep as Uint32Array!
-        console.log(`AllRGB: Using packed Uint32Array with ${colorList.length} colors (saved ~50MB)`);
         self.postMessage({ progress: 20 });
 
       } else {
@@ -477,8 +384,6 @@ self.onmessage = function (e) {
         // Need cube root of maxColors to get steps per channel
         const neededColors = Math.min(maxColors, totalPixels + 1000);
         const localColorSteps = Math.ceil(Math.cbrt(neededColors)); // Cube root gives per-channel steps
-
-        console.log(`Generating colors: need ${totalPixels} pixels, maxColors=${maxColors}, colorSteps=${localColorSteps}`);
 
         for (let r = 0; r < localColorSteps; r++) {
           for (let g = 0; g < localColorSteps; g++) {
@@ -496,8 +401,6 @@ self.onmessage = function (e) {
           }
           if (colorList.length >= maxColors) break;
         }
-
-        console.log(`Generated ${colorList.length} colors for ${totalPixels} pixels`);
       }
 
       // Define colorSteps for curve ordering (256 for AllRGB, calculated for normal mode)
@@ -518,7 +421,6 @@ self.onmessage = function (e) {
             const by = Math.floor(b[1] / 256 * (1 << order));
             return xyToHilbert(ax, ay, order) - xyToHilbert(bx, by, order);
           });
-          console.log('Applied Hilbert curve ordering to colors');
         } else if (curveType === 'morton') {
           // Sort colors using Morton/Z-order curve
           colorList.sort((a, b) => {
@@ -528,16 +430,11 @@ self.onmessage = function (e) {
             const by = Math.floor(b[1]);
             return mortonEncode(ax, ay) - mortonEncode(bx, by);
           });
-          console.log('Applied Morton curve ordering to colors');
         }
 
         // ========== APPLY COLOR PROGRESSION ==========
         applyColorProgression(colorList, colorProgression, seed);
-        console.log(`Applied ${colorProgression} color progression, generated ${colorList.length} colors`);
-      } else {
-        console.log(`AllRGB: Skipped curve ordering and progression (16.7M colors already shuffled)`);
       }
-
 
       const filled = new Uint8Array(width * height);
 
@@ -547,7 +444,6 @@ self.onmessage = function (e) {
       // ========== ALLRGB ULTRA-FAST PATH ==========
       // Use simple BFS instead of priority queue for massive speedup
       if (allRGBMode) {
-        console.log('🚀 AllRGB: Using ultra-fast BFS fill algorithm');
         const totalPixels = width * height;
         let filledCount = 0;
 
@@ -610,13 +506,9 @@ self.onmessage = function (e) {
             if (progress > lastProgress) {
               lastProgress = progress;
               self.postMessage({ progress: 20 + Math.floor(progress * 0.8) }); // 20-100%
-              console.log(`AllRGB: ${progress}% complete (${filledCount.toLocaleString()} pixels, ${((Date.now() - startTime) / 1000).toFixed(1)}s)`);
             }
           }
         }
-
-        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        console.log(`✅ AllRGB complete: ${filledCount.toLocaleString()} pixels in ${elapsed}s`);
 
         // Send the result
         self.postMessage({ progress: 100 });
@@ -707,7 +599,6 @@ self.onmessage = function (e) {
         while (pq.length && (allRGBMode ? allRGBColorIndex > 0 : colorList.length > 0) && iterations < maxIterationsPerBatch && !isPaused) {
           // Check if we've exceeded the time limit (less frequently for AllRGB)
           if (iterations % checkInterval === 0 && Date.now() - startTime > timeLimit) {
-            console.log(`Breaking batch after ${iterations} iterations (time limit reached)`);
             break;
           }
 
@@ -782,7 +673,7 @@ self.onmessage = function (e) {
               const useExhaustive = totalPixels <= 262144; // ≤512x512
               const searchSize = useExhaustive ?
                 colorList.length : // Search ALL remaining colors
-                Math.min(colorList.length, actualSampleSize);
+                Math.min(colorList.length, colorSampleSize);
 
               if (useExhaustive) {
                 // EXHAUSTIVE SEARCH: Find the TRUE closest color (like AllRGB algorithm)
@@ -849,14 +740,14 @@ self.onmessage = function (e) {
                     (Math.random() - 0.5) * distanceRandomness * (dist / (width / 2));
 
                   if (growthMode === 'crystal') {
-                    priority = dist + (Math.random() - 0.5) * actualRandomness + distRand;
+                    priority = dist + (Math.random() - 0.5) * randomness + distRand;
                   } else if (growthMode === 'nebula') {
-                    priority = (Math.random() - 0.5) * actualRandomness + dist * 0.2 + distRand;
+                    priority = (Math.random() - 0.5) * randomness + dist * 0.2 + distRand;
                   } else if (growthMode === 'rings') {
                     const ringSpacing = width / 10;
-                    priority = Math.abs(Math.sin(dist / ringSpacing * Math.PI)) * 5 + (Math.random() - 0.5) * actualRandomness + distRand;
+                    priority = Math.abs(Math.sin(dist / ringSpacing * Math.PI)) * 5 + (Math.random() - 0.5) * randomness + distRand;
                   } else {
-                    priority = dist + (Math.random() - 0.5) * actualRandomness + distRand;
+                    priority = dist + (Math.random() - 0.5) * randomness + distRand;
                   }
 
                   // Adjust priority by growth rate
@@ -913,7 +804,6 @@ self.onmessage = function (e) {
           setTimeout(processBatch, isExport ? 10 : 0);
         } else if (isPaused) {
           // If paused, do nothing and wait for resume command
-          console.log("Processing paused");
         } else {
           // We're done, send final progress update and the result
           self.postMessage({ progress: 100 });
@@ -936,6 +826,7 @@ self.onmessage = function (e) {
                 dpi
               }
             }, [buffer.buffer]);
+            resumeProcessing = null;
           } catch (err) {
             console.error("Error transferring buffer:", err);
             // Try creating a copy if transfer failed
@@ -952,17 +843,18 @@ self.onmessage = function (e) {
                 dpi
               }
             }, [bufferCopy.buffer]);
+            resumeProcessing = null;
           }
         }
       }
+
+      resumeProcessing = processBatch;
 
       // Start the processing
       processBatch();
 
       // Before final completion, if we need to scale to a different output size
       if (processingSize !== outputWidth || processingSize !== outputHeight) {
-        console.log(`Scaling output from ${processingSize}x${processingSize} to ${outputWidth}x${outputHeight}`);
-
         // Create scaled output buffer
         try {
           // Here you'd add code to scale the pattern to the exact output size
@@ -972,14 +864,18 @@ self.onmessage = function (e) {
         }
       }
 
-    } catch (memoryError) {
-      console.error("Memory allocation failed:", memoryError);
-      self.postMessage({ error: "Not enough memory to create this image. Try a smaller export size." });
+    } catch (processingError) {
+      resumeProcessing = null;
+      console.error("Worker processing failed:", processingError);
+      const message = processingError instanceof RangeError || String(processingError?.message || '').toLowerCase().includes('memory')
+        ? "Not enough memory to create this image. Try a smaller export size."
+        : processingError?.message || "Unable to generate this image with the current settings.";
+      self.postMessage({ error: message });
     }
 
   } catch (error) {
+    resumeProcessing = null;
     console.error("Worker error:", error);
     self.postMessage({ error: error.message || "Unknown error in worker" });
   }
 };
-
