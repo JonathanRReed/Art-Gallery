@@ -81,28 +81,41 @@ export default function GalleryPage() {
         backgroundColor: 'var(--color-paper-alt)',
         padding: '1rem',
         marginBottom: '2.5rem',
-        border: '1px dashed var(--color-ink-light)',
+        border: '1px dashed var(--color-ink)',
         maxWidth: '800px',
         margin: '0 auto 3rem auto',
       }}>
         <p style={{
-          color: 'var(--color-ink-light)',
+          color: 'var(--color-ink)',
           fontFamily: 'var(--font-mono)',
           fontSize: '0.75rem',
+          fontWeight: 600,
           margin: '0',
           lineHeight: '1.5',
           textAlign: 'center',
           textTransform: 'uppercase',
           letterSpacing: '0.05em'
         }}>
-          [ARCHIVE_NOTICE] Gallery elements are cached locally. Synchronization across nodes is unsupported. Storage quota: ~5MB.
+          Saved artworks stay in this browser only. Use downloads if you want to keep or share them elsewhere.
         </p>
       </div>
 
       <div className="gallery-grid">
         {gallery.length === 0 && (
-          <div className="empty-gallery">
-            [ARCHIVE_EMPTY] AWAITING GENERATOR INPUT.
+          <div className="empty-gallery" style={{ padding: '3rem 1.5rem' }}>
+            <div style={{ fontSize: '1.25rem', color: 'var(--color-ink)', marginBottom: '0.75rem' }}>
+              Your archive is empty.
+            </div>
+            <div style={{ maxWidth: '32rem', margin: '0 auto', lineHeight: '1.7', textTransform: 'none', letterSpacing: 'normal' }}>
+              Generate a piece on the main page, then save it here to build your own collection of algorithmic studies.
+            </div>
+            <a
+              href="/"
+              className="gallery-action-btn"
+              style={{ display: 'inline-block', marginTop: '1rem', textDecoration: 'none' }}
+            >
+              Open Generator
+            </a>
           </div>
         )}
         {gallery.map((item, idx) => (
@@ -122,16 +135,23 @@ export default function GalleryPage() {
               <button
                 className="gallery-btn-view"
                 type="button"
+                onClick={() => handleView(idx)}
+              >
+                Preview
+              </button>
+              <button
+                className="gallery-btn-view"
+                type="button"
                 onClick={() => handleDownload(idx)}
               >
-                DL_PNG
+                Download
               </button>
               <button
                 className="gallery-btn-delete"
                 type="button"
                 onClick={() => handleDelete(idx)}
               >
-                PURGE
+                Delete
               </button>
             </div>
           </div>

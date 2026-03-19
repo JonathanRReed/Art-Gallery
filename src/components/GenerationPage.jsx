@@ -46,7 +46,7 @@ function saveToGallery({ imageDataUrl, params }) {
 export default function GenerationPage() {
   const [curveType, setCurveType] = useState('hilbert');
   const [seed, setSeed] = useState(1);
-  const [colorOrdering, setColorOrdering] = useState('rgb');
+  const [colorOrdering, setColorOrdering] = useState('hsv');
   const [loading, setLoading] = useState(false);
   const [imageData, setImageData] = useState(null);
   const [imageMeta, setImageMeta] = useState(null);
@@ -71,6 +71,7 @@ export default function GenerationPage() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [settingsName, setSettingsName] = useState('');
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
+  const [feedback, setFeedback] = useState(null);
   const [settingsButtonPosition, setSettingsButtonPosition] = useState({ top: 0, left: 0 });
   const settingsButtonRef = useRef(null);
   const workerRef = useRef(null);
@@ -97,7 +98,7 @@ export default function GenerationPage() {
       if (e.detail && e.detail.position) {
         setSettingsButtonPosition(e.detail.position);
       }
-      setShowSettingsPanel(!showSettingsPanel);
+      setShowSettingsPanel((current) => !current);
     };
 
     const handleShowSaveDialog = () => {
@@ -110,28 +111,6 @@ export default function GenerationPage() {
     return () => {
       window.removeEventListener('toggle-settings-panel', handleToggleSettingsPanel);
       window.removeEventListener('show-save-dialog', handleShowSaveDialog);
-    };
-  }, [showSettingsPanel]);
-
-  // Add a style block for the hover effects
-  useEffect(() => {
-    // Create and inject the CSS for hover effects
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-      .settings-item:hover {
-        background-color: rgba(30, 41, 59, 0.6) !important;
-      }
-      .load-button:hover {
-        background-color: rgba(16, 185, 129, 0.3) !important;
-      }
-      .delete-button:hover {
-        background-color: rgba(239, 68, 68, 0.2) !important;
-      }
-    `;
-    document.head.appendChild(styleElement);
-
-    return () => {
-      document.head.removeChild(styleElement);
     };
   }, []);
 
@@ -155,6 +134,10 @@ export default function GenerationPage() {
     };
   }
 
+  function updateFeedback(type, message) {
+    setFeedback({ type, message });
+  }
+
   function handleSaveSettings() {
     if (!settingsName.trim()) return;
 
@@ -168,7 +151,7 @@ export default function GenerationPage() {
     try {
       // Validate JSON serialization
       if (!checkSerializable(newSettings, 'settings object')) {
-        alert('Failed to save settings due to serialization error.');
+        updateFeedback('error', 'Unable to save this configuration right now.');
         return;
       }
 
@@ -177,9 +160,10 @@ export default function GenerationPage() {
       localStorage.setItem('savedSettings', JSON.stringify(updatedSettings));
       setSettingsName('');
       setShowSaveDialog(false);
+      updateFeedback('success', 'Configuration saved to this browser.');
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings. Please try again.');
+      updateFeedback('error', 'Failed to save your configuration. Please try again.');
     }
   }
 
@@ -189,7 +173,7 @@ export default function GenerationPage() {
     // Apply all settings
     setCurveType(settings.curveType || 'hilbert');
     setSeed(settings.seed || 1);
-    setColorOrdering(settings.colorOrdering || 'rgb');
+    setColorOrdering(settings.colorOrdering || 'hsv');
     setPreviewSize(settings.previewSize || 128);
     setSymmetry(settings.symmetry !== undefined ? settings.symmetry : true);
     setDistanceRandomness(settings.distanceRandomness || 10);
@@ -204,6 +188,7 @@ export default function GenerationPage() {
     setPatternSize(settings.patternSize || 128);
 
     setShowSettingsPanel(false);
+    updateFeedback('success', `Loaded configuration: ${savedSetting.name}.`);
   }
 
   function handleDeleteSettings(id) {
@@ -218,8 +203,10 @@ export default function GenerationPage() {
 
       setSavedSettings(updatedSettings);
       localStorage.setItem('savedSettings', JSON.stringify(updatedSettings));
+      updateFeedback('success', 'Saved configuration removed.');
     } catch (error) {
       console.error('Error deleting settings:', error);
+      updateFeedback('error', 'Could not delete that saved configuration.');
     }
   }
 
@@ -241,6 +228,7 @@ export default function GenerationPage() {
     setImageData(null);
     setProgress(0);
     setIsPaused(false);
+    updateFeedback('info', 'Generating a new artwork…');
 
     // Terminate existing worker if any
     if (workerRef.current) {
@@ -260,7 +248,7 @@ export default function GenerationPage() {
           console.error("Worker error during generation:", error);
           setLoading(false);
           setProgress(0);
-          alert(`Generation error: ${error.message}. Try a smaller pattern size.`);
+          updateFeedback('error', `Generation failed. ${error.message} Try a smaller pattern size.`);
         };
 
         worker.onmessage = (e) => {
@@ -268,6 +256,7 @@ export default function GenerationPage() {
             console.error("Worker reported error:", e.data.error);
             setLoading(false);
             setProgress(0);
+            updateFeedback('error', e.data.error);
             return;
           }
 
@@ -299,23 +288,11 @@ export default function GenerationPage() {
             // Check if metadata is available
             const metadata = e.data.metadata || { width: previewSize, height: previewSize };
 
-            console.log('📦 Received buffer from worker:', {
-              bufferType: e.data.buffer?.constructor?.name,
-              bufferLength: e.data.buffer?.byteLength || e.data.buffer?.length,
-              metadata
-            });
-
             // Handle both Uint8ClampedArray and ArrayBuffer (from transfer)
             let imageBuffer = e.data.buffer;
             if (imageBuffer instanceof ArrayBuffer) {
-              console.log('Converting ArrayBuffer to Uint8ClampedArray');
               imageBuffer = new Uint8ClampedArray(imageBuffer);
             }
-
-            console.log('Final buffer:', {
-              type: imageBuffer?.constructor?.name,
-              length: imageBuffer?.length
-            });
 
             setImageData(imageBuffer);
             setImageMeta(metadata);
@@ -323,6 +300,7 @@ export default function GenerationPage() {
             setLoading(false);
             setProgress(100);
             setLastGeneratedPatternSize(patternSize); // Record the pattern size that was used
+            updateFeedback('success', 'Artwork generated. You can export it or save it to your gallery.');
           }
         };
 
@@ -356,7 +334,7 @@ export default function GenerationPage() {
         console.error("Error initializing worker:", error);
         setLoading(false);
         setProgress(0);
-        alert(`Failed to start generator: ${error.message}`);
+        updateFeedback('error', `Failed to start the generator: ${error.message}`);
       }
     };
 
@@ -369,7 +347,6 @@ export default function GenerationPage() {
 
     // For AllRGB mode, use the existing data directly - it's already 4096x4096
     if (allRGBMode && imageMeta?.width === 4096 && imageMeta?.height === 4096) {
-      console.log('AllRGB: Using existing data for download');
       setLoading(true);
 
       try {
@@ -378,15 +355,12 @@ export default function GenerationPage() {
         exportCanvas.height = 4096;
         const ctx = exportCanvas.getContext('2d');
 
-        console.log('Creating ImageData from buffer...');
         const exportImageData = new ImageData(new Uint8ClampedArray(imageData), 4096, 4096);
         ctx.putImageData(exportImageData, 0, 0);
-        console.log('ImageData put on canvas');
 
         // Use toBlob instead of toDataURL for large images (more reliable)
         exportCanvas.toBlob((blob) => {
           if (blob) {
-            console.log('Blob created:', blob.size, 'bytes');
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.download = `allrgb-${seed}.png`;
@@ -395,9 +369,10 @@ export default function GenerationPage() {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            console.log('Download triggered successfully');
+            updateFeedback('success', 'PNG export started.');
           } else {
             console.error('toBlob returned null');
+            updateFeedback('error', 'Could not create the PNG export.');
           }
           setLoading(false);
         }, 'image/png');
@@ -405,6 +380,7 @@ export default function GenerationPage() {
       } catch (error) {
         console.error('AllRGB direct download failed:', error);
         setLoading(false);
+        updateFeedback('error', 'Direct PNG export failed. Falling back to regenerated export.');
         // Fall through to worker-based export
       }
     }
@@ -412,6 +388,7 @@ export default function GenerationPage() {
     // Show loading status
     setLoading(true);
     setProgress(0);
+    updateFeedback('info', 'Preparing PNG export…');
 
     // Create a new worker specifically for this export
     const worker = new window.Worker('/worker/color-mapper.js');
@@ -422,6 +399,7 @@ export default function GenerationPage() {
       worker.terminate();
       setLoading(false);
       setProgress(0);
+      updateFeedback('error', 'PNG export timed out. Try a smaller pattern size.');
     }, 180000); // 3 minutes
 
     // Handle worker completion
@@ -441,6 +419,7 @@ export default function GenerationPage() {
         setLoading(false);
         setProgress(0);
         worker.terminate();
+        updateFeedback('error', e.data.error);
         return;
       }
 
@@ -497,6 +476,7 @@ export default function GenerationPage() {
         link.download = `art-gallery-${curveType}-${seed}-${EXPORT_SIZE}px.png`;
         link.href = dataURL;
         link.click();
+        updateFeedback('success', 'PNG export started.');
       } catch (error) {
         console.error("Export failed:", error);
 
@@ -507,8 +487,10 @@ export default function GenerationPage() {
           link.download = `art-gallery-${curveType}-${seed}-preview.png`;
           link.href = fallbackURL;
           link.click();
+          updateFeedback('info', 'High-resolution export failed, so the preview PNG was downloaded instead.');
         } catch (fbError) {
           console.error("Fallback failed:", fbError);
+          updateFeedback('error', 'PNG export failed. Please try again with a smaller pattern size.');
         }
       } finally {
         setLoading(false);
@@ -549,6 +531,7 @@ export default function GenerationPage() {
       // Show loading status
       setLoading(true);
       setProgress(0);
+      updateFeedback('info', 'Preparing PDF export…');
 
       // Create a new worker specifically for this export
       const worker = new window.Worker('/worker/color-mapper.js');
@@ -559,6 +542,7 @@ export default function GenerationPage() {
         worker.terminate();
         setLoading(false);
         setProgress(0);
+        updateFeedback('error', 'PDF export timed out. Try a smaller pattern size.');
       }, 180000); // 3 minutes
 
       // Handle worker completion
@@ -578,6 +562,7 @@ export default function GenerationPage() {
           setLoading(false);
           setProgress(0);
           worker.terminate();
+          updateFeedback('error', e.data.error);
           return;
         }
 
@@ -648,6 +633,7 @@ export default function GenerationPage() {
           // Add image to PDF and save
           pdf.addImage(imgData, 'PNG', xOffset, yOffset, imageSize, imageSize);
           pdf.save(`art-gallery-${curveType}-${seed}-${EXPORT_SIZE}px.pdf`);
+          updateFeedback('success', 'PDF export started.');
         } catch (error) {
           console.error("PDF export failed:", error);
 
@@ -668,8 +654,10 @@ export default function GenerationPage() {
 
             pdf.addImage(fallbackURL, 'PNG', xOffset, yOffset, imageSize, imageSize);
             pdf.save(`art-gallery-${curveType}-${seed}-preview.pdf`);
+            updateFeedback('info', 'High-resolution PDF export failed, so a preview PDF was downloaded instead.');
           } catch (fbError) {
             console.error("PDF fallback failed:", fbError);
+            updateFeedback('error', 'PDF export failed. Please try again with a smaller pattern size.');
           }
         } finally {
           setLoading(false);
@@ -703,6 +691,7 @@ export default function GenerationPage() {
     }).catch(error => {
       console.error("Error loading PDF library:", error);
       setLoading(false);
+      updateFeedback('error', 'The PDF export library could not be loaded.');
     });
   }
 
@@ -719,6 +708,7 @@ export default function GenerationPage() {
         patternSize
       },
     });
+    updateFeedback('success', 'Saved to your local gallery.');
   }
 
   return (
@@ -765,6 +755,23 @@ export default function GenerationPage() {
 
       <div className="preview-wrapper">
         <div className="preview-container">
+          {feedback && (
+            <div style={{
+              width: '100%',
+              marginBottom: '1rem',
+              padding: '0.75rem 1rem',
+              border: 'var(--border-ink)',
+              backgroundColor: feedback.type === 'error' ? 'rgba(228, 61, 48, 0.16)' : feedback.type === 'success' ? 'rgba(85, 103, 255, 0.14)' : 'var(--color-paper-alt)',
+              color: 'var(--color-ink)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.75rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
+            }}>
+              {feedback.message}
+            </div>
+          )}
+
           <PreviewCanvas
             key={renderKey}
             imageData={imageData}
@@ -822,7 +829,7 @@ export default function GenerationPage() {
                       padding: '0.25rem 0.5rem',
                       display: 'flex',
                       alignItems: 'center',
-                      boxShadow: '2px 2px 0 0 var(--color-ink-light)',
+                      boxShadow: '2px 2px 0 0 var(--color-accent)',
                     }}
                   >
                     {isPaused ? 'RESUME' : 'PAUSE'}
@@ -838,6 +845,7 @@ export default function GenerationPage() {
             onGenerate={handleGenerate}
             loading={loading}
             patternSizeChanged={patternSize !== lastGeneratedPatternSize}
+            hasArtwork={Boolean(imageData)}
           />
 
           <div className="action-buttons">
@@ -867,9 +875,10 @@ export default function GenerationPage() {
             textAlign: 'center',
             marginTop: '0.75rem',
             fontSize: '0.75rem',
-            color: '#4b5563'
+            color: 'var(--color-ink)',
+            fontWeight: 600
           }}>
-            Gallery saves to browser local storage.
+            Your gallery and saved configurations stay in this browser.
           </div>
         </div>
       </div>
@@ -915,7 +924,7 @@ export default function GenerationPage() {
           </div>
 
           {savedSettings.length === 0 ? (
-            <div style={{ color: '#64748b', textAlign: 'center', padding: '0.75rem', fontSize: '0.8rem' }}>
+            <div style={{ color: 'var(--color-ink)', textAlign: 'center', padding: '0.75rem', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
               No saved settings yet.
             </div>
           ) : (
@@ -945,7 +954,8 @@ export default function GenerationPage() {
                     <div style={{
                       color: 'var(--color-ink-light)',
                       fontFamily: 'var(--font-mono)',
-                      fontSize: '0.65rem'
+                      fontSize: '0.72rem',
+                      fontWeight: 600
                     }}>
                       {new Date(setting.timestamp).toLocaleDateString()}
                     </div>
@@ -999,7 +1009,7 @@ export default function GenerationPage() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgba(240, 238, 233, 0.9)',
+          backgroundColor: 'var(--color-overlay)',
           backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
@@ -1044,9 +1054,10 @@ export default function GenerationPage() {
               border: '1px dashed var(--color-ink-light)'
             }}>
               <p style={{
-                color: 'var(--color-ink-light)',
+                color: 'var(--color-ink)',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '0.7rem',
+                fontSize: '0.76rem',
+                fontWeight: 600,
                 margin: '0',
                 lineHeight: '1.5',
                 textTransform: 'uppercase'

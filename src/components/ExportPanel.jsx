@@ -5,7 +5,8 @@ export default function ExportPanel({
   onDownloadPDF,
   onGenerate,
   loading,
-  patternSizeChanged
+  patternSizeChanged,
+  hasArtwork
 }) {
   return (
     <div className="export-panel">
@@ -14,21 +15,21 @@ export default function ExportPanel({
         type="button"
         onClick={onGenerate}
         disabled={loading}
-        style={{ 
-          width: '100%', 
-          marginBottom: '1rem', 
-          backgroundColor: '#10b981', 
-          fontWeight: 'bold' 
+        style={{
+          width: '100%',
+          marginBottom: '1rem',
+          fontWeight: 'bold'
         }}
       >
-        {loading ? 'Generating...' : patternSizeChanged ? 'Apply Pattern Size Change' : 'Generate'}
+        {loading ? 'Generating…' : patternSizeChanged ? 'Regenerate with New Size' : 'Generate Artwork'}
       </button>
-      
+
       <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem' }}>
         <button
           className="export-button gallery-action-btn"
           type="button"
           onClick={onDownloadPNG}
+          disabled={!hasArtwork || loading}
         >
           Download PNG
         </button>
@@ -36,22 +37,23 @@ export default function ExportPanel({
           className="export-button gallery-action-btn"
           type="button"
           onClick={onDownloadPDF}
+          disabled={!hasArtwork || loading}
         >
           Download PDF
         </button>
       </div>
-      
-      <div style={{ 
-        marginTop: '0.75rem', 
-        fontSize: '0.8rem', 
-        color: '#94a3b8', 
+
+      <div style={{
+        marginTop: '0.75rem',
+        fontSize: '0.8rem',
+        color: 'var(--color-ink)',
+        fontWeight: 600,
         padding: '0.5rem',
-        backgroundColor: 'rgba(30, 41, 59, 0.5)',
-        borderRadius: '0.375rem',
+        backgroundColor: 'var(--color-paper)',
         textAlign: 'center'
       }}>
-        <div>Downloads export at 4096x4096 high resolution.</div>
+        <div>{hasArtwork ? 'Exports render at 4096 × 4096 for high-resolution output.' : 'Generate a piece to unlock PNG and PDF export.'}</div>
       </div>
     </div>
   );
-} 
+}

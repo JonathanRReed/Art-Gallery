@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, forwardRef, useState } from 'react';
+import React, { useRef, useEffect, forwardRef } from 'react';
 
 const PreviewCanvas = forwardRef(function PreviewCanvas({
   imageData,
@@ -10,22 +10,10 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
 }, ref) {
   const localRef = useRef(null);
   const actualRef = canvasRef || ref || localRef;
-  const [renderedSize, setRenderedSize] = useState({ width, height });
 
   useEffect(() => {
-    console.log('🎨 PreviewCanvas useEffect triggered', {
-      hasImageData: !!imageData,
-      imageDataType: imageData?.constructor?.name,
-      imageDataLength: imageData?.length,
-      loading,
-      canvasWidth: width,
-      canvasHeight: height,
-      metadata
-    });
-
     const canvas = actualRef.current;
     if (!canvas) {
-      console.log('❌ No canvas ref');
       return;
     }
 
@@ -38,7 +26,6 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;
       canvas.height = height;
-      setRenderedSize({ width, height });
     }
 
     if (imageData instanceof Uint8ClampedArray) {
@@ -47,8 +34,6 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
         const imgWidth = metadata?.width || width;
         const imgHeight = metadata?.height || height;
         const pixelCount = imageData.length / 4; // RGBA = 4 bytes per pixel
-
-        console.log(`Rendering image: ${imgWidth}x${imgHeight}, data length: ${imageData.length}, canvas: ${width}x${height}`);
 
         if (pixelCount === imgWidth * imgHeight) {
           // Image data matches the expected dimensions
@@ -60,34 +45,31 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
           if (imgWidth > MAX_SAFE_SIZE || imgHeight > MAX_SAFE_SIZE) {
             // Large image: DON'T try to create ImageData - it will crash the browser!
             // Just show a placeholder and let user download the full image
-            console.log(`Large image detected: ${imgWidth}x${imgHeight}, skipping preview (use download)`);
 
             ctx.clearRect(0, 0, width, height);
 
             // Draw a nice placeholder with gradient
             const gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, '#1e293b');
-            gradient.addColorStop(0.5, '#334155');
-            gradient.addColorStop(1, '#1e293b');
+            gradient.addColorStop(0, '#1b2234');
+            gradient.addColorStop(0.5, '#5567ff');
+            gradient.addColorStop(1, '#111827');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
 
             // Draw checkmark and text
-            ctx.fillStyle = '#22c55e';
+            ctx.fillStyle = '#eef2ff';
             ctx.font = 'bold 48px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('✓', width / 2, height / 2 - 20);
 
-            ctx.fillStyle = '#e2e8f0';
+            ctx.fillStyle = '#f6f7fb';
             ctx.font = 'bold 16px sans-serif';
             ctx.fillText('AllRGB Complete!', width / 2, height / 2 + 20);
 
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = '#d9e1ff';
             ctx.font = '14px sans-serif';
             ctx.fillText(`${imgWidth} × ${imgHeight} pixels`, width / 2, height / 2 + 45);
             ctx.fillText('Click "Download PNG" to save', width / 2, height / 2 + 70);
-
-            setRenderedSize({ width: imgWidth, height: imgHeight });
             return;
           }
 
@@ -96,7 +78,6 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
           if (imgWidth === width && imgHeight === height) {
             // Direct rendering if sizes match
             ctx.putImageData(imgData, 0, 0);
-            console.log(`Rendered preview image directly: ${width}x${height}`);
           } else {
             // Scale to fit the canvas
             ctx.clearRect(0, 0, width, height);
@@ -110,10 +91,7 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
 
             // Draw scaled to our display canvas
             ctx.drawImage(tempCanvas, 0, 0, width, height);
-            console.log(`Rendered resized preview: original ${imgWidth}x${imgHeight}, displayed at ${width}x${height}`);
           }
-
-          setRenderedSize({ width: imgWidth, height: imgHeight });
         } else {
           // Fall back to square dimensions if metadata doesn't match
           const imgSize = Math.sqrt(pixelCount);
@@ -134,9 +112,6 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
 
             // Draw scaled to our display canvas
             ctx.drawImage(tempCanvas, 0, 0, width, height);
-
-            console.log(`Rendered resized preview (calculated size): ${imgSize}x${imgSize}, displayed at ${width}x${height}`);
-            setRenderedSize({ width: imgSize, height: imgSize });
           } else {
             console.error(`Invalid image data size: ${imageData.length} bytes doesn't match any expected dimensions`);
             ctx.clearRect(0, 0, width, height);
@@ -190,7 +165,7 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(240, 238, 233, 0.8)',
+            backgroundColor: 'var(--color-overlay)',
             backdropFilter: 'blur(4px)',
             borderRadius: '0',
             maxWidth: '100%',
@@ -230,8 +205,8 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
               maxWidth: '80%',
               lineHeight: '1.4'
             }}>
-              <p style={{ marginBottom: '0.5rem', fontWeight: 600 }}>[GENERATING_ARTWORK]<span style={{ animation: 'blink 1s step-end infinite' }}>_</span></p>
-              <p style={{ opacity: 0.7, fontSize: '0.7rem' }}>PROCESSING COMPLEX PATTERN</p>
+              <p style={{ marginBottom: '0.5rem', fontWeight: 600 }}>Generating artwork<span style={{ animation: 'blink 1s step-end infinite' }}>_</span></p>
+              <p style={{ color: 'var(--color-ink-light)', fontSize: '0.76rem', fontWeight: 600 }}>Rendering your current settings</p>
             </div>
           </div>
         )}

@@ -1,26 +1,13 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GenerationPage from "../components/GenerationPage.jsx";
-// import ControlsPanel from '../components/ControlsPanel.jsx';
-// import PreviewCanvas from '../components/PreviewCanvas.jsx';
-// import ExportPanel from '../components/ExportPanel.jsx';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <BaseLayout
 	title="Algorithmic Art Gallery | Generative art by Jonathan R Reed"
-	description="Algorithmic Art Gallery showcases algorithmic pieces by Jonathan R Reed, blending code, systems thinking and visual design."
+	description="Generate algorithmic artworks with curated controls, live previews, and high-resolution exports by Jonathan R Reed."
 >
-	<div class="intro-section">
-		<h1 class="intro-heading">THE GENERATOR</h1>
-		<p class="intro-text mono-text">
-			SELECT PARAMETERS. INITIALIZE GROWTH ALGORITHM. OBSERVE FORMATION.
-			<br /><span class="accent-text">A SYSTEM BY JONATHAN R REED.</span>
-		</p>
-	</div>
-
 	<!-- Minimalist Brutal Loader -->
 	<div class="art-loader" id="art-loader">
 		<div class="loader-container">
@@ -55,41 +42,6 @@ import GenerationPage from "../components/GenerationPage.jsx";
 </script>
 
 <style>
-	/* ========================================
-	   INTRO SECTION
-	   ======================================== */
-	.intro-section {
-		width: 100%;
-		max-width: 800px;
-		margin: 0 auto 3rem;
-		padding: 2rem;
-		text-align: center;
-		background: var(--color-paper);
-		border-top: 4px solid var(--color-ink);
-		border-bottom: 4px solid var(--color-ink);
-		box-shadow: 8px 8px 0 0 var(--color-ink);
-	}
-
-	.intro-heading {
-		font-family: var(--font-serif);
-		font-size: 3rem;
-		font-weight: 400;
-		color: var(--color-ink);
-		margin-bottom: 1rem;
-		letter-spacing: -0.02em;
-	}
-
-	.intro-text {
-		color: var(--color-ink-light);
-		line-height: 1.6;
-		margin: 0;
-	}
-
-	.accent-text {
-		color: var(--color-accent);
-		font-weight: 600;
-	}
-
 	/* ========================================
 	   BRUTAL MINIMAL LOADER
 	   ======================================== */
@@ -156,6 +108,9 @@ import GenerationPage from "../components/GenerationPage.jsx";
 
 	.generator-container {
 		width: 100%;
+		max-width: 1240px;
+		padding: 0 1rem;
+		box-sizing: border-box;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
@@ -169,12 +124,8 @@ import GenerationPage from "../components/GenerationPage.jsx";
 	}
 
 	@media (max-width: 768px) {
-		.intro-section {
-			margin: 0 1rem 2rem;
-			width: auto;
-		}
-		.intro-heading {
-			font-size: 2rem;
+		.generator-container {
+			padding: 0 0.75rem;
 		}
 	}
 </style>
