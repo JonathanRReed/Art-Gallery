@@ -87,11 +87,12 @@ const canonicalUrl = `${siteUrl}${pathname}`;
     </script>
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="page-background"></div>
 
-    <div class="content-wrapper">
+    <main id="main-content" class="content-wrapper">
       <slot />
-    </div>
+    </main>
 
     <Footer />
 
@@ -155,6 +156,25 @@ const canonicalUrl = `${siteUrl}${pathname}`;
     overflow-x: hidden;
     padding-top: 1rem;
     padding-bottom: 2.5rem;
+  }
+
+  .skip-link {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    z-index: 10000;
+    transform: translateY(-150%);
+    background: var(--color-ink);
+    color: var(--color-paper);
+    border: var(--border-ink);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
   }
 
   .site-header {
@@ -271,6 +291,83 @@ const canonicalUrl = `${siteUrl}${pathname}`;
 		outline: 2px solid var(--color-accent);
 		outline-offset: 2px;
 	}
+
+  .info-page {
+    width: min(1120px, calc(100% - 2rem));
+    margin: 0 auto 1.5rem;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    border: var(--border-ink);
+    background: var(--color-paper-alt);
+    box-shadow: 8px 8px 0 0 var(--color-ink);
+  }
+
+  .info-page h1 {
+    margin: 0.5rem 0 1rem;
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 8vw, 5.5rem);
+    line-height: 0.95;
+  }
+
+  .info-page p {
+    max-width: 76ch;
+    color: var(--color-muted);
+    line-height: 1.7;
+  }
+
+  .info-grid {
+    display: grid;
+    gap: 1px;
+    margin-top: 2rem;
+    background: var(--color-ink);
+  }
+
+  .info-grid article {
+    background: var(--color-paper);
+    padding: 1.25rem;
+  }
+
+  .info-grid h2 {
+    margin: 0 0 0.75rem;
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .info-actions,
+  .gallery-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .info-actions a,
+  .gallery-links a {
+    border: var(--border-ink);
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .info-actions a:hover,
+  .gallery-links a:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  @media (min-width: 760px) {
+    .info-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
 
 	@media (prefers-reduced-motion: reduce) {
 		.reveal-element {
