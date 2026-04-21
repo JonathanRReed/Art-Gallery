@@ -8,6 +8,17 @@ import GenerationPage from "../components/GenerationPage.jsx";
 	title="Algorithmic Art Gallery | Generative art by Jonathan R Reed"
 	description="Generate algorithmic artworks with curated controls, live previews, and high-resolution exports by Jonathan R Reed."
 >
+	<section class="art-index-intro" aria-labelledby="art-index-title">
+		<p class="mono-text">Generative art studio</p>
+		<h1 id="art-index-title">Algorithmic Art Gallery</h1>
+		<p>
+			Build deterministic artwork from space-filling curves, growth modes,
+			color ordering, symmetry rules, and seed controls. Every saved output
+			can be regenerated from the same settings, then exported for sharing or
+			printing.
+		</p>
+	</section>
+
 	<!-- Minimalist Brutal Loader -->
 	<div class="art-loader" id="art-loader">
 		<div class="loader-container">
@@ -111,6 +122,29 @@ import GenerationPage from "../components/GenerationPage.jsx";
 		max-width: 1240px;
 		padding: 0 1rem;
 		box-sizing: border-box;
+	}
+
+	.art-index-intro {
+		width: min(1120px, calc(100% - 2rem));
+		margin: 0 auto 1.5rem;
+		padding: clamp(1.25rem, 4vw, 2.5rem);
+		border: var(--border-ink);
+		background: var(--color-paper-alt);
+		box-shadow: 8px 8px 0 0 var(--color-ink);
+	}
+
+	.art-index-intro h1 {
+		margin: 0.5rem 0 1rem;
+		color: var(--color-ink);
+		font-family: var(--font-display);
+		font-size: clamp(2.25rem, 8vw, 5.5rem);
+		line-height: 0.95;
+	}
+
+	.art-index-intro p {
+		max-width: 70ch;
+		color: var(--color-muted);
+		line-height: 1.7;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

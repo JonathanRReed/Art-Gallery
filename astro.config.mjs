@@ -7,6 +7,8 @@ import cssnano from 'cssnano';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://art.jonathanrreed.com',
+  trailingSlash: 'always',
   integrations: [react(), tailwind()],
   
   // Optimization settings
