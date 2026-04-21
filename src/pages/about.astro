@@ -1,13 +1,32 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+
+const aboutVideoSchema = {
+  "@type": "VideoObject",
+  "@id": "https://art.jonathanrreed.com/about/#corridor-video",
+  name: "I Made Art That HACKS Your Eyes",
+  description:
+    "Reference video that inspired the Algorithmic Art Gallery exploration of generated visual systems and perception-driven artwork.",
+  thumbnailUrl: "https://i.ytimg.com/vi/SxsN6FRXMWQ/hqdefault.jpg",
+  embedUrl: "https://www.youtube.com/embed/SxsN6FRXMWQ",
+  uploadDate: "2024-01-01",
+  publisher: {
+    "@type": "Organization",
+    name: "Corridor Crew",
+  },
+};
 ---
 
 <BaseLayout
   title="About | Algorithmic Art Gallery by Jonathan R Reed"
   description="Learn how the Algorithmic Art Gallery by Jonathan R Reed creates generative art using space-filling curves and mathematical algorithms."
+  structuredData={[aboutVideoSchema]}
 >
   <div class="about-container">
     <h1 class="about-header">About</h1>
+    <p class="mono-text">
+      By Jonathan R Reed. Updated <time datetime="2026-04-21">April 21, 2026</time>.
+    </p>
 
     <div class="about-content">
       <section class="about-section">
@@ -23,6 +42,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           Every output is deterministic: same settings produce the same image.
           Change a parameter and you get something new. It's mostly an
           experiment in seeing what happens when you let math do the drawing.
+        </p>
+        <p>
+          The project is also a practical study in creative tooling. The generator
+          keeps the controls visible, the output repeatable, and the saved gallery
+          close to the work surface so each image can be treated as a small
+          experiment rather than a disposable random effect.
         </p>
         <p class="about-link">
           <a
@@ -59,6 +84,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           >
           </iframe>
         </div>
+        <p>
+          The video is included as a reference point for the visual idea, but the
+          generator itself is built around browser-side controls, deterministic
+          settings, and exportable studies that can be recreated from documented
+          parameters.
+        </p>
       </section>
 
       <section class="about-section">

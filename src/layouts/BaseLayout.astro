@@ -10,8 +10,75 @@ const socialImageUrl = `${siteUrl}/icon.png`;
 const {
   title = "Algorithmic Art Gallery | Jonathan R Reed",
   description = "Create generative artworks with algorithmic growth systems, curated controls, and high-resolution export tools by Jonathan R Reed.",
+  structuredData = [],
 } = Astro.props;
 const canonicalUrl = `${siteUrl}${pathname}`;
+const pageStructuredData = Array.isArray(structuredData)
+  ? structuredData
+  : [structuredData];
+const schemaGraph = [
+  {
+    "@type": "Person",
+    "@id": "https://jonathanrreed.com/#person",
+    name: "Jonathan R Reed",
+    alternateName: ["Jonathan Reed", "Jonathan Reed AI"],
+    url: "https://jonathanrreed.com/",
+    sameAs: [
+      "https://github.com/JonathanRReed",
+      "https://helloworldfirm.com/",
+      "https://www.linkedin.com/in/jonathanrreed/",
+    ],
+  },
+  {
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    name: siteName,
+    url: `${siteUrl}/`,
+    description,
+    author: {
+      "@id": "https://jonathanrreed.com/#person",
+    },
+    publisher: {
+      "@id": "https://jonathanrreed.com/#person",
+    },
+    inLanguage: "en-US",
+  },
+  {
+    "@type": "WebApplication",
+    "@id": `${siteUrl}/#app`,
+    name: "Algorithmic Art Gallery",
+    url: `${siteUrl}/`,
+    applicationCategory: "DesignApplication",
+    operatingSystem: "Web Browser",
+    description:
+      "Browser-based generative art studio for deterministic space-filling curve artwork, saved gallery studies, and high-resolution exports.",
+    creator: {
+      "@id": "https://jonathanrreed.com/#person",
+    },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  },
+  {
+    "@type": "WebPage",
+    "@id": `${canonicalUrl}#webpage`,
+    url: canonicalUrl,
+    name: title,
+    description,
+    isPartOf: {
+      "@id": `${siteUrl}/#website`,
+    },
+    author: {
+      "@id": "https://jonathanrreed.com/#person",
+    },
+    datePublished: "2026-04-21",
+    dateModified: "2026-04-21",
+    inLanguage: "en-US",
+  },
+  ...pageStructuredData.filter(Boolean),
+];
 
 ---
 
@@ -60,14 +127,7 @@ const canonicalUrl = `${siteUrl}${pathname}`;
       type="application/ld+json"
       set:html={JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: siteName,
-        url: siteUrl,
-        description: description,
-        author: {
-          "@type": "Person",
-          name: "Jonathan Reed",
-        },
+        "@graph": schemaGraph,
       })}
     />
 
