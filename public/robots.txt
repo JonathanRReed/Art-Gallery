@@ -2,6 +2,8 @@
 
 User-agent: *
 Allow: /
+
+Sitemap: https://art.jonathanrreed.com/sitemap.xml
 Disallow: /search/
 Disallow: /*?s=
 Disallow: /*?q=
