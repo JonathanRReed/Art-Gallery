@@ -15,6 +15,7 @@ const {
 const normalizedPathname =
   pathname === "/" || pathname.endsWith("/") ? pathname : `${pathname}/`;
 const canonicalUrl = `${siteUrl}${normalizedPathname}`;
+const isActivePath = (path) => normalizedPathname === path;
 const pageStructuredData = Array.isArray(structuredData)
   ? structuredData
   : [structuredData];
@@ -176,6 +177,18 @@ const schemaGraph = [
     <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="page-background"></div>
 
+    <header class="site-header" aria-label="Primary">
+      <nav class="nav-container">
+        <a class="site-logo" href="/">Algorithmic Art Gallery</a>
+        <div class="main-nav">
+          <a class={isActivePath("/") ? "nav-link active" : "nav-link"} href="/">Generator</a>
+          <a class={isActivePath("/gallery/") ? "nav-link active" : "nav-link"} href="/gallery/">Gallery</a>
+          <a class={isActivePath("/about/") ? "nav-link active" : "nav-link"} href="/about/">About</a>
+          <a class={isActivePath("/contact/") ? "nav-link active" : "nav-link"} href="/contact/">Contact</a>
+        </div>
+      </nav>
+    </header>
+
     <main id="main-content" class="content-wrapper">
       <slot />
     </main>
@@ -264,7 +277,12 @@ const schemaGraph = [
   }
 
   .site-header {
-    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    background: var(--color-paper);
+    border-bottom: var(--border-ink);
   }
 
   .nav-container {
