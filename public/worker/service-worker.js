@@ -4,8 +4,8 @@ const CACHE_NAME = 'algorithmic-art-cache-v2';
 // Assets to cache
 const STATIC_ASSETS = [
   '/',
-  '/gallery',
-  '/about',
+  '/gallery/',
+  '/about/',
   '/fonts/NebulaSans-Book.ttf',
   '/fonts/NebulaSans-BoldItalic.ttf',
   '/icon.png',
@@ -116,4 +116,4 @@ self.addEventListener('fetch', event => {
           });
       })
   );
-}); 
+});

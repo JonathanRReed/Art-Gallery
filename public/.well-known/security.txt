@@ -1,4 +1,5 @@
-Contact: mailto:hello@jonathanrreed.com
-Expires: 2027-04-21T00:00:00.000Z
+Contact: https://jonathanrreed.com/contact/
+Expires: 2027-04-21T00:00:00Z
 Preferred-Languages: en
 Canonical: https://art.jonathanrreed.com/.well-known/security.txt
+Policy: https://art.jonathanrreed.com/privacy/
