@@ -1,11 +1,8 @@
 // Service worker for Algorithmic Art Gallery
-const CACHE_NAME = 'algorithmic-art-cache-v2';
+const CACHE_NAME = 'algorithmic-art-cache-v3';
 
 // Assets to cache
 const STATIC_ASSETS = [
-  '/',
-  '/gallery/',
-  '/about/',
   '/fonts/NebulaSans-Book.ttf',
   '/fonts/NebulaSans-BoldItalic.ttf',
   '/icon.png',
@@ -60,6 +57,15 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Only cache GET requests
   if (event.request.method !== 'GET') return;
+
+  // Always prefer fresh HTML so browsers do not keep old page layouts.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => caches.match('/'))
+    );
+    return;
+  }
   
   // Skip for worker files that need direct access
   if (event.request.url.includes('/worker/color-mapper.js')) return;
@@ -106,12 +112,6 @@ self.addEventListener('fetch', event => {
           })
           .catch(error => {
             console.warn('Fetch failed:', error);
-            // For navigation requests, return the offline page
-            if (event.request.mode === 'navigate') {
-              return caches.match('/');
-            }
-            
-            // Otherwise just let the error happen
             throw error;
           });
       })
