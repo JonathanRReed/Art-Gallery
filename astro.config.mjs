@@ -75,7 +75,7 @@ export default defineConfig({
             // Split application code
             if (id.includes('/components/')) return 'components';
             if (id.includes('/layouts/')) return 'layouts';
-            if (id.includes('/assets/')) return 'assets';
+            if (id.includes('/assets/')) return 'art-assets';
           },
           // Limit chunk size
           chunkFileNames: 'assets/js/[name]-[hash].js',
