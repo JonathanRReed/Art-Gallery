@@ -18,8 +18,8 @@ Key features:
 ## Pages
 
 - [Generator](https://art.jonathanrreed.com/): Create new algorithmic art with customizable parameters
-- [Gallery](https://art.jonathanrreed.com/gallery): Browse and manage saved artworks
-- [About](https://art.jonathanrreed.com/about): Learn how the algorithms work and explore pattern options
+- [Gallery](https://art.jonathanrreed.com/gallery/): Browse and manage saved artworks
+- [About](https://art.jonathanrreed.com/about/): Learn how the algorithms work and explore pattern options
 
 ## Technical Details
 

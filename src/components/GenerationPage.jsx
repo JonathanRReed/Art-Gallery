@@ -859,7 +859,7 @@ export default function GenerationPage() {
             </button>
 
             <a
-              href="/gallery"
+              href="/gallery/"
               className="save-button gallery-action-btn"
               style={{
                 display: 'inline-block',
@@ -1108,4 +1108,4 @@ export default function GenerationPage() {
       )}
     </div>
   );
-} 
+}
