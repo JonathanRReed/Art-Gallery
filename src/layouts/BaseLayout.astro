@@ -15,7 +15,7 @@ const {
 const normalizedPathname =
   pathname === "/" || pathname.endsWith("/") ? pathname : `${pathname}/`;
 const canonicalUrl = `${siteUrl}${normalizedPathname}`;
-const isActivePath = (path) => normalizedPathname === path;
+const isActivePath = (path: string) => normalizedPathname === path;
 const pageStructuredData = Array.isArray(structuredData)
   ? structuredData
   : [structuredData];
