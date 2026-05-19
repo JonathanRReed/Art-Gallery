@@ -1,68 +1,58 @@
-# Algorithmic Art
+# Algorithmic Art Gallery
 
-This project was inspired by a video from Corridor Crew; [I Made Art That HACKS Your Eyes](https://www.youtube.com/watch?v=SxsN6FRXMWQ)
+A browser-based generative art studio that uses space-filling curves, symmetry rules, and deterministic seeds to create exportable artwork. The project was inspired by Corridor Crew's [I Made Art That HACKS Your Eyes](https://www.youtube.com/watch?v=SxsN6FRXMWQ).
 
-A simple web application that generates beautiful algorithmic art using space-filling curves and mathematical patterns. Create, customize, and download unique digital artwork.
+Live demo: https://art.jonathanrreed.com
 
-![Algorithmic Art](public/icons/icon-192.png)
+## Highlights
 
-## Features
+- Deterministic generation, so the same settings reproduce the same image
+- Multiple curve and growth modes for varied visual output
+- Local gallery for saving favorite studies in the browser
+- PNG and PDF export for portfolio sharing and printing
+- Responsive layout with keyboard-friendly navigation and skip link support
 
-- Generate unique art patterns with various algorithms
-- Customize colors, patterns, and complexity
-- Download as PNG or PDF
-- Save designs to your local gallery
-- Mobile-friendly interface
+## Quick start
 
-## Getting Started
+### Requirements
 
-### Prerequisites
+- Node.js 18 or newer
+- bun 1.0+ recommended
 
-- Node.js 16+
-- npm or yarn
+### Install
 
-### Installation
-
-1. Clone the repository
-   ```
-   git clone https://github.com/yourusername/algorithmic-art-gallery.git
-   cd Art-Gallery
-   ```
-
-2. Install dependencies
-   ```
-   npm install
-   ```
-
-3. Start the development server
-   ```
-   npm run dev
-   ```
-
-4. Open your browser and navigate to `http://localhost:4321`
-
-### Building for Production
-
-To create a production build:
-
-```
-npm run build
+```sh
+bun install
 ```
 
-The build files will be in the `dist` directory, ready to be deployed to any static hosting service.
+### Run locally
+
+```sh
+bun run dev
+```
+
+Then open the local URL shown by Astro, usually `http://localhost:4321`.
+
+### Production checks
+
+```sh
+bun run check
+bun run build
+```
+
+## Notes for reviewers
+
+- The app is static Astro output, so deployment is suitable for Netlify, Vercel, Cloudflare Pages, or similar static hosts.
+- Settings are stored locally in the browser. No account or backend is required.
 
 ## Technologies
 
-- [Astro](https://astro.build/) - Web framework
-- [React](https://reactjs.org/) - UI components
-- [TailwindCSS](https://tailwindcss.com/) - Styling
-- Web Workers - For performance-intensive calculations
-- LocalStorage - For saving user creations
+- Astro
+- React
+- Tailwind CSS
+- Web Workers
+- LocalStorage
 
 ## License
 
-[MIT](LICENSE)
-
-```sh
-npm create astro@latest -- --template basics
-```
+MIT
