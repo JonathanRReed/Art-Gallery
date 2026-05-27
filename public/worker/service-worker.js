@@ -62,7 +62,7 @@ self.addEventListener('fetch', event => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
-        .catch(() => caches.match('/'))
+        .catch(() => caches.match('/') || new Response('Not found', { status: 404 }))
     );
     return;
   }
@@ -74,7 +74,7 @@ self.addEventListener('fetch', event => {
   if (event.request.url.includes('manifest.json')) {
     event.respondWith(
       fetch(event.request)
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request) || new Response('Not found', { status: 404 }))
     );
     return;
   }
@@ -112,7 +112,7 @@ self.addEventListener('fetch', event => {
           })
           .catch(error => {
             console.warn('Fetch failed:', error);
-            throw error;
+            return caches.match('/') || new Response('Offline', { status: 503 });
           });
       })
   );

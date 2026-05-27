@@ -22,33 +22,43 @@ const aboutVideoSchema = {
   description="Learn how the Algorithmic Art Gallery by Jonathan R Reed creates generative art using space-filling curves and mathematical algorithms."
   structuredData={[aboutVideoSchema]}
 >
-  <div class="about-container">
-    <h1 class="about-header">About</h1>
-    <p class="mono-text">
-      By Jonathan R Reed. Updated <time datetime="2026-04-21">April 21, 2026</time>.
-    </p>
+  <div class="about-page">
+    <!-- Header -->
+    <header class="about-hero reveal-element">
+      <p class="mono-text about-eyebrow">Process</p>
+      <h1 class="about-header">About</h1>
+      <p class="mono-text about-meta">
+        By Jonathan R Reed. Updated <time datetime="2026-04-21">April 21, 2026</time>.
+      </p>
+    </header>
 
     <div class="about-content">
-      <section class="about-section">
+      <!-- The Project -->
+      <section class="about-section reveal-element">
+        <div class="section-pill">
+          <span class="mono-text">01</span>
+        </div>
         <h2 class="about-subheader">The Project</h2>
-        <p>
-          This is a small generative art project by me, Jonathan Reed! It uses
-          space-filling curves (Hilbert and Morton) combined with color mapping
-          to produce patterns. You control the seed value, growth mode,
-          symmetry, and color ordering, then let the algorithm fill in the
-          pixels.
-        </p>
-        <p>
-          Every output is deterministic: same settings produce the same image.
-          Change a parameter and you get something new. It's mostly an
-          experiment in seeing what happens when you let math do the drawing.
-        </p>
-        <p>
-          The project is also a practical study in creative tooling. The generator
-          keeps the controls visible, the output repeatable, and the saved gallery
-          close to the work surface so each image can be treated as a small
-          experiment rather than a disposable random effect.
-        </p>
+        <div class="about-card">
+          <p>
+            This is a small generative art project by me, Jonathan Reed! It uses
+            space-filling curves (Hilbert and Morton) combined with color mapping
+            to produce patterns. You control the seed value, growth mode,
+            symmetry, and color ordering, then let the algorithm fill in the
+            pixels.
+          </p>
+          <p>
+            Every output is deterministic: same settings produce the same image.
+            Change a parameter and you get something new. It's mostly an
+            experiment in seeing what happens when you let math do the drawing.
+          </p>
+          <p>
+            The project is also a practical study in creative tooling. The generator
+            keeps the controls visible, the output repeatable, and the saved gallery
+            close to the work surface so each image can be treated as a small
+            experiment rather than a disposable random effect.
+          </p>
+        </div>
         <p class="about-link">
           <a
             href="https://jonathanrreed.com/projects/"
@@ -60,69 +70,96 @@ const aboutVideoSchema = {
         </p>
       </section>
 
-      <section class="about-section">
-        <h2 class="about-subheader">The Technology</h2>
-        <p>
-          Built with Astro and React, this application uses modern web
-          technologies to provide a fast, responsive experience. An interface
-          inspired by a frosted-glass aesthetic, featuring a dark mode theme
-          with warm coral accents that complements the vibrant colors of the
-          generated art.
-        </p>
-        <p>This project was inspired by a video from Corridor Crew:</p>
-        <h3 class="video-title">I Made Art That HACKS Your Eyes</h3>
-        <div class="video-container">
-          <iframe
-            width="560"
-            height="315"
-            src="https://www.youtube.com/embed/SxsN6FRXMWQ?si=p4sz9KDZs15OeUoL"
-            title="YouTube video player"
-            style="border: none;"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerpolicy="strict-origin-when-cross-origin"
-            allowfullscreen
-          >
-          </iframe>
+      <!-- Technology & Video -->
+      <section class="about-section reveal-element">
+        <div class="section-pill">
+          <span class="mono-text">02</span>
         </div>
-        <p>
-          The video is included as a reference point for the visual idea, but the
-          generator itself is built around browser-side controls, deterministic
-          settings, and exportable studies that can be recreated from documented
-          parameters.
-        </p>
+        <h2 class="about-subheader">The Technology</h2>
+        <div class="about-card">
+          <p>
+            Built with Astro and React, this application uses modern web
+            technologies to provide a fast, responsive experience. An interface
+            inspired by a frosted-glass aesthetic, featuring a dark mode theme
+            with warm coral accents that complements the vibrant colors of the
+            generated art.
+          </p>
+        </div>
+
+        <div class="video-frame reveal-element">
+          <p class="mono-text video-eyebrow">Reference</p>
+          <h3 class="video-title">I Made Art That HACKS Your Eyes</h3>
+          <div class="video-container">
+            <iframe
+              width="560"
+              height="315"
+              src="https://www.youtube.com/embed/SxsN6FRXMWQ?si=p4sz9KDZs15OeUoL"
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+            >
+            </iframe>
+          </div>
+          <p class="video-caption">
+            The video is included as a reference point for the visual idea, but the
+            generator itself is built around browser-side controls, deterministic
+            settings, and exportable studies that can be recreated from documented
+            parameters.
+          </p>
+        </div>
       </section>
 
-      <section class="about-section">
+      <!-- How It Works -->
+      <section class="about-section reveal-element">
+        <div class="section-pill">
+          <span class="mono-text">03</span>
+        </div>
         <h2 class="about-subheader">How It Works</h2>
-        <p>
-          1. <strong>Select Parameters</strong>: Customize your artwork by
-          adjusting parameters in two main categories:
-        </p>
-        <ul class="parameter-list">
-          <li>
-            <strong>Seed & Growth</strong>: Control the seed value, pattern
-            size, growth mode, seed shape, and more
-          </li>
-          <li>
-            <strong>Color & Symmetry</strong>: Define color progression, curve
-            type, color ordering, and symmetry options
-          </li>
-        </ul>
-        <p>
-          2. <strong>Generate</strong>: Our algorithm processes your parameters
-          to create a unique piece of algorithmic art
-        </p>
-        <p>
-          3. <strong>Export</strong>: Download your creation as a PNG or PDF
-          file
-        </p>
-        <p>
-          4. <strong>Save</strong>: Add your favorite generations to your
-          personal gallery to revisit later
-        </p>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number mono-text">1</div>
+            <h3>Select Parameters</h3>
+            <ul class="parameter-list">
+              <li>
+                <strong>Seed & Growth</strong>: Control the seed value, pattern
+                size, growth mode, seed shape, and more
+              </li>
+              <li>
+                <strong>Color & Symmetry</strong>: Define color progression, curve
+                type, color ordering, and symmetry options
+              </li>
+            </ul>
+          </div>
+          <div class="step-card">
+            <div class="step-number mono-text">2</div>
+            <h3>Generate</h3>
+            <p>
+              Our algorithm processes your parameters to create a unique piece of algorithmic art.
+            </p>
+          </div>
+          <div class="step-card">
+            <div class="step-number mono-text">3</div>
+            <h3>Export</h3>
+            <p>
+              Download your creation as a PNG or PDF file.
+            </p>
+          </div>
+          <div class="step-card">
+            <div class="step-number mono-text">4</div>
+            <h3>Save</h3>
+            <p>
+              Add your favorite generations to your personal gallery to revisit later.
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section class="about-section">
+      <!-- Pattern Generation Options -->
+      <section class="about-section reveal-element">
+        <div class="section-pill">
+          <span class="mono-text">04</span>
+        </div>
         <h2 class="about-subheader">Pattern Generation Options</h2>
         <p class="feature-intro">
           Click on any option below to learn more about it:
@@ -130,10 +167,12 @@ const aboutVideoSchema = {
         <div class="feature-grid">
           <div class="feature-item" data-feature="growth-modes">
             <div class="feature-header">
-              <h3>Growth Modes</h3>
-              <span class="feature-expand-icon">+</span>
+              <div class="feature-header-text">
+                <h3>Growth Modes</h3>
+                <p class="feature-summary">Crystal, Nebula, Rings</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
-            <p class="feature-summary">Crystal, Nebula, Rings</p>
             <div class="feature-details">
               <ul>
                 <li>
@@ -153,10 +192,12 @@ const aboutVideoSchema = {
           </div>
           <div class="feature-item" data-feature="seed-shapes">
             <div class="feature-header">
-              <h3>Seed Shapes</h3>
-              <span class="feature-expand-icon">+</span>
+              <div class="feature-header-text">
+                <h3>Seed Shapes</h3>
+                <p class="feature-summary">Point, Circle, Line</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
-            <p class="feature-summary">Point, Circle, Line</p>
             <div class="feature-details">
               <ul>
                 <li>
@@ -176,10 +217,12 @@ const aboutVideoSchema = {
           </div>
           <div class="feature-item" data-feature="symmetry">
             <div class="feature-header">
-              <h3>Symmetry</h3>
-              <span class="feature-expand-icon">+</span>
+              <div class="feature-header-text">
+                <h3>Symmetry</h3>
+                <p class="feature-summary">None, Bilateral, Quadrantal, Radial</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
-            <p class="feature-summary">None, Bilateral, Quadrantal, Radial</p>
             <div class="feature-details">
               <ul>
                 <li>
@@ -203,10 +246,12 @@ const aboutVideoSchema = {
           </div>
           <div class="feature-item" data-feature="color-progression">
             <div class="feature-header">
-              <h3>Color Progression</h3>
-              <span class="feature-expand-icon">+</span>
+              <div class="feature-header-text">
+                <h3>Color Progression</h3>
+                <p class="feature-summary">Sequential, Shuffled, Base Distance</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
-            <p class="feature-summary">Sequential, Shuffled, Base Distance</p>
             <div class="feature-details">
               <ul>
                 <li>
@@ -226,10 +271,12 @@ const aboutVideoSchema = {
           </div>
           <div class="feature-item" data-feature="curve-types">
             <div class="feature-header">
-              <h3>Curve Types</h3>
-              <span class="feature-expand-icon">+</span>
+              <div class="feature-header-text">
+                <h3>Curve Types</h3>
+                <p class="feature-summary">Hilbert, Morton</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
-            <p class="feature-summary">Hilbert, Morton</p>
             <div class="feature-details">
               <ul>
                 <li>
@@ -245,10 +292,12 @@ const aboutVideoSchema = {
           </div>
           <div class="feature-item" data-feature="color-ordering">
             <div class="feature-header">
-              <h3>Color Ordering</h3>
-              <span class="feature-expand-icon">+</span>
+              <div class="feature-header-text">
+                <h3>Color Ordering</h3>
+                <p class="feature-summary">HSV, HVS, SHV, SVH, VHS, VSH</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
-            <p class="feature-summary">HSV, HVS, SHV, SVH, VHS, VSH</p>
             <div class="feature-details">
               <ul>
                 <li>
@@ -281,23 +330,80 @@ const aboutVideoSchema = {
         </div>
       </section>
 
-      <section class="about-section technical-specs">
+      <!-- Tech Stack -->
+      <section class="about-section reveal-element">
+        <div class="section-pill">
+          <span class="mono-text">05</span>
+        </div>
+        <h2 class="about-subheader">Tech Stack</h2>
+        <div class="tech-grid">
+          <div class="tech-card">
+            <div class="tech-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+            <span class="tech-name">Astro</span>
+            <span class="tech-role mono-text">Framework</span>
+          </div>
+          <div class="tech-card">
+            <div class="tech-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></svg>
+            </div>
+            <span class="tech-name">React</span>
+            <span class="tech-role mono-text">UI Library</span>
+          </div>
+          <div class="tech-card">
+            <div class="tech-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <span class="tech-name">Tailwind</span>
+            <span class="tech-role mono-text">Styling</span>
+          </div>
+          <div class="tech-card">
+            <div class="tech-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <span class="tech-name">Canvas API</span>
+            <span class="tech-role mono-text">Renderer</span>
+          </div>
+          <div class="tech-card">
+            <div class="tech-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <span class="tech-name">Web APIs</span>
+            <span class="tech-role mono-text">Storage / Export</span>
+          </div>
+          <div class="tech-card">
+            <div class="tech-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            </div>
+            <span class="tech-name">PDF / PNG</span>
+            <span class="tech-role mono-text">Export Formats</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Technical Specifications -->
+      <section class="about-section technical-specs reveal-element">
+        <div class="section-pill">
+          <span class="mono-text">06</span>
+        </div>
         <h2 class="about-subheader">Technical Specifications</h2>
-        <ul>
+        <ul class="spec-list">
           <li>
-            <span class="spec-label">Pattern Sizes:</span> From 128×128 to 4096×4096
-            pixels
+            <span class="spec-label">Pattern Sizes</span>
+            <span class="spec-value">From 128×128 to 4096×4096 pixels</span>
           </li>
           <li>
-            <span class="spec-label">Algorithms:</span> Hilbert Curve, Morton Curve
-            (Z-order)
+            <span class="spec-label">Algorithms</span>
+            <span class="spec-value">Hilbert Curve, Morton Curve (Z-order)</span>
           </li>
           <li>
-            <span class="spec-label">Export Options:</span> PNG and PDF formats
+            <span class="spec-label">Export Options</span>
+            <span class="spec-value">PNG and PDF formats</span>
           </li>
           <li>
-            <span class="spec-label">Settings Storage:</span> Browser local storage
-            for saved settings
+            <span class="spec-label">Settings Storage</span>
+            <span class="spec-value">Browser local storage for saved settings</span>
           </li>
         </ul>
       </section>
@@ -327,18 +433,15 @@ const aboutVideoSchema = {
 
       // Add click and keyboard event handlers
       item.addEventListener("click", (e) => {
-        // Add click effect
         addClickEffect(item);
         toggleFeature(item, featureItems);
       });
       item.addEventListener("keydown", (e) => {
-        // Ensure e is a KeyboardEvent before accessing key property
         if (
           e instanceof KeyboardEvent &&
           (e.key === "Enter" || e.key === " ")
         ) {
           e.preventDefault();
-          // Add click effect
           addClickEffect(item);
           toggleFeature(item, featureItems);
         }
@@ -347,11 +450,7 @@ const aboutVideoSchema = {
 
     function addClickEffect(item) {
       if (!(item instanceof HTMLElement)) return;
-
-      // Add click effect class
       item.classList.add("click-effect");
-
-      // Remove the class after animation completes
       setTimeout(() => {
         item.classList.remove("click-effect");
       }, 150);
@@ -359,14 +458,11 @@ const aboutVideoSchema = {
 
     function toggleFeature(item, allItems) {
       if (!(item instanceof HTMLElement)) return;
-
-      // Toggle active class
       const wasActive = item.classList.contains("active");
 
       // Close all items
       allItems.forEach((otherItem) => {
         if (!(otherItem instanceof HTMLElement)) return;
-
         otherItem.classList.remove("active");
         otherItem.setAttribute("aria-expanded", "false");
         const otherIcon = otherItem.querySelector(".feature-expand-icon");
@@ -385,123 +481,312 @@ const aboutVideoSchema = {
 </script>
 
 <style>
-  .about-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
+  /* ========================================
+     ABOUT PAGE LAYOUT
+     ======================================== */
+  .about-page {
+    width: min(960px, calc(100% - 2rem));
+    margin: 0 auto 2rem;
+    padding: 0 1rem;
+    box-sizing: border-box;
+  }
+
+  .about-hero {
+    text-align: center;
+    padding: 3rem 0 2rem;
+  }
+
+  .about-eyebrow {
+    color: var(--color-accent);
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
   }
 
   .about-header {
-    font-size: 3rem;
     font-family: var(--font-serif);
-    font-weight: 400;
+    font-size: clamp(2.5rem, 8vw, 5rem);
     color: var(--color-ink);
-    margin-bottom: 3rem;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: -0.02em;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+  }
+
+  .about-meta {
+    color: var(--color-ink-light);
+    font-size: 0.8rem;
   }
 
   .about-content {
-    background: var(--color-paper);
-    border: var(--border-ink);
-    padding: 2rem;
-    color: var(--color-ink);
-    box-shadow: 8px 8px 0 0 var(--color-ink);
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
   }
 
+  /* ========================================
+     SECTIONS
+     ======================================== */
   .about-section {
-    margin-bottom: 3rem;
+    position: relative;
+    padding-left: 3rem;
   }
 
-  .about-section:last-child {
-    margin-bottom: 0;
+  .section-pill {
+    position: absolute;
+    left: 0;
+    top: 0.35rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: var(--border-ink);
+    background: var(--color-paper);
+    color: var(--color-accent);
+    font-size: 0.7rem;
+    font-weight: 600;
   }
 
   .about-subheader {
-    font-size: 1.5rem;
     font-family: var(--font-serif);
-    font-weight: 400;
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
     color: var(--color-ink);
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--color-ink);
+    margin: 0 0 1.25rem;
     letter-spacing: -0.02em;
+    line-height: 1.1;
   }
 
-  .about-content p {
-    font-family: var(--font-sans);
+  .about-card {
+    background: var(--color-paper-alt);
+    border: var(--border-ink);
+    padding: 1.5rem;
+    box-shadow: 6px 6px 0 0 var(--color-ink);
+  }
+
+  .about-card p {
     font-size: 0.95rem;
     line-height: 1.7;
-    margin-bottom: 1.25rem;
+    margin: 0 0 1rem;
+    color: var(--color-ink-light);
+  }
+
+  .about-card p:last-child {
+    margin-bottom: 0;
+  }
+
+  .about-link {
+    margin-top: 1.5rem;
+  }
+
+  .about-link a {
     color: var(--color-ink);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    padding: 0.6rem 1.25rem;
+    border: var(--border-ink);
+    background: var(--color-paper);
+    box-shadow: 3px 3px 0 0 var(--color-ink);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .about-link a:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 0 var(--color-accent);
+  }
+
+  /* ========================================
+     VIDEO
+     ======================================== */
+  .video-frame {
+    margin-top: 2rem;
+    background: var(--color-paper-alt);
+    border: var(--border-ink);
+    padding: 1.5rem;
+    box-shadow: 6px 6px 0 0 var(--color-ink);
+  }
+
+  .video-eyebrow {
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .video-title {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    font-weight: 400;
+    color: var(--color-ink);
+    margin: 0 0 1rem;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--color-accent);
+  }
+
+  .video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border: var(--border-ink);
+    background: var(--color-paper);
+  }
+
+  .video-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  .video-caption {
+    margin: 1rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: var(--color-ink-light);
+  }
+
+  /* ========================================
+     STEPS
+     ======================================== */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .step-card {
+    background: var(--color-paper-alt);
+    border: var(--border-ink);
+    padding: 1.5rem;
+    box-shadow: 5px 5px 0 0 var(--color-ink);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .step-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 7px 7px 0 0 var(--color-accent);
+  }
+
+  .step-number {
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    line-height: 2rem;
+    text-align: center;
+    border: var(--border-ink);
+    background: var(--color-paper);
+    color: var(--color-accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+
+  .step-card h3 {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    color: var(--color-ink);
+    margin: 0 0 0.5rem;
+  }
+
+  .step-card p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--color-ink-light);
+    margin: 0;
   }
 
   .parameter-list {
     list-style-type: none;
     padding-left: 0;
-    margin-bottom: 1.5rem;
+    margin: 0;
   }
 
   .parameter-list li {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     line-height: 1.6;
-    color: var(--color-ink);
-    margin-bottom: 0.75rem;
+    color: var(--color-ink-light);
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: flex-start;
+    gap: 0.5rem;
   }
 
   .parameter-list li::before {
     content: "■";
     color: var(--color-accent);
-    margin-right: 0.5rem;
-    font-size: 0.75rem;
-    margin-top: 0.2rem;
+    flex-shrink: 0;
+    font-size: 0.6rem;
+    margin-top: 0.35rem;
   }
 
+  /* ========================================
+     FEATURE GRID
+     ======================================== */
   .feature-intro {
-    text-align: left;
-    margin-bottom: 1.5rem;
-    font-family: var(--font-mono);
+    font-size: 0.95rem;
     color: var(--color-ink-light);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    margin-bottom: 1.25rem;
   }
 
   .feature-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
   }
 
   .feature-item {
     background: var(--color-paper-alt);
-    padding: 1.25rem;
     border: var(--border-ink);
-    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    padding: 1.25rem;
     cursor: pointer;
-    overflow: hidden;
     box-shadow: 4px 4px 0 0 var(--color-ink);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
   }
 
   .feature-item:hover {
     transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 var(--color-ink);
-    background: var(--color-paper);
+    box-shadow: 6px 6px 0 0 var(--color-accent);
   }
 
   .feature-item.click-effect {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 0 var(--color-ink);
+    filter: invert(1);
   }
 
   .feature-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+  }
+
+  .feature-header-text {
+    min-width: 0;
+  }
+
+  .feature-item h3 {
+    font-size: 1.05rem;
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    margin: 0 0 0.35rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .feature-summary {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    margin: 0;
+    color: var(--color-ink-light);
+    text-transform: uppercase;
   }
 
   .feature-expand-icon {
@@ -511,44 +796,28 @@ const aboutVideoSchema = {
     font-weight: 400;
     line-height: 1;
     transition: transform 0.2s ease;
+    flex-shrink: 0;
   }
 
   .feature-item.active .feature-expand-icon {
     color: var(--color-accent);
-  }
-
-  .feature-item h3 {
-    font-size: 1rem;
-    font-family: var(--font-serif);
-    color: var(--color-ink);
-    margin-bottom: 0.5rem;
-    font-weight: 400;
-    text-transform: uppercase;
-  }
-
-  .feature-summary {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    margin-bottom: 0;
-    color: var(--color-ink-light);
-    text-transform: uppercase;
+    transform: rotate(45deg);
   }
 
   .feature-details {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
     margin-top: 0;
   }
 
   .feature-item.active {
     background-color: var(--color-paper);
-    border-color: var(--color-ink);
   }
 
   .feature-item.active .feature-details {
-    max-height: 500px;
+    max-height: 600px;
     opacity: 1;
     margin-top: 1rem;
     padding-top: 1rem;
@@ -563,9 +832,9 @@ const aboutVideoSchema = {
 
   .feature-details li {
     margin-bottom: 0.75rem;
-    color: var(--color-ink);
+    color: var(--color-ink-light);
     font-size: 0.85rem;
-    line-height: 1.5;
+    line-height: 1.55;
     position: relative;
   }
 
@@ -580,33 +849,96 @@ const aboutVideoSchema = {
     margin-bottom: 0;
   }
 
-  .technical-specs ul {
+  /* ========================================
+     TECH STACK
+     ======================================== */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+  }
+
+  .tech-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem 0.75rem;
+    background: var(--color-paper-alt);
+    border: var(--border-ink);
+    box-shadow: 4px 4px 0 0 var(--color-ink);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .tech-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 0 var(--color-accent);
+  }
+
+  .tech-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: var(--border-ink);
+    background: var(--color-paper);
+    color: var(--color-accent);
+  }
+
+  .tech-name {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--color-ink);
+  }
+
+  .tech-role {
+    font-size: 0.65rem;
+    color: var(--color-ink-light);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ========================================
+     TECHNICAL SPECS
+     ======================================== */
+  .technical-specs {
+    padding-bottom: 2rem;
+  }
+
+  .spec-list {
     list-style: none;
     padding: 0;
+    margin: 0;
     border-top: var(--border-ink);
   }
 
-  .technical-specs li {
+  .spec-list li {
     padding: 1rem 0;
     font-size: 0.9rem;
     font-family: var(--font-mono);
-    border-bottom: 1px solid var(--color-ink-light);
+    border-bottom: 1px solid rgba(70, 80, 105, 0.25);
     color: var(--color-ink);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    gap: 0.5rem;
   }
 
-  .technical-specs li:last-child {
+  .spec-list li:last-child {
     border-bottom: var(--border-ink);
   }
 
   .spec-label {
     color: var(--color-ink);
     font-weight: 600;
-    margin-right: 1rem;
     text-transform: uppercase;
-    width: 200px;
+    min-width: 200px;
+    flex-shrink: 0;
+  }
+
+  .spec-value {
+    color: var(--color-ink-light);
   }
 
   strong {
@@ -614,94 +946,22 @@ const aboutVideoSchema = {
     font-weight: 600;
   }
 
+  /* ========================================
+     RESPONSIVE
+     ======================================== */
   @media (max-width: 768px) {
-    .about-container {
-      padding: 1.5rem;
-    }
-
-    .about-content {
-      padding: 1.5rem;
-      box-shadow: 4px 4px 0 0 var(--color-ink);
-    }
-
-    .about-header {
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .about-subheader {
-      font-size: 1.25rem;
-    }
-
-    .about-content p {
-      font-size: 1rem;
-    }
-
-    .feature-grid {
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    .spec-label {
-      width: 100%;
-      margin-bottom: 0.25rem;
-    }
+    .about-section { padding-left: 0; }
+    .section-pill { position: static; margin-bottom: 0.75rem; }
+    .about-card { padding: 1.25rem; }
+    .video-frame { padding: 1.25rem; }
+    .steps-grid { grid-template-columns: 1fr; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .tech-grid { grid-template-columns: repeat(2, 1fr); }
+    .spec-label { min-width: auto; width: 100%; }
   }
 
-  .video-container {
-    position: relative;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
-    height: 0;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-    border: var(--border-ink);
-    background: var(--color-paper-alt);
-  }
-
-  .video-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  .video-title {
-    font-family: var(--font-serif);
-    font-size: 1.15rem;
-    font-weight: 400;
-    color: var(--color-ink);
-    margin-bottom: 1rem;
-    text-align: left;
-    border-left: 3px solid var(--color-accent);
-    padding-left: 0.75rem;
-  }
-
-  .about-link {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 2px solid var(--color-ink);
-  }
-
-  .about-link a {
-    color: var(--color-ink);
-    text-decoration: none;
-    font-family: var(--font-mono);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.05em;
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border: var(--border-ink);
-    transition: all 0.2s ease;
-    box-shadow: 2px 2px 0 0 var(--color-ink);
-  }
-
-  .about-link a:hover {
-    background: var(--color-ink);
-    color: var(--color-paper);
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 0 var(--color-accent);
+  @media (max-width: 480px) {
+    .about-header { font-size: 2.25rem; }
+    .tech-grid { grid-template-columns: 1fr 1fr; }
   }
 </style>

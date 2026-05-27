@@ -15,3 +15,9 @@
 
 /fonts/*
   Cache-Control: public, max-age=31536000, immutable
+
+https://art-gallery-9bo.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.art-gallery-9bo.pages.dev/*
+  X-Robots-Tag: noindex
