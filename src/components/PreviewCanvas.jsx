@@ -1,4 +1,59 @@
-import React, { useRef, useEffect, forwardRef } from 'react';
+import React, { useRef, useEffect, useState, useCallback, forwardRef } from 'react';
+
+const MAX_SAFE_SIZE = 2048;
+
+function formatDimension(n) {
+  return `${n.toLocaleString()} × ${n.toLocaleString()}`;
+}
+
+function drawPlaceholder(ctx, w, h, imgWidth, imgHeight) {
+  const gradient = ctx.createLinearGradient(0, 0, w, h);
+  gradient.addColorStop(0, '#1b2234');
+  gradient.addColorStop(0.5, '#5567ff');
+  gradient.addColorStop(1, '#111827');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.fillStyle = '#eef2ff';
+  ctx.font = 'bold 48px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('✓', w / 2, h / 2 - 20);
+
+  ctx.fillStyle = '#f6f7fb';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.fillText('AllRGB Complete!', w / 2, h / 2 + 20);
+
+  ctx.fillStyle = '#d9e1ff';
+  ctx.font = '14px sans-serif';
+  ctx.fillText(`${formatDimension(imgWidth)} pixels`, w / 2, h / 2 + 45);
+  ctx.fillText('Click "Download PNG" to save', w / 2, h / 2 + 70);
+}
+
+function drawDownsampledThumbnail(ctx, imageData, srcW, srcH, dstW, dstH) {
+  try {
+    const scale = Math.min(dstW / srcW, dstH / srcH);
+    const thumbW = Math.max(1, Math.floor(srcW * scale));
+    const thumbH = Math.max(1, Math.floor(srcH * scale));
+
+    const tmpCanvas = document.createElement('canvas');
+    tmpCanvas.width = srcW;
+    tmpCanvas.height = srcH;
+    const tmpCtx = tmpCanvas.getContext('2d');
+    tmpCtx.putImageData(new ImageData(imageData, srcW, srcH), 0, 0);
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.clearRect(0, 0, dstW, dstH);
+    ctx.fillStyle = 'var(--color-paper-alt)';
+    ctx.fillRect(0, 0, dstW, dstH);
+    const offsetX = (dstW - thumbW) / 2;
+    const offsetY = (dstH - thumbH) / 2;
+    ctx.drawImage(tmpCanvas, offsetX, offsetY, thumbW, thumbH);
+  } catch {
+    // Fallback to placeholder on any error
+    drawPlaceholder(ctx, dstW, dstH, srcW, srcH);
+  }
+}
 
 const PreviewCanvas = forwardRef(function PreviewCanvas({
   imageData,
@@ -10,108 +65,62 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
 }, ref) {
   const localRef = useRef(null);
   const actualRef = canvasRef || ref || localRef;
+  const wrapperRef = useRef(null);
+
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const panStart = useRef({ x: 0, y: 0 });
+
+  const hasImage = imageData instanceof Uint8ClampedArray;
 
   useEffect(() => {
     const canvas = actualRef.current;
-    if (!canvas) {
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
+    if (!ctx) {
+      console.error('Failed to get 2D context from canvas');
       return;
     }
 
-    const ctx = canvas.getContext('2d', {
-      alpha: true,
-      desynchronized: true // May improve performance
-    });
-
-    // Ensure the canvas is the correct size
     if (canvas.width !== width || canvas.height !== height) {
       canvas.width = width;
       canvas.height = height;
     }
 
-    if (imageData instanceof Uint8ClampedArray) {
+    if (hasImage) {
       try {
-        // Use metadata dimensions if available
         const imgWidth = metadata?.width || width;
         const imgHeight = metadata?.height || height;
-        const pixelCount = imageData.length / 4; // RGBA = 4 bytes per pixel
+        const pixelCount = imageData.length / 4;
 
         if (pixelCount === imgWidth * imgHeight) {
-          // Image data matches the expected dimensions
-
-          // For very large images (like AllRGB 4096x4096), we need special handling
-          // to avoid crashing the browser with huge memory allocations
-          const MAX_SAFE_SIZE = 2048; // Maximum safe size for ImageData
-
           if (imgWidth > MAX_SAFE_SIZE || imgHeight > MAX_SAFE_SIZE) {
-            // Large image: DON'T try to create ImageData - it will crash the browser!
-            // Just show a placeholder and let user download the full image
-
-            ctx.clearRect(0, 0, width, height);
-
-            // Draw a nice placeholder with gradient
-            const gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, '#1b2234');
-            gradient.addColorStop(0.5, '#5567ff');
-            gradient.addColorStop(1, '#111827');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, width, height);
-
-            // Draw checkmark and text
-            ctx.fillStyle = '#eef2ff';
-            ctx.font = 'bold 48px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('✓', width / 2, height / 2 - 20);
-
-            ctx.fillStyle = '#f6f7fb';
-            ctx.font = 'bold 16px sans-serif';
-            ctx.fillText('AllRGB Complete!', width / 2, height / 2 + 20);
-
-            ctx.fillStyle = '#d9e1ff';
-            ctx.font = '14px sans-serif';
-            ctx.fillText(`${imgWidth} × ${imgHeight} pixels`, width / 2, height / 2 + 45);
-            ctx.fillText('Click "Download PNG" to save', width / 2, height / 2 + 70);
-            return;
-          }
-
-          const imgData = new ImageData(imageData, imgWidth, imgHeight);
-
-          if (imgWidth === width && imgHeight === height) {
-            // Direct rendering if sizes match
-            ctx.putImageData(imgData, 0, 0);
+            // Large image: draw a downsampled thumbnail instead of crashing
+            drawDownsampledThumbnail(ctx, imageData, imgWidth, imgHeight, width, height);
+          } else if (imgWidth === width && imgHeight === height) {
+            ctx.putImageData(new ImageData(imageData, imgWidth, imgHeight), 0, 0);
           } else {
-            // Scale to fit the canvas
             ctx.clearRect(0, 0, width, height);
-
-            // Create a temporary canvas with the image data
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = imgWidth;
-            tempCanvas.height = imgHeight;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.putImageData(imgData, 0, 0);
-
-            // Draw scaled to our display canvas
-            ctx.drawImage(tempCanvas, 0, 0, width, height);
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = imgWidth;
+            tmpCanvas.height = imgHeight;
+            const tmpCtx = tmpCanvas.getContext('2d');
+            tmpCtx.putImageData(new ImageData(imageData, imgWidth, imgHeight), 0, 0);
+            ctx.drawImage(tmpCanvas, 0, 0, width, height);
           }
         } else {
-          // Fall back to square dimensions if metadata doesn't match
           const imgSize = Math.sqrt(pixelCount);
-
           if (Math.floor(imgSize) === imgSize) {
-            // It's a perfect square, render it
-            const imgData = new ImageData(imageData, imgSize, imgSize);
-
-            // Scale to fit the canvas
             ctx.clearRect(0, 0, width, height);
-
-            // Create a temporary canvas with the image data
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = imgSize;
-            tempCanvas.height = imgSize;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.putImageData(imgData, 0, 0);
-
-            // Draw scaled to our display canvas
-            ctx.drawImage(tempCanvas, 0, 0, width, height);
+            const tmpCanvas = document.createElement('canvas');
+            tmpCanvas.width = imgSize;
+            tmpCanvas.height = imgSize;
+            const tmpCtx = tmpCanvas.getContext('2d');
+            tmpCtx.putImageData(new ImageData(imageData, imgSize, imgSize), 0, 0);
+            ctx.drawImage(tmpCanvas, 0, 0, width, height);
           } else {
             console.error(`Invalid image data size: ${imageData.length} bytes doesn't match any expected dimensions`);
             ctx.clearRect(0, 0, width, height);
@@ -122,97 +131,132 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
         ctx.clearRect(0, 0, width, height);
       }
     } else {
-      // Clear canvas if data is invalid
       ctx.clearRect(0, 0, width, height);
     }
-  }, [imageData, width, height, actualRef, metadata]);
+  }, [imageData, width, height, actualRef, metadata, hasImage]);
+
+  const handleWheel = useCallback((e) => {
+    if (!hasImage) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom((z) => {
+      const next = Math.min(Math.max(z + delta, 1), 4);
+      return next;
+    });
+  }, [hasImage]);
+
+  const handleMouseDown = useCallback((e) => {
+    if (!hasImage || zoom <= 1) return;
+    setIsDragging(true);
+    dragStart.current = { x: e.clientX, y: e.clientY };
+    panStart.current = { ...pan };
+  }, [hasImage, zoom, pan]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    setPan({
+      x: panStart.current.x + dx,
+      y: panStart.current.y + dy,
+    });
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const resetView = useCallback(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }, []);
+
+  const zoomIn = useCallback(() => setZoom((z) => Math.min(z + 0.25, 4)), []);
+  const zoomOut = useCallback(() => setZoom((z) => Math.max(z - 0.25, 1)), []);
+
+  const transformStyle = {
+    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+    cursor: isDragging ? 'grabbing' : zoom > 1 ? 'grab' : 'default',
+  };
+
+  const metaLabel = metadata ? `${metadata.width || width} × ${metadata.height || height}` : null;
 
   return (
-    <>
-      <div style={{
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        maxWidth: '512px'
-      }}>
+    <div className="preview-canvas-frame">
+      <div
+        ref={wrapperRef}
+        className="preview-canvas-viewport"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        role="img"
+        aria-label={loading ? 'Generating artwork preview' : 'Artwork preview'}
+      >
         <canvas
           ref={actualRef}
           width={width}
           height={height}
           className="preview-canvas"
-          style={{
-            width: '100%',
-            maxWidth: '100%',
-            height: 'auto',
-            aspectRatio: '1/1',
-            objectFit: 'contain',
-            display: 'block',
-            backgroundColor: 'var(--color-paper-alt)',
-            border: 'var(--border-ink)',
-            borderRadius: '0',
-            filter: loading ? 'contrast(1.2) grayscale(0.2)' : 'none',
-            transition: 'filter 0.2s ease-in-out',
-          }}
+          style={transformStyle}
         />
         {loading && (
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'var(--color-overlay)',
-            backdropFilter: 'blur(4px)',
-            borderRadius: '0',
-            maxWidth: '100%',
-            width: '100%',
-            aspectRatio: '1/1',
-            padding: '1rem',
-            border: 'var(--border-ink)'
-          }}>
-            <style>{`
-              @keyframes spin {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-              }
-              @keyframes blink {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0; }
-              }
-            `}</style>
-            <div className="loading-spinner" style={{
-              animation: 'spin 1s linear infinite',
-              borderRadius: '0',
-              height: '3rem',
-              width: '3rem',
-              borderWidth: '2px',
-              borderStyle: 'solid',
-              borderColor: 'var(--color-ink)',
-              borderTopColor: 'var(--color-accent)',
-              marginBottom: '1.5rem'
-            }} />
-            <div style={{
-              color: 'var(--color-ink)',
-              textAlign: 'center',
-              fontFamily: 'var(--font-mono)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              fontSize: '0.8rem',
-              maxWidth: '80%',
-              lineHeight: '1.4'
-            }}>
-              <p style={{ marginBottom: '0.5rem', fontWeight: 600 }}>Generating artwork<span style={{ animation: 'blink 1s step-end infinite' }}>_</span></p>
-              <p style={{ color: 'var(--color-ink-light)', fontSize: '0.76rem', fontWeight: 600 }}>Rendering your current settings</p>
+          <div className="preview-loading-overlay">
+            <div className="preview-loading-spinner" aria-hidden="true" />
+            <div className="preview-loading-text">
+              <p className="preview-loading-title">
+                Generating artwork<span className="preview-cursor-blink">_</span>
+              </p>
+              <p className="preview-loading-subtitle">Rendering your current settings</p>
             </div>
           </div>
         )}
-      </div >
-    </>
+      </div>
+
+      {/* Metadata bar */}
+      <div className="preview-meta-bar">
+        {metaLabel && (
+          <span className="preview-meta-dimensions">{metaLabel}</span>
+        )}
+        {hasImage && (
+          <div className="preview-zoom-controls">
+            <button
+              type="button"
+              className="gallery-action-btn zoom-btn"
+              onClick={zoomOut}
+              disabled={zoom <= 1}
+              aria-label="Zoom out"
+              title="Zoom out"
+            >
+              −
+            </button>
+            <span className="preview-zoom-level">{Math.round(zoom * 100)}%</span>
+            <button
+              type="button"
+              className="gallery-action-btn zoom-btn"
+              onClick={zoomIn}
+              disabled={zoom >= 4}
+              aria-label="Zoom in"
+              title="Zoom in"
+            >
+              +
+            </button>
+            <button
+              type="button"
+              className="gallery-action-btn zoom-btn"
+              onClick={resetView}
+              disabled={zoom === 1 && pan.x === 0 && pan.y === 0}
+              aria-label="Reset view"
+              title="Reset view"
+            >
+              Reset
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 });
 
-export default PreviewCanvas; 
+export default PreviewCanvas;

@@ -76,6 +76,7 @@ export default function GenerationPage() {
   const settingsButtonRef = useRef(null);
   const workerRef = useRef(null);
   const canvasRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   // Fixed export size - increase to match maximum pattern size
   const EXPORT_SIZE = 4096; // Match the Extreme pattern size option for highest quality exports
@@ -111,6 +112,14 @@ export default function GenerationPage() {
     return () => {
       window.removeEventListener('toggle-settings-panel', handleToggleSettingsPanel);
       window.removeEventListener('show-save-dialog', handleShowSaveDialog);
+    };
+  }, []);
+
+  // Cleanup on unmount to prevent memory leaks
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
     };
   }, []);
 
@@ -246,61 +255,71 @@ export default function GenerationPage() {
         // Add error handling
         worker.onerror = (error) => {
           console.error("Worker error during generation:", error);
-          setLoading(false);
-          setProgress(0);
-          updateFeedback('error', `Generation failed. ${error.message} Try a smaller pattern size.`);
+          if (isMountedRef.current) {
+            setLoading(false);
+            setProgress(0);
+            updateFeedback('error', `Generation failed. ${error.message} Try a smaller pattern size.`);
+          }
         };
 
         worker.onmessage = (e) => {
           if (e.data.error) {
             console.error("Worker reported error:", e.data.error);
-            setLoading(false);
-            setProgress(0);
-            updateFeedback('error', e.data.error);
+            if (isMountedRef.current) {
+              setLoading(false);
+              setProgress(0);
+              updateFeedback('error', e.data.error);
+            }
             return;
           }
 
           // Handle LIVE PREVIEW during generation (watch the crystal grow!)
           if (e.data.preview && e.data.buffer) {
-            const metadata = e.data.metadata || { width: previewSize, height: previewSize };
+            if (isMountedRef.current) {
+              const metadata = e.data.metadata || { width: previewSize, height: previewSize };
 
-            // Convert buffer if needed
-            let imageBuffer = e.data.buffer;
-            if (imageBuffer instanceof ArrayBuffer) {
-              imageBuffer = new Uint8ClampedArray(imageBuffer);
+              // Convert buffer if needed
+              let imageBuffer = e.data.buffer;
+              if (imageBuffer instanceof ArrayBuffer) {
+                imageBuffer = new Uint8ClampedArray(imageBuffer);
+              }
+
+              // Update preview (but keep loading state)
+              setImageData(imageBuffer);
+              setImageMeta(metadata);
+              setRenderKey(k => k + 1);
+              setProgress(e.data.progress || 0);
             }
-
-            // Update preview (but keep loading state)
-            setImageData(imageBuffer);
-            setImageMeta(metadata);
-            setRenderKey(k => k + 1);
-            setProgress(e.data.progress || 0);
             return;
           }
 
           if (e.data.progress) {
             // Update progress
-            setProgress(e.data.progress);
+            if (isMountedRef.current) {
+              setProgress(e.data.progress);
+            }
             return;
           }
 
           if (e.data.buffer) {
-            // Check if metadata is available
-            const metadata = e.data.metadata || { width: previewSize, height: previewSize };
+            if (isMountedRef.current) {
+              // Check if metadata is available
+              const metadata = e.data.metadata || { width: previewSize, height: previewSize };
 
-            // Handle both Uint8ClampedArray and ArrayBuffer (from transfer)
-            let imageBuffer = e.data.buffer;
-            if (imageBuffer instanceof ArrayBuffer) {
-              imageBuffer = new Uint8ClampedArray(imageBuffer);
+              // Handle both Uint8ClampedArray and ArrayBuffer (from transfer)
+              let imageBuffer = e.data.buffer;
+              if (imageBuffer instanceof ArrayBuffer) {
+                imageBuffer = new Uint8ClampedArray(imageBuffer);
+              }
+
+              setImageData(imageBuffer);
+              setImageMeta(metadata);
+              setRenderKey(k => k + 1); // Force PreviewCanvas re-render
+              setLoading(false);
+              setProgress(100);
+              setLastGeneratedPatternSize(patternSize); // Record the pattern size that was used
+              updateFeedback('success', 'Artwork generated. You can export it or save it to your gallery.');
             }
-
-            setImageData(imageBuffer);
-            setImageMeta(metadata);
-            setRenderKey(k => k + 1); // Force PreviewCanvas re-render
-            setLoading(false);
-            setProgress(100);
-            setLastGeneratedPatternSize(patternSize); // Record the pattern size that was used
-            updateFeedback('success', 'Artwork generated. You can export it or save it to your gallery.');
           }
         };
 
@@ -393,20 +412,34 @@ export default function GenerationPage() {
     // Create a new worker specifically for this export
     const worker = new window.Worker('/worker/color-mapper.js');
 
+    // Add error handling
+    worker.onerror = (error) => {
+      console.error("Worker error during PNG export:", error);
+      if (isMountedRef.current) {
+        setLoading(false);
+        setProgress(0);
+        updateFeedback('error', `PNG export failed. ${error.message} Try a smaller pattern size.`);
+      }
+    };
+
     // Set a timeout in case the worker hangs
     const timeoutId = setTimeout(() => {
       console.warn("Export timed out - cancelling");
       worker.terminate();
-      setLoading(false);
-      setProgress(0);
-      updateFeedback('error', 'PNG export timed out. Try a smaller pattern size.');
+      if (isMountedRef.current) {
+        setLoading(false);
+        setProgress(0);
+        updateFeedback('error', 'PNG export timed out. Try a smaller pattern size.');
+      }
     }, 180000); // 3 minutes
 
     // Handle worker completion
     worker.onmessage = (e) => {
       // Handle progress updates
       if (e.data.progress) {
-        setProgress(e.data.progress);
+        if (isMountedRef.current) {
+          setProgress(e.data.progress);
+        }
         return;
       }
 
@@ -416,10 +449,12 @@ export default function GenerationPage() {
       // Handle errors
       if (e.data.error) {
         console.error("Export error:", e.data.error);
-        setLoading(false);
-        setProgress(0);
+        if (isMountedRef.current) {
+          setLoading(false);
+          setProgress(0);
+          updateFeedback('error', e.data.error);
+        }
         worker.terminate();
-        updateFeedback('error', e.data.error);
         return;
       }
 
@@ -476,7 +511,9 @@ export default function GenerationPage() {
         link.download = `art-gallery-${curveType}-${seed}-${EXPORT_SIZE}px.png`;
         link.href = dataURL;
         link.click();
-        updateFeedback('success', 'PNG export started.');
+        if (isMountedRef.current) {
+          updateFeedback('success', 'PNG export started.');
+        }
       } catch (error) {
         console.error("Export failed:", error);
 
@@ -487,14 +524,20 @@ export default function GenerationPage() {
           link.download = `art-gallery-${curveType}-${seed}-preview.png`;
           link.href = fallbackURL;
           link.click();
-          updateFeedback('info', 'High-resolution export failed, so the preview PNG was downloaded instead.');
+          if (isMountedRef.current) {
+            updateFeedback('info', 'High-resolution export failed, so the preview PNG was downloaded instead.');
+          }
         } catch (fbError) {
           console.error("Fallback failed:", fbError);
-          updateFeedback('error', 'PNG export failed. Please try again with a smaller pattern size.');
+          if (isMountedRef.current) {
+            updateFeedback('error', 'PNG export failed. Please try again with a smaller pattern size.');
+          }
         }
       } finally {
-        setLoading(false);
-        setProgress(0);
+        if (isMountedRef.current) {
+          setLoading(false);
+          setProgress(0);
+        }
         worker.terminate();
       }
     };
@@ -536,20 +579,34 @@ export default function GenerationPage() {
       // Create a new worker specifically for this export
       const worker = new window.Worker('/worker/color-mapper.js');
 
+      // Add error handling
+      worker.onerror = (error) => {
+        console.error("Worker error during PDF export:", error);
+        if (isMountedRef.current) {
+          setLoading(false);
+          setProgress(0);
+          updateFeedback('error', `PDF export failed. ${error.message} Try a smaller pattern size.`);
+        }
+      };
+
       // Set a timeout in case the worker hangs
       const timeoutId = setTimeout(() => {
         console.warn("PDF export timed out - cancelling");
         worker.terminate();
-        setLoading(false);
-        setProgress(0);
-        updateFeedback('error', 'PDF export timed out. Try a smaller pattern size.');
+        if (isMountedRef.current) {
+          setLoading(false);
+          setProgress(0);
+          updateFeedback('error', 'PDF export timed out. Try a smaller pattern size.');
+        }
       }, 180000); // 3 minutes
 
       // Handle worker completion
       worker.onmessage = (e) => {
         // Handle progress updates
         if (e.data.progress) {
-          setProgress(e.data.progress);
+          if (isMountedRef.current) {
+            setProgress(e.data.progress);
+          }
           return;
         }
 
@@ -559,10 +616,12 @@ export default function GenerationPage() {
         // Handle errors
         if (e.data.error) {
           console.error("PDF export error:", e.data.error);
-          setLoading(false);
-          setProgress(0);
+          if (isMountedRef.current) {
+            setLoading(false);
+            setProgress(0);
+            updateFeedback('error', e.data.error);
+          }
           worker.terminate();
-          updateFeedback('error', e.data.error);
           return;
         }
 
@@ -633,7 +692,9 @@ export default function GenerationPage() {
           // Add image to PDF and save
           pdf.addImage(imgData, 'PNG', xOffset, yOffset, imageSize, imageSize);
           pdf.save(`art-gallery-${curveType}-${seed}-${EXPORT_SIZE}px.pdf`);
-          updateFeedback('success', 'PDF export started.');
+          if (isMountedRef.current) {
+            updateFeedback('success', 'PDF export started.');
+          }
         } catch (error) {
           console.error("PDF export failed:", error);
 
@@ -654,14 +715,20 @@ export default function GenerationPage() {
 
             pdf.addImage(fallbackURL, 'PNG', xOffset, yOffset, imageSize, imageSize);
             pdf.save(`art-gallery-${curveType}-${seed}-preview.pdf`);
-            updateFeedback('info', 'High-resolution PDF export failed, so a preview PDF was downloaded instead.');
+            if (isMountedRef.current) {
+              updateFeedback('info', 'High-resolution PDF export failed, so a preview PDF was downloaded instead.');
+            }
           } catch (fbError) {
             console.error("PDF fallback failed:", fbError);
-            updateFeedback('error', 'PDF export failed. Please try again with a smaller pattern size.');
+            if (isMountedRef.current) {
+              updateFeedback('error', 'PDF export failed. Please try again with a smaller pattern size.');
+            }
           }
         } finally {
-          setLoading(false);
-          setProgress(0);
+          if (isMountedRef.current) {
+            setLoading(false);
+            setProgress(0);
+          }
           worker.terminate();
         }
       };
@@ -860,24 +927,13 @@ export default function GenerationPage() {
 
             <a
               href="/gallery/"
-              className="save-button gallery-action-btn"
-              style={{
-                display: 'inline-block',
-                textDecoration: 'none',
-                textAlign: 'center'
-              }}
+              className="save-button gallery-action-btn gallery-link"
             >
               View Gallery
             </a>
           </div>
 
-          <div style={{
-            textAlign: 'center',
-            marginTop: '0.75rem',
-            fontSize: '0.75rem',
-            color: 'var(--color-ink)',
-            fontWeight: 600
-          }}>
+          <div className="footer-note">
             Your gallery and saved configurations stay in this browser.
           </div>
         </div>
@@ -885,38 +941,20 @@ export default function GenerationPage() {
 
       {/* Settings panel dropdown - positioned fixed to the viewport */}
       {showSettingsPanel && (
-        <div className="settings-panel" style={{
-          position: 'fixed',
-          top: `${settingsButtonPosition.top}px`,
-          left: `${settingsButtonPosition.left}px`,
-          zIndex: 1000,
-          padding: '1.5rem',
-          backgroundColor: 'var(--color-paper)',
-          border: 'var(--border-ink)',
-          boxShadow: '8px 8px 0 0 var(--color-ink)',
-          maxHeight: '320px',
-          maxWidth: '300px',
-          overflowY: 'auto'
-        }}>
+        <div
+          className="settings-panel"
+          style={{
+            top: `${settingsButtonPosition.top}px`,
+            left: `${settingsButtonPosition.left}px`
+          }}
+        >
           {/* Dropdown triangle pointer removed for flat aesthetic */}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid var(--color-ink)', paddingBottom: '0.5rem' }}>
-            <h3 style={{ margin: 0, color: 'var(--color-ink)', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Saved Configurations</h3>
+          <div className="settings-panel-header">
+            <h3 className="settings-panel-heading">Saved Configurations</h3>
             <button
               onClick={() => setShowSettingsPanel(false)}
-              className="gallery-action-btn"
-              style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: 'var(--color-ink)',
-                cursor: 'pointer',
-                fontSize: '1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0',
-                lineHeight: 1
-              }}
+              className="settings-panel-close"
               aria-label="Close settings panel"
             >
               &times;
@@ -924,71 +962,39 @@ export default function GenerationPage() {
           </div>
 
           {savedSettings.length === 0 ? (
-            <div style={{ color: 'var(--color-ink)', textAlign: 'center', padding: '0.75rem', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+            <div className="settings-panel-empty">
               No saved settings yet.
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div className="settings-items-container">
               {savedSettings.map(setting => (
                 <div
                   key={setting.id}
-                  className="settings-item"
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem',
-                    padding: '0.75rem',
-                    backgroundColor: 'var(--color-paper-alt)',
-                    border: 'var(--border-ink)',
-                    marginBottom: '0.5rem'
-                  }}
+                  className="settings-item-card"
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{
-                      color: 'var(--color-ink)',
-                      fontFamily: 'var(--font-mono)',
-                      fontWeight: 600,
-                      fontSize: '0.8rem',
-                      textTransform: 'uppercase'
-                    }}>{setting.name}</div>
-                    <div style={{
-                      color: 'var(--color-ink-light)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.72rem',
-                      fontWeight: 600
-                    }}>
+                  <div className="settings-item-header">
+                    <div className="settings-item-name">{setting.name}</div>
+                    <div className="settings-item-date">
                       {new Date(setting.timestamp).toLocaleDateString()}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                  <div className="settings-item-actions">
                     <button
-                      className="load-button gallery-action-btn"
+                      className="gallery-action-btn settings-button-load"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleLoadSettings(setting);
-                      }}
-                      style={{
-                        backgroundColor: 'var(--color-ink)',
-                        border: 'var(--border-ink)',
-                        color: 'var(--color-paper)',
-                        flex: 1
                       }}
                     >
                       LOAD
                     </button>
 
                     <button
-                      className="delete-button gallery-action-btn"
+                      className="gallery-action-btn settings-button-delete"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteSettings(setting.id);
-                      }}
-                      style={{
-                        backgroundColor: 'transparent',
-                        border: 'var(--border-ink)',
-                        color: 'var(--color-accent)',
-                        flex: 1
                       }}
                     >
                       DELETE
@@ -1003,30 +1009,11 @@ export default function GenerationPage() {
 
       {/* Save Settings Dialog */}
       {showSaveDialog && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'var(--color-overlay)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'var(--color-paper)',
-            border: 'var(--border-ink)',
-            padding: '2rem',
-            maxWidth: '450px',
-            width: '90%',
-            boxShadow: '12px 12px 0 0 var(--color-ink)'
-          }}>
-            <h2 style={{ margin: '0 0 1.5rem 0', color: 'var(--color-ink)', fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '-0.02em', borderBottom: '2px solid var(--color-ink)', paddingBottom: '0.5rem' }}>Save Conf.</h2>
+        <div className="dialog-overlay">
+          <div className="dialog-container">
+            <h2 className="dialog-heading">Save Conf.</h2>
 
-            <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--color-ink)', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+            <label className="dialog-label">
               Configuration Name
             </label>
             <input
@@ -1034,71 +1021,27 @@ export default function GenerationPage() {
               value={settingsName}
               onChange={(e) => setSettingsName(e.target.value)}
               placeholder="e.g. MONOCHROME_VOID"
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: 'var(--color-paper-alt)',
-                border: 'var(--border-ink)',
-                color: 'var(--color-ink)',
-                marginBottom: '1.5rem',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.9rem',
-                textTransform: 'uppercase'
-              }}
+              className="dialog-input"
             />
 
-            <div style={{
-              backgroundColor: 'var(--color-paper-alt)',
-              padding: '0.75rem',
-              marginBottom: '1.5rem',
-              border: '1px dashed var(--color-ink-light)'
-            }}>
-              <p style={{
-                color: 'var(--color-ink)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.76rem',
-                fontWeight: 600,
-                margin: '0',
-                lineHeight: '1.5',
-                textTransform: 'uppercase'
-              }}>
+            <div className="dialog-note">
+              <p>
                 [SYS_NOTE] Settings are preserved in local browser cache. Cross-device synchronization is unavailable.
               </p>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <div className="dialog-actions">
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="gallery-action-btn"
-                style={{
-                  padding: '0.75rem 1.25rem',
-                  backgroundColor: 'transparent',
-                  border: 'var(--border-ink)',
-                  color: 'var(--color-ink)',
-                  fontFamily: 'var(--font-mono)',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem'
-                }}
+                className="gallery-action-btn dialog-button"
               >
                 CANCEL
               </button>
 
               <button
                 onClick={handleSaveSettings}
-                className="gallery-action-btn"
+                className="dialog-button-primary"
                 disabled={!settingsName.trim()}
-                style={{
-                  padding: '0.75rem 1.25rem',
-                  backgroundColor: 'var(--color-ink)',
-                  border: 'var(--border-ink)',
-                  color: 'var(--color-paper)',
-                  fontFamily: 'var(--font-mono)',
-                  cursor: settingsName.trim() ? 'pointer' : 'not-allowed',
-                  opacity: settingsName.trim() ? 1 : 0.5,
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  boxShadow: '4px 4px 0 0 var(--color-ink-light)'
-                }}
               >
                 COMMIT
               </button>

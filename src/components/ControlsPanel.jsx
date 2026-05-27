@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 
 const growthModes = [
   { label: 'Crystal', value: 'crystal' },
@@ -37,7 +37,6 @@ const colorOrderings = [
   { label: 'VSH', value: 'vsh' },
 ];
 
-// Define tooltips for each control
 const tooltips = {
   seed: "A numerical value that determines the starting point for the generation. The same seed will always produce the same result.",
   patternSize: "Controls the complexity and detail level of the generated pattern. Larger values create more intricate patterns but take longer to generate. The 'Extreme' option may cause slow performance on some devices.",
@@ -48,6 +47,7 @@ const tooltips = {
   },
   seedShape: {
     point: "Starts growth from a single point at the center.",
+    dual: "Begins with two seed points for symmetrical growth.",
     circle: "Begins with a circular boundary that expands outward.",
     line: "Initiates growth from a line across the center.",
   },
@@ -57,22 +57,24 @@ const tooltips = {
   colorProgression: {
     sequential: "Colors follow a strict sequence based on their position in the RGB space.",
     shuffled: "Colors are randomly arranged while maintaining visual coherence.",
-    "base-distance": "Colors are distributed based on their distance from a base color.",
+    'base-distance': "Colors are distributed based on their distance from a base color.",
+    saturation: "Arranges colors by saturation for an AllRGB-style effect.",
+    brightness: "Arranges colors by brightness intensity.",
   },
   curveType: {
     hilbert: "A space-filling curve that preserves locality well, creating smoother color transitions.",
     morton: "Also known as Z-order curve, creates more blocky, quadrant-based patterns.",
   },
   colorOrdering: {
-    hsv: "Arranges colors by Hue, Saturation, Value - emphasizing color families.",
-    hvs: "Arranges by Hue, Value, Saturation - emphasizing brightness variations within hues.",
-    shv: "Arranges by Saturation, Hue, Value - grouping by color intensity first.",
-    svh: "Arranges by Saturation, Value, Hue - emphasizing intensity and brightness patterns.",
-    vhs: "Arranges by Value, Hue, Saturation - creating bands of brightness.",
-    vsh: "Arranges by Value, Saturation, Hue - emphasizing brightness and intensity patterns.",
+    hsv: "Arranges colors by Hue, Saturation, Value — emphasizing color families.",
+    hvs: "Arranges by Hue, Value, Saturation — emphasizing brightness variations within hues.",
+    shv: "Arranges by Saturation, Hue, Value — grouping by color intensity first.",
+    svh: "Arranges by Saturation, Value, Hue — emphasizing intensity and brightness patterns.",
+    vhs: "Arranges by Value, Hue, Saturation — creating bands of brightness.",
+    vsh: "Arranges by Value, Saturation, Hue — emphasizing brightness and intensity patterns.",
   },
   symmetryMode: {
-    none: "No symmetry applied - pattern grows freely in all directions.",
+    none: "No symmetry applied — pattern grows freely in all directions.",
     bilateral: "Mirror symmetry along a central axis, like a butterfly's wings.",
     quadrantal: "Four-way symmetry, mirrored in four quadrants from the center.",
     radial: "Circular symmetry, repeating pattern radiates from the center point.",
@@ -80,16 +82,81 @@ const tooltips = {
   distanceRandomness: "Controls random variation in the distance calculations. Higher values create more organic, less mathematical patterns.",
   colorSampleSize: "Determines how many color samples are taken. Higher values create more detailed color mapping.",
   previewSize: "Sets the resolution of the preview. Higher values show more detail but take longer to generate.",
+  allRGBMode: "When enabled, forces a 4096×4096 AllRGB generation where every RGB color appears exactly once.",
 };
 
-// Helper component for label with tooltip with positioning options
-const LabelWithTooltip = ({ children, tooltip, position = "top" }) => (
-  <div className={`tooltip-wrapper tooltip-${position}`}>
-    <span>{children}</span>
-    <div className="info-icon">i</div>
-    <div className="tooltip">{tooltip}</div>
-  </div>
-);
+function LabelWithTooltip({ children, tooltip, position = "top" }) {
+  return (
+    <span className={`tooltip-wrapper tooltip-${position}`}>
+      <span>{children}</span>
+      <span className="info-icon" role="img" aria-label="info">i</span>
+      <span className="tooltip" role="tooltip">{tooltip}</span>
+    </span>
+  );
+}
+
+function CollapsibleSection({ title, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="panel-section-collapsible">
+      <button
+        type="button"
+        className="section-toggle"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <span className={`section-chevron${open ? ' open' : ''}`} aria-hidden="true">&#9654;</span>
+        <span className="section-heading-sm">{title}</span>
+      </button>
+      {open && <div className="section-body">{children}</div>}
+    </div>
+  );
+}
+
+function SelectControl({ id, label, value, onChange, options, tooltipMap, loading, getLabel }) {
+  const tooltip = tooltipMap?.[value] || tooltipMap;
+  return (
+    <div className="control-row">
+      <label htmlFor={id} className="control-label">
+        <LabelWithTooltip tooltip={tooltip}>{label}</LabelWithTooltip>
+      </label>
+      <select
+        id={id}
+        className="control-select"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={loading}
+        title={getLabel ? getLabel(options, value) : undefined}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function RangeControl({ id, label, value, onChange, min, max, step, tooltip, loading, ariaLabel }) {
+  return (
+    <div className="control-row">
+      <label htmlFor={id} className="control-label">
+        <LabelWithTooltip tooltip={tooltip}>{label}</LabelWithTooltip>
+      </label>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="control-range"
+        disabled={loading}
+        aria-label={ariaLabel || label}
+      />
+    </div>
+  );
+}
 
 export default function ControlsPanel({
   curveType, setCurveType,
@@ -108,15 +175,14 @@ export default function ControlsPanel({
   growthRate, setGrowthRate,
   randomness, setRandomness,
   patternSize, setPatternSize,
+  allRGBMode, setAllRGBMode,
 }) {
   const settingsButtonRef = useRef(null);
+  const seedInputRef = useRef(null);
 
-  // Helper function to find the selected option label
-  const getSelectedLabel = (options, value) => {
-    return options.find(opt => opt.value === value)?.label || value;
-  };
+  const getSelectedLabel = (options, value) =>
+    options.find((opt) => opt.value === value)?.label || value;
 
-  // Pattern complexity options
   const patternOptions = [
     { label: 'Small (128)', value: 128 },
     { label: 'Medium (256)', value: 256 },
@@ -126,352 +192,298 @@ export default function ControlsPanel({
     { label: 'Extreme (4096)', value: 4096 }
   ];
 
+  const handleKeyDown = useCallback((e) => {
+    const tag = e.target.tagName?.toLowerCase();
+    const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
+    if (isTyping) return;
+
+    if (e.code === 'Space' && !loading) {
+      e.preventDefault();
+      onGenerate();
+    }
+    if (e.code === 'KeyR' && !loading) {
+      e.preventDefault();
+      onRandomizeSeed();
+      seedInputRef.current?.focus();
+    }
+  }, [loading, onGenerate, onRandomizeSeed]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  const dispatchToggleSettings = () => {
+    const rect = settingsButtonRef.current?.getBoundingClientRect();
+    window.dispatchEvent(new CustomEvent('toggle-settings-panel', {
+      detail: {
+        position: rect
+          ? { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX }
+          : { top: 0, left: 0 }
+      }
+    }));
+  };
+
+  const dispatchShowSaveDialog = () => {
+    window.dispatchEvent(new CustomEvent('show-save-dialog'));
+  };
+
   return (
     <div className="panel-container">
-      <div className="two-column-grid">
-        <div className="panel-section">
-          <h2 className="section-heading">Seed & Growth</h2>
-
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            paddingBottom: '0.5rem',
-            borderBottom: '1px solid var(--color-ink-light)'
-          }}>
-            <button
-              ref={settingsButtonRef}
-              onClick={() => {
-                const rect = settingsButtonRef.current.getBoundingClientRect();
-                window.dispatchEvent(new CustomEvent('toggle-settings-panel', {
-                  detail: {
-                    position: {
-                      top: rect.bottom + window.scrollY,
-                      left: rect.left + window.scrollX
-                    }
-                  }
-                }));
-              }}
-              className="settings-button gallery-action-btn"
-              title="Saved to browser's local storage"
-              style={{
-                backgroundColor: 'transparent',
-                flex: '1 1 auto',
-                border: '1px solid var(--color-ink)',
-                color: 'var(--color-ink)',
-                padding: '0.5rem 1rem',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              LOAD CONFIG
-            </button>
-
-            <button
-              onClick={() => window.dispatchEvent(new CustomEvent('show-save-dialog'))}
-              className="save-settings-button gallery-action-btn"
-              title="Save current generation settings for later use"
-              style={{
-                backgroundColor: 'transparent',
-                flex: '1 1 auto',
-                border: '1px solid var(--color-ink)',
-                color: 'var(--color-ink)',
-                padding: '0.5rem 1rem',
-                cursor: 'pointer',
-                fontSize: '0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              disabled={loading}
-            >
-              SAVE CONFIG
-            </button>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', alignItems: 'flex-end' }}>
-            <div style={{ flex: 1 }}>
-              <label htmlFor="seed-input" className="control-label">
-                <LabelWithTooltip tooltip={tooltips.seed}>Seed</LabelWithTooltip>
-              </label>
-              <input
-                id="seed-input"
-                type="number"
-                className="control-input"
-                value={seed}
-                onChange={e => setSeed(Number(e.target.value))}
-                disabled={loading}
-                placeholder="Seed"
-              />
-            </div>
-            <button
-              className="dice-button gallery-action-btn"
-              type="button"
-              onClick={onRandomizeSeed}
-              title="Randomize Seed"
-              disabled={loading}
-              aria-label="Randomize seed"
-            >
-              Random
-            </button>
-          </div>
-
-          <div className="control-row" style={{ marginBottom: '1.5rem' }}>
-            <label htmlFor="pattern-size-select" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.patternSize}>
-                Pattern Size
-              </LabelWithTooltip>
-            </label>
-            <select
-              id="pattern-size-select"
-              className="control-select"
-              value={patternSize}
-              onChange={e => setPatternSize(Number(e.target.value))}
-              disabled={loading}
-              title={getSelectedLabel(patternOptions, patternSize)}
-            >
-              {patternOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="growth-mode-select" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.growthMode[growthMode] || "Determines the overall growth pattern of the generation."}>
-                Growth Mode
-              </LabelWithTooltip>
-            </label>
-            <select
-              id="growth-mode-select"
-              className="control-select"
-              value={growthMode}
-              onChange={e => setGrowthMode(e.target.value)}
-              disabled={loading}
-              title={getSelectedLabel(growthModes, growthMode)}
-            >
-              {growthModes.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="seed-shape-select" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.seedShape[seedShape] || "The initial shape from which the pattern grows."}>
-                Seed Shape
-              </LabelWithTooltip>
-            </label>
-            <select
-              id="seed-shape-select"
-              className="control-select"
-              value={seedShape}
-              onChange={e => setSeedShape(e.target.value)}
-              disabled={loading}
-              title={getSelectedLabel(seedShapes, seedShape)}
-            >
-              {seedShapes.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="branching-factor-range" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.branchingFactor}>
-                Branching Factor
-              </LabelWithTooltip>
-            </label>
-            <input
-              id="branching-factor-range"
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={branchingFactor}
-              onChange={e => setBranchingFactor(Number(e.target.value))}
-              className="control-range"
-              disabled={loading}
-              aria-label="Branching Factor"
-            />
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="growth-rate-range" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.growthRate}>
-                Growth Rate
-              </LabelWithTooltip>
-            </label>
-            <input
-              id="growth-rate-range"
-              type="range"
-              min={0.1}
-              max={2}
-              step={0.01}
-              value={growthRate}
-              onChange={e => setGrowthRate(Number(e.target.value))}
-              className="control-range"
-              disabled={loading}
-              aria-label="Growth Rate"
-            />
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="randomness-range" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.randomness}>
-                Randomness
-              </LabelWithTooltip>
-            </label>
-            <input
-              id="randomness-range"
-              type="range"
-              min={0}
-              max={50}
-              step={0.1}
-              value={randomness}
-              onChange={e => setRandomness(Number(e.target.value))}
-              className="control-range"
-              disabled={loading}
-              aria-label="Randomness"
-            />
-          </div>
-        </div>
-
-        <div className="panel-section">
-          <h2 className="section-heading">Color & Symmetry</h2>
-
-          <div className="control-row">
-            <label htmlFor="color-progression-select" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.colorProgression[colorProgression] || "How colors progress through the pattern."}>
-                Color Progression
-              </LabelWithTooltip>
-            </label>
-            <select
-              id="color-progression-select"
-              className="control-select"
-              value={colorProgression}
-              onChange={e => setColorProgression(e.target.value)}
-              disabled={loading}
-              title={getSelectedLabel(colorProgressions, colorProgression)}
-            >
-              {colorProgressions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="curve-type-select" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.curveType[curveType] || "The mathematical curve used to map colors to positions."}>
-                Curve Type
-              </LabelWithTooltip>
-            </label>
-            <select
-              id="curve-type-select"
-              className="control-select"
-              value={curveType}
-              onChange={e => setCurveType(e.target.value)}
-              disabled={loading}
-              title={getSelectedLabel(curveTypes, curveType)}
-            >
-              {curveTypes.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="color-ordering-select" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.colorOrdering[colorOrdering] || "How the RGB components are ordered for color mapping."}>
-                Color Ordering
-              </LabelWithTooltip>
-            </label>
-            <select
-              id="color-ordering-select"
-              className="control-select"
-              value={colorOrdering}
-              onChange={e => setColorOrdering(e.target.value)}
-              disabled={loading}
-              title={getSelectedLabel(colorOrderings, colorOrdering)}
-            >
-              {colorOrderings.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-          </div>
-
-          <div className="control-row">
-            <label htmlFor="symmetry-mode-select" className="control-label">
-              <LabelWithTooltip tooltip={tooltips.symmetryMode[symmetryMode] || "The type of symmetry applied to the pattern."}>
-                Symmetry
-              </LabelWithTooltip>
-            </label>
-            <select
-              id="symmetry-mode-select"
-              className="control-select"
-              value={symmetryMode}
-              onChange={e => setSymmetryMode(e.target.value)}
-              disabled={loading}
-              title={getSelectedLabel(symmetryModes, symmetryMode)}
-            >
-              {symmetryModes.map(opt =>
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              )}
-            </select>
-          </div>
-        </div>
+      {/* Top actions bar */}
+      <div className="control-actions-bar">
+        <button
+          ref={settingsButtonRef}
+          onClick={dispatchToggleSettings}
+          className="gallery-action-btn"
+          type="button"
+          title="Saved to browser's local storage"
+          disabled={loading}
+        >
+          Load Config
+        </button>
+        <button
+          onClick={dispatchShowSaveDialog}
+          className="gallery-action-btn"
+          type="button"
+          title="Save current generation settings for later use"
+          disabled={loading}
+        >
+          Save Config
+        </button>
       </div>
 
-      <details className="control-row">
-        <summary className="advanced-summary">Advanced Settings</summary>
-        <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <label className="control-label">
+      {/* Seed & Quick Actions */}
+      <CollapsibleSection title="Seed & Quick Actions" defaultOpen={true}>
+        <div className="seed-control-row">
+          <div className="seed-input-wrap">
+            <label htmlFor="seed-input" className="control-label">
+              <LabelWithTooltip tooltip={tooltips.seed}>Seed</LabelWithTooltip>
+            </label>
+            <input
+              ref={seedInputRef}
+              id="seed-input"
+              type="number"
+              className="control-input"
+              value={seed}
+              min="0"
+              max="2147483647"
+              onChange={(e) => setSeed(Math.max(0, Math.min(Number(e.target.value), 2147483647)))}
+              disabled={loading}
+              placeholder="Seed"
+            />
+          </div>
+          <button
+            className="dice-button"
+            type="button"
+            onClick={onRandomizeSeed}
+            title="Randomize Seed (R)"
+            disabled={loading}
+            aria-label="Randomize seed"
+          >
+            <span aria-hidden="true">&#9858;</span> Randomize
+          </button>
+        </div>
+
+        <SelectControl
+          id="pattern-size-select"
+          label="Pattern Size"
+          value={patternSize}
+          onChange={(v) => setPatternSize(Number(v))}
+          options={patternOptions}
+          tooltipMap={tooltips.patternSize}
+          loading={loading}
+          getLabel={getSelectedLabel}
+        />
+
+        <div className="kbd-hints">
+          <span className="kbd-hint"><kbd>Space</kbd> Generate</span>
+          <span className="kbd-hint"><kbd>R</kbd> Randomize</span>
+        </div>
+      </CollapsibleSection>
+
+      {/* Growth Parameters */}
+      <CollapsibleSection title="Growth Parameters" defaultOpen={true}>
+        <SelectControl
+          id="growth-mode-select"
+          label="Growth Mode"
+          value={growthMode}
+          onChange={setGrowthMode}
+          options={growthModes}
+          tooltipMap={tooltips.growthMode}
+          loading={loading}
+          getLabel={getSelectedLabel}
+        />
+
+        <SelectControl
+          id="seed-shape-select"
+          label="Seed Shape"
+          value={seedShape}
+          onChange={setSeedShape}
+          options={seedShapes}
+          tooltipMap={tooltips.seedShape}
+          loading={loading}
+          getLabel={getSelectedLabel}
+        />
+
+        <RangeControl
+          id="branching-factor-range"
+          label="Branching Factor"
+          value={branchingFactor}
+          onChange={setBranchingFactor}
+          min={0}
+          max={1}
+          step={0.01}
+          tooltip={tooltips.branchingFactor}
+          loading={loading}
+        />
+
+        <RangeControl
+          id="growth-rate-range"
+          label="Growth Rate"
+          value={growthRate}
+          onChange={setGrowthRate}
+          min={0.1}
+          max={2}
+          step={0.01}
+          tooltip={tooltips.growthRate}
+          loading={loading}
+        />
+
+        <RangeControl
+          id="randomness-range"
+          label="Randomness"
+          value={randomness}
+          onChange={setRandomness}
+          min={0}
+          max={50}
+          step={0.1}
+          tooltip={tooltips.randomness}
+          loading={loading}
+        />
+      </CollapsibleSection>
+
+      {/* Color & Symmetry */}
+      <CollapsibleSection title="Color & Symmetry" defaultOpen={true}>
+        <SelectControl
+          id="color-progression-select"
+          label="Color Progression"
+          value={colorProgression}
+          onChange={setColorProgression}
+          options={colorProgressions}
+          tooltipMap={tooltips.colorProgression}
+          loading={loading}
+          getLabel={getSelectedLabel}
+        />
+
+        <SelectControl
+          id="curve-type-select"
+          label="Curve Type"
+          value={curveType}
+          onChange={setCurveType}
+          options={curveTypes}
+          tooltipMap={tooltips.curveType}
+          loading={loading}
+          getLabel={getSelectedLabel}
+        />
+
+        <SelectControl
+          id="color-ordering-select"
+          label="Color Ordering"
+          value={colorOrdering}
+          onChange={setColorOrdering}
+          options={colorOrderings}
+          tooltipMap={tooltips.colorOrdering}
+          loading={loading}
+          getLabel={getSelectedLabel}
+        />
+
+        <SelectControl
+          id="symmetry-mode-select"
+          label="Symmetry"
+          value={symmetryMode}
+          onChange={setSymmetryMode}
+          options={symmetryModes}
+          tooltipMap={tooltips.symmetryMode}
+          loading={loading}
+          getLabel={getSelectedLabel}
+        />
+      </CollapsibleSection>
+
+      {/* Advanced */}
+      <CollapsibleSection title="Advanced" defaultOpen={false}>
+        <div className="control-row">
+          <label htmlFor="distance-randomness-input" className="control-label">
             <LabelWithTooltip tooltip={tooltips.distanceRandomness} position="right">
               Distance Randomness
             </LabelWithTooltip>
-            <input
-              type="number"
-              min={0}
-              max={50}
-              step={0.1}
-              value={distanceRandomness}
-              onChange={e => setDistanceRandomness(Number(e.target.value))}
-              className="control-input"
-              style={{ marginTop: '0.5rem' }}
-              disabled={loading}
-              placeholder="Distance Randomness"
-            />
           </label>
-          <label className="control-label">
+          <input
+            id="distance-randomness-input"
+            type="number"
+            min={0}
+            max={50}
+            step={0.1}
+            value={distanceRandomness}
+            onChange={(e) => setDistanceRandomness(Number(e.target.value))}
+            className="control-input"
+            disabled={loading}
+            placeholder="Distance Randomness"
+          />
+        </div>
+
+        <div className="control-row">
+          <label htmlFor="color-sample-size-input" className="control-label">
             <LabelWithTooltip tooltip={tooltips.colorSampleSize} position="right">
               Color Sample Size
             </LabelWithTooltip>
-            <input
-              type="number"
-              min={1}
-              max={500}
-              step={1}
-              value={colorSampleSize}
-              onChange={e => setColorSampleSize(Number(e.target.value))}
-              className="control-input"
-              style={{ marginTop: '0.5rem' }}
-              disabled={loading}
-              placeholder="Color Sample Size"
-            />
-          </label>
-          <label htmlFor="preview-size-range" className="control-label">
-            <LabelWithTooltip tooltip={tooltips.previewSize} position="right">
-              Preview Size
-            </LabelWithTooltip>
           </label>
           <input
-            id="preview-size-range"
-            type="range"
-            min={64}
-            max={512}
-            step={64}
-            value={previewSize}
-            onChange={e => setPreviewSize(Number(e.target.value))}
-            className="control-range"
+            id="color-sample-size-input"
+            type="number"
+            min={1}
+            max={500}
+            step={1}
+            value={colorSampleSize}
+            onChange={(e) => setColorSampleSize(Number(e.target.value))}
+            className="control-input"
             disabled={loading}
-            aria-label="Preview Size"
+            placeholder="Color Sample Size"
           />
-          <div style={{ fontSize: '1rem', color: '#a5f3fc', marginTop: '0.5rem', textAlign: 'center' }}>{previewSize} × {previewSize}</div>
         </div>
-      </details>
+
+        <RangeControl
+          id="preview-size-range"
+          label="Preview Size"
+          value={previewSize}
+          onChange={setPreviewSize}
+          min={64}
+          max={512}
+          step={64}
+          tooltip={tooltips.previewSize}
+          loading={loading}
+        />
+        <div className="preview-size-readout">{previewSize} × {previewSize}</div>
+
+        {setAllRGBMode && (
+          <div className="control-row allrgb-toggle">
+            <label className="control-label">
+              <LabelWithTooltip tooltip={tooltips.allRGBMode} position="right">
+                AllRGB Mode
+              </LabelWithTooltip>
+            </label>
+            <button
+              type="button"
+              className={`gallery-action-btn toggle-btn${allRGBMode ? ' active' : ''}`}
+              onClick={() => setAllRGBMode((v) => !v)}
+              disabled={loading}
+              aria-pressed={allRGBMode}
+            >
+              {allRGBMode ? 'ON' : 'OFF'}
+            </button>
+          </div>
+        )}
+      </CollapsibleSection>
     </div>
   );
-} 
+}

@@ -16,7 +16,31 @@
         --font-serif: "Bodoni Moda", "Didot", "Times New Roman", Times, serif;
         --font-mono: "IBM Plex Mono", "Menlo", "Monaco", "Courier New", monospace;
 
+        --text-xs: 0.75rem;
+        --text-sm: 0.875rem;
+        --text-base: 1rem;
+        --text-lg: 1.125rem;
+        --text-xl: 1.25rem;
+        --text-2xl: 1.5rem;
+        --text-3xl: 2rem;
+        --line-height-tight: 1.2;
+        --line-height-normal: 1.5;
+        --line-height-relaxed: 1.75;
+
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-6: 1.5rem;
+        --space-8: 2rem;
+
         --border-ink: 1px solid var(--color-ink);
+
+        /* Animation System */
+        --transition-fast: 150ms ease-out;
+        --transition-base: 250ms ease-out;
+        --transition-slow: 350ms ease-out;
+        --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .dark-theme {
@@ -63,5 +87,5 @@ h6 {
     font-family: var(--font-mono);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
 }

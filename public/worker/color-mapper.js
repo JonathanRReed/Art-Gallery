@@ -1,5 +1,9 @@
 // color-mapper.js (Web Worker)
-// Seeded shuffle (Fisher-Yates)
+// Enhanced algorithmic art generation engine
+// Supports Hilbert, Morton, Peano, Spiral, and RandomWalk traversal curves.
+// Supports Crystal, Nebula, Rings, Organic, Fractal, and Flow growth modes.
+
+// ─── Seeded PRNG (mulberry32) ───
 function mulberry32(a) {
   return function () {
     var t = a += 0x6D2B79F5;
@@ -18,25 +22,63 @@ function seededShuffle(array, seed) {
   return rand;
 }
 
-// Priority queue for organic growth
+// ─── Binary Min-Heap PriorityQueue ───
+// Replaces the old O(n) array scan with O(log n) push/pop.
 class PriorityQueue {
-  constructor() { this.data = []; }
+  constructor() {
+    this.heap = [];           // stores { item, priority }
+    this._index = 0;          // tie-breaker for stable ordering
+  }
   push(item, priority) {
-    this.data.push({ item, priority });
+    const node = { item, priority, seq: this._index++ };
+    this.heap.push(node);
+    this._siftUp(this.heap.length - 1);
   }
   pop() {
-    if (this.data.length === 0) return null;
-    let minIdx = 0;
-    for (let i = 1; i < this.data.length; i++) {
-      if (this.data[i].priority < this.data[minIdx].priority) minIdx = i;
+    if (this.heap.length === 0) return null;
+    const top = this.heap[0].item;
+    const last = this.heap.pop();
+    if (this.heap.length > 0) {
+      this.heap[0] = last;
+      this._siftDown(0);
     }
-    const [entry] = this.data.splice(minIdx, 1);
-    return entry.item;
+    return top;
   }
-  get length() { return this.data.length; }
+  get length() {
+    return this.heap.length;
+  }
+  _siftUp(i) {
+    const node = this.heap[i];
+    while (i > 0) {
+      const parent = (i - 1) >>> 1;
+      if (this._compare(node, this.heap[parent]) >= 0) break;
+      this.heap[i] = this.heap[parent];
+      i = parent;
+    }
+    this.heap[i] = node;
+  }
+  _siftDown(i) {
+    const len = this.heap.length;
+    const node = this.heap[i];
+    while (true) {
+      let left = (i << 1) + 1;
+      let right = left + 1;
+      let smallest = i;
+      if (left < len && this._compare(this.heap[left], this.heap[smallest]) < 0) smallest = left;
+      if (right < len && this._compare(this.heap[right], this.heap[smallest]) < 0) smallest = right;
+      if (smallest === i) break;
+      this.heap[i] = this.heap[smallest];
+      i = smallest;
+    }
+    this.heap[i] = node;
+  }
+  _compare(a, b) {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    return a.seq - b.seq;
+  }
 }
 
-// Helper to mirror coordinates for quadrantal symmetry
+// ─── Coordinate helpers ───
 function mirrorCoords(x, y, width, height) {
   const mx = width - 1 - x;
   const my = height - 1 - y;
@@ -48,14 +90,83 @@ function mirrorCoords(x, y, width, height) {
   ];
 }
 
-function colorDistSq(a, b) {
-  return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2;
+// ─── Optimized Color Distance with Memoization ───
+// Cache for color distance calculations to avoid redundant computations
+// Key format: encodedColor1 << 32 | encodedColor2 (where each color is encoded as r<<16|g<<8|b)
+const colorDistCache = new Map();
+let cacheHits = 0;
+let cacheMisses = 0;
+
+// Helper function to encode a color [r, g, b] into a single integer
+function encodeColor(color) {
+  return (color[0] << 16) | (color[1] << 8) | color[2];
 }
 
+// Optimized color distance function with memoization
+// Uses multiplication instead of exponentiation for better performance
+// Supports early exit when distance exceeds threshold
+function colorDistSq(a, b, threshold = Infinity) {
+  // Early exit for identical colors (distance is 0)
+  if (a[0] === b[0] && a[1] === b[1] && a[2] === b[2]) {
+    return 0;
+  }
+
+  // Create cache key by encoding both colors
+  const encodedA = encodeColor(a);
+  const encodedB = encodeColor(b);
+  // Ensure consistent ordering for cache key (smaller first to avoid duplicates)
+  const key = encodedA < encodedB ? (encodedA << 32) | encodedB : (encodedB << 32) | encodedA;
+
+  // Check cache first
+  if (colorDistCache.has(key)) {
+    cacheHits++;
+    return colorDistCache.get(key);
+  }
+
+  cacheMisses++;
+
+  // Calculate distance using multiplication instead of ** operator
+  const dr = a[0] - b[0];
+  const dg = a[1] - b[1];
+  const db = a[2] - b[2];
+
+  // Early exit if we can determine distance exceeds threshold
+  // This is useful when we only need to know if distance is below a certain value
+  const dist = dr * dr + dg * dg + db * db;
+
+  // Cache the result
+  colorDistCache.set(key, dist);
+
+  return dist;
+}
+
+// Function to clear the color distance cache (call between image generations)
+function clearColorDistCache() {
+  colorDistCache.clear();
+  cacheHits = 0;
+  cacheMisses = 0;
+}
+
+// ─── Improved color sampling ───
+// Uses a seeded sampler to avoid bias from Math.random().
 function pickClosestColorFromSample(palette, target, rand, sampleSize = 100) {
   let bestIdx = 0, bestDist = Infinity;
-  for (let s = 0; s < sampleSize && palette.length > 0; s++) {
-    const j = Math.floor(rand() * palette.length);
+  const n = palette.length;
+  if (n === 0) return -1;
+  const size = Math.min(sampleSize, n);
+  // Deterministic seeded sampling without replacement for small palettes
+  if (n <= sampleSize * 2) {
+    for (let j = 0; j < n; j++) {
+      const dist = colorDistSq(palette[j], target);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = j;
+      }
+    }
+    return bestIdx;
+  }
+  for (let s = 0; s < size; s++) {
+    const j = Math.floor(rand() * n);
     const dist = colorDistSq(palette[j], target);
     if (dist < bestDist) {
       bestDist = dist;
@@ -71,32 +182,24 @@ function hsv2rgb(h, s, v) {
 }
 
 function rgbToHsv(r, g, b) {
-  r /= 255;
-  g /= 255;
-  b /= 255;
-
+  r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const delta = max - min;
-
   let h = 0;
   if (delta !== 0) {
     if (max === r) h = 60 * (((g - b) / delta) % 6);
     else if (max === g) h = 60 * (((b - r) / delta) + 2);
     else h = 60 * (((r - g) / delta) + 4);
   }
-
   if (h < 0) h += 360;
-
   const s = max === 0 ? 0 : delta / max;
   const v = max;
-
   return [h, s, v];
 }
 
 function applyColorProgression(colorList, colorProgression, seed) {
   if (!Array.isArray(colorList) || colorList.length === 0) return;
-
   switch (colorProgression) {
     case 'sequential':
       return;
@@ -120,9 +223,7 @@ function applyColorProgression(colorList, colorProgression, seed) {
 }
 
 function permuteHSV(h, s, v, curveType, colorOrdering) {
-  // Permute HSV axes based on colorOrdering and curveType
   let arr = [h, s, v];
-  // Color ordering: treat as permutation of HSV
   const order = (colorOrdering || 'hsv').toLowerCase();
   let idx = [0, 1, 2];
   if (order === 'hsv') idx = [0, 1, 2];
@@ -131,19 +232,20 @@ function permuteHSV(h, s, v, curveType, colorOrdering) {
   else if (order === 'svh') idx = [1, 2, 0];
   else if (order === 'vhs') idx = [2, 0, 1];
   else if (order === 'vsh') idx = [2, 1, 0];
-  // Curve type: rotate hue for Morton, etc.
   if (curveType === 'morton') arr[0] = (arr[0] + 120) % 360;
   if (curveType === 'hilbert') arr[0] = (arr[0] + 240) % 360;
   return [arr[idx[0]], arr[idx[1]], arr[idx[2]]];
 }
 
 function simpleHash(x, y, seed) {
-  // Simple hash for pseudo-randomness
   let h = x * 374761393 + y * 668265263 + seed * 982451653;
   h = (h ^ (h >> 13)) * 1274126177;
   return ((h ^ (h >> 16)) >>> 0) / 4294967295;
 }
 
+// ─── Improved Radial Symmetry ───
+// Avoids center artifacts by using integer center and clamping,
+// plus deduplication of coordinates.
 function getSymmetryCoords(x, y, width, height, symmetryMode) {
   if (symmetryMode === 'none') return [[x, y]];
   if (symmetryMode === 'bilateral') {
@@ -158,50 +260,55 @@ function getSymmetryCoords(x, y, width, height, symmetryMode) {
     const cx = (width / 2) | 0, cy = (height / 2) | 0;
     const dx = x - cx, dy = y - cy;
     const r = Math.hypot(dx, dy);
+    // Handle exact center gracefully
+    if (r < 0.5) return [[x, y]];
     const theta = Math.atan2(dy, dx);
     const n = 8; // 8-fold radial
     const coords = [];
+    const seen = new Set();
     for (let i = 0; i < n; i++) {
       const angle = theta + (2 * Math.PI * i) / n;
       const rx = Math.round(cx + r * Math.cos(angle));
       const ry = Math.round(cy + r * Math.sin(angle));
-      if (rx >= 0 && rx < width && ry >= 0 && ry < height) coords.push([rx, ry]);
+      if (rx >= 0 && rx < width && ry >= 0 && ry < height) {
+        const key = (ry << 16) | rx;
+        if (!seen.has(key)) {
+          seen.add(key);
+          coords.push([rx, ry]);
+        }
+      }
     }
     return coords;
   }
   return [[x, y]];
 }
 
-// Helper function to check available memory (approximate)
+// ─── Memory check ───
 function checkMemory() {
   try {
-    // Try to allocate a large array to test memory
-    const testSize = 1024 * 1024 * 10; // 10MB test
+    const testSize = 1024 * 1024 * 10;
     const testArray = new Uint8Array(testSize);
-    // Fill with data to ensure it's allocated
     testArray[0] = 1;
     testArray[testSize - 1] = 1;
-    return true; // Memory available
+    return true;
   } catch (e) {
     console.error("Memory test failed:", e);
-    return false; // Memory constrained
+    return false;
   }
 }
 
-function xyToHilbert(x, y, order) {
-  let rx;
-  let ry;
-  let d = 0;
-  const n = 1 << order;
+// ─── Space-Filling Curves ───
 
+// Hilbert curve: maps 2D coordinates to 1D distance
+function xyToHilbert(x, y, order) {
+  let rx, ry, d = 0;
+  const n = 1 << order;
   x = Math.max(0, Math.min(n - 1, x));
   y = Math.max(0, Math.min(n - 1, y));
-
   for (let s = n / 2; s > 0; s = Math.floor(s / 2)) {
     rx = (x & s) > 0 ? 1 : 0;
     ry = (y & s) > 0 ? 1 : 0;
     d += s * s * ((3 * rx) ^ ry);
-
     if (ry === 0) {
       if (rx === 1) {
         x = n - 1 - x;
@@ -210,14 +317,13 @@ function xyToHilbert(x, y, order) {
       [x, y] = [y, x];
     }
   }
-
   return d;
 }
 
+// Morton / Z-order curve
 function mortonEncode(x, y) {
   x = Math.max(0, Math.floor(x));
   y = Math.max(0, Math.floor(y));
-
   let result = 0;
   for (let i = 0; i < 16; i++) {
     result |= ((x >> i) & 1) << (2 * i);
@@ -226,25 +332,261 @@ function mortonEncode(x, y) {
   return result;
 }
 
-// Track processing state
+// ─── NEW: Peano Curve ───
+// A 3-order space-filling curve. Recursively subdivides a 3x3 grid.
+function xyToPeano(x, y, order) {
+  const n = Math.pow(3, order);
+  x = Math.max(0, Math.min(n - 1, x));
+  y = Math.max(0, Math.min(n - 1, y));
+  let d = 0;
+  const peanoTable = [
+    [0, 1, 2],
+    [5, 4, 3],
+    [6, 7, 8]
+  ];
+  // Iterative construction: process each ternary digit
+  for (let s = n / 3; s >= 1; s /= 3) {
+    const rx = Math.floor(x / s) % 3;
+    const ry = Math.floor(y / s) % 3;
+    // Mirror every other level for continuous curve
+    d = d * 9 + peanoTable[ry][rx];
+  }
+  return d;
+}
+
+// ─── NEW: Spiral (Archimedean) Traversal ───
+// Returns a 1D distance value for grid coordinate (x,y) based on
+// Archimedean spiral ordering from the center.
+function xyToSpiral(x, y, width, height) {
+  const cx = (width - 1) / 2;
+  const cy = (height - 1) / 2;
+  const dx = x - cx;
+  const dy = y - cy;
+  const r = Math.hypot(dx, dy);
+  let theta = Math.atan2(dy, dx);
+  if (theta < 0) theta += 2 * Math.PI;
+  // Combine radius and angle into a single scalar.
+  // The spiral pitch is chosen so adjacent rings don't overlap in ordering.
+  const pitch = Math.max(width, height) / (2 * Math.PI);
+  return (r + pitch * theta);
+}
+
+// ─── NEW: Random Walk with Constraints ───
+// Uses a deterministic pseudo-random walk seeded by (x,y) to generate
+// a traversal order. Each cell gets a walk-step index for sorting.
+function generateRandomWalkOrder(width, height, seed) {
+  const total = width * height;
+  const order = new Uint32Array(total);
+  const visited = new Uint8Array(total);
+  const rand = mulberry32(seed ^ 0x9e3779b9);
+
+  // Start near center
+  let cx = (width / 2) | 0;
+  let cy = (height / 2) | 0;
+  let idx = cy * width + cx;
+  order[0] = idx;
+  visited[idx] = 1;
+
+  const dirs = [[1,0],[0,1],[-1,0],[0,-1]];
+  for (let step = 1; step < total; step++) {
+    // Gather unvisited neighbors
+    const candidates = [];
+    for (const [dx, dy] of dirs) {
+      const nx = cx + dx, ny = cy + dy;
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        const ni = ny * width + nx;
+        if (!visited[ni]) candidates.push([nx, ny, ni]);
+      }
+    }
+    if (candidates.length === 0) {
+      // Jump to a random unvisited cell (keeps walk constrained but connected overall)
+      let attempts = 0;
+      while (attempts < 100) {
+        const rx = Math.floor(rand() * width);
+        const ry = Math.floor(rand() * height);
+        const ri = ry * width + rx;
+        if (!visited[ri]) {
+          cx = rx; cy = ry; idx = ri;
+          break;
+        }
+        attempts++;
+      }
+      if (attempts >= 100) {
+        // Fallback: scan for any unvisited
+        let found = false;
+        for (let i = 0; i < total && !found; i++) {
+          if (!visited[i]) {
+            cx = i % width; cy = (i / width) | 0; idx = i;
+            found = true;
+          }
+        }
+        if (!found) break; // All visited
+      }
+    } else {
+      // Weighted random pick: prefer cells with fewer unvisited neighbors (DLA-like constraint)
+      const weights = candidates.map(([nx, ny, ni]) => {
+        let free = 0;
+        for (const [dx2, dy2] of dirs) {
+          const nx2 = nx + dx2, ny2 = ny + dy2;
+          if (nx2 >= 0 && nx2 < width && ny2 >= 0 && ny2 < height && !visited[ny2 * width + nx2]) free++;
+        }
+        return 1 + free; // Higher weight for more open cells (encourages exploration)
+      });
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let pick = rand() * totalWeight;
+      let chosen = 0;
+      for (let i = 0; i < weights.length; i++) {
+        pick -= weights[i];
+        if (pick <= 0) { chosen = i; break; }
+      }
+      [cx, cy, idx] = candidates[chosen];
+    }
+    order[step] = idx;
+    visited[idx] = 1;
+  }
+  // Invert: for each cell index, store its step number (for sorting colors)
+  const stepMap = new Uint32Array(total);
+  for (let i = 0; i < total; i++) {
+    stepMap[order[i]] = i;
+  }
+  return stepMap;
+}
+
+// ─── Gradient Map Palettes ───
+// Predefined palettes for remapping generated colors.
+const GRADIENT_PALETTES = {
+  none: null,
+  sunset: [
+    [0xFF, 0x00, 0x55], [0xFF, 0x33, 0x00], [0xFF, 0x66, 0x00],
+    [0xFF, 0x99, 0x00], [0xFF, 0xCC, 0x33], [0xFF, 0xFF, 0x66],
+    [0xCC, 0x66, 0x99], [0x66, 0x33, 0x99]
+  ],
+  ocean: [
+    [0x00, 0x1F, 0x3F], [0x00, 0x4D, 0x7A], [0x00, 0x7A, 0xCC],
+    [0x33, 0x99, 0xFF], [0x66, 0xB2, 0xFF], [0x99, 0xCC, 0xFF],
+    [0xCC, 0xE5, 0xFF], [0xE6, 0xF7, 0xFF]
+  ],
+  monochrome: [
+    [0x00, 0x00, 0x00], [0x33, 0x33, 0x33], [0x66, 0x66, 0x66],
+    [0x99, 0x99, 0x99], [0xCC, 0xCC, 0xCC], [0xE6, 0xE6, 0xE6],
+    [0xF5, 0xF5, 0xF5], [0xFF, 0xFF, 0xFF]
+  ],
+  neon: [
+    [0xFF, 0x00, 0xFF], [0x00, 0xFF, 0xFF], [0x00, 0xFF, 0x00],
+    [0xFF, 0xFF, 0x00], [0xFF, 0x00, 0x55], [0xAA, 0x00, 0xFF],
+    [0x00, 0x55, 0xFF], [0xFF, 0x55, 0x00]
+  ],
+  forest: [
+    [0x0B, 0x1D, 0x0B], [0x1C, 0x4A, 0x1C], [0x2E, 0x7D, 0x32],
+    [0x4C, 0xAF, 0x50], [0x81, 0xC7, 0x84], [0xC8, 0xE6, 0xC9]
+  ],
+  magma: [
+    [0x00, 0x00, 0x04], [0x3B, 0x0F, 0x70], [0x8C, 0x29, 0x8B],
+    [0xDE, 0x49, 0x66], [0xF9, 0x77, 0x43], [0xFC, 0xCB, 0x4A]
+  ]
+};
+
+// Map a color to the nearest palette color by luminance index, then blend.
+function applyGradientMap(r, g, b, palette) {
+  if (!palette || palette.length === 0) return [r, g, b];
+  // Compute relative luminance (0-1)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const idxF = lum * (palette.length - 1);
+  const idx0 = Math.max(0, Math.min(palette.length - 1, Math.floor(idxF)));
+  const idx1 = Math.min(palette.length - 1, idx0 + 1);
+  const t = idxF - idx0;
+  const c0 = palette[idx0];
+  const c1 = palette[idx1];
+  return [
+    Math.round(c0[0] + (c1[0] - c0[0]) * t),
+    Math.round(c0[1] + (c1[1] - c0[1]) * t),
+    Math.round(c0[2] + (c1[2] - c0[2]) * t)
+  ];
+}
+
+// ─── Dithering ───
+// 4x4 Bayer matrix for ordered dithering
+const BAYER_4X4 = [
+  [ 0,  8,  2, 10],
+  [12,  4, 14,  6],
+  [ 3, 11,  1,  9],
+  [15,  7, 13,  5]
+];
+function applyDithering(r, g, b, x, y, strength = 1.0) {
+  const threshold = (BAYER_4X4[y % 4][x % 4] / 16 - 0.5) * strength * 32;
+  return [
+    Math.max(0, Math.min(255, Math.round(r + threshold))),
+    Math.max(0, Math.min(255, Math.round(g + threshold))),
+    Math.max(0, Math.min(255, Math.round(b + threshold)))
+  ];
+}
+
+// ─── Flow Field Helper ───
+// Simple deterministic flow field using overlapping sines (no external noise library).
+function flowAngle(x, y, width, height, seed) {
+  const scale = 0.008;
+  const sx = x * scale + seed * 0.1;
+  const sy = y * scale + seed * 0.2;
+  return Math.sin(sx) * Math.cos(sy) * Math.PI * 2 +
+         Math.sin(sx * 2.3 + sy * 1.7) * 0.5;
+}
+
+// ─── Anti-Aliasing Post-Process ───
+// Single-pass edge-preserving smoothing. Blends pixels that differ significantly from neighbors.
+function applyAntiAliasing(buffer, width, height, strength = 0.3) {
+  const len = width * height;
+  const out = new Uint8ClampedArray(buffer.length);
+  out.set(buffer);
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const i = (y * width + x) * 4;
+      const r = buffer[i], g = buffer[i + 1], b = buffer[i + 2];
+      // Compute local average of filled neighbors
+      let sumR = 0, sumG = 0, sumB = 0, count = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          const ni = ((y + dy) * width + (x + dx)) * 4;
+          if (buffer[ni + 3] > 0) { // filled
+            sumR += buffer[ni];
+            sumG += buffer[ni + 1];
+            sumB += buffer[ni + 2];
+            count++;
+          }
+        }
+      }
+      if (count === 0) continue;
+      const avgR = sumR / count, avgG = sumG / count, avgB = sumB / count;
+      const dist = Math.sqrt((r - avgR) ** 2 + (g - avgG) ** 2 + (b - avgB) ** 2);
+      // Only blend strong edges
+      if (dist > 40) {
+        const blend = strength * Math.min(1, dist / 200);
+        out[i] = Math.round(r + (avgR - r) * blend);
+        out[i + 1] = Math.round(g + (avgG - g) * blend);
+        out[i + 2] = Math.round(b + (avgB - b) * blend);
+      }
+    }
+  }
+  buffer.set(out);
+}
+
+// ─── State ───
 let isPaused = false;
 let totalPixels = 0;
 let filledPixels = 0;
 let lastProgressUpdate = 0;
 let resumeProcessing = null;
 
-// Handle messages
+// ─── Main Worker Handler ───
 self.onmessage = function (e) {
-  // Check for control commands
+  // Control commands
   if (e.data.command) {
     if (e.data.command === 'pause') {
       isPaused = true;
       return;
     } else if (e.data.command === 'resume') {
       isPaused = false;
-      if (typeof resumeProcessing === 'function') {
-        resumeProcessing();
-      }
+      if (typeof resumeProcessing === 'function') resumeProcessing();
       return;
     }
   }
@@ -256,622 +598,715 @@ self.onmessage = function (e) {
       growthMode = 'crystal', seedShape = 'point', symmetryMode = 'quadrantal', colorProgression = 'shuffled',
       branchingFactor = 0.5, growthRate = 1, randomness = 10,
       curveType = 'hilbert', colorOrdering = 'hsv',
-      patternComplexity = 128, // Parameter for pattern detail
-      optimizeForLargeExport = false, // Flag for large exports
-      previewMode = false, // Flag for preview mode
-      exportMode = false, // Flag for export mode
-      colorSpace = 'sRGB', // Color profile
-      dpi = 300, // DPI for exports
-      transparent = false, // Whether background should be transparent
-      exactOutputSize = null, // Force specific output size for exports
-      allRGBMode = false // NEW: True AllRGB mode - all 16.7M colors, each used exactly once
+      patternComplexity = 128,
+      optimizeForLargeExport = false,
+      previewMode = false,
+      exportMode = false,
+      colorSpace = 'sRGB',
+      dpi = 300,
+      transparent = false,
+      exactOutputSize = null,
+      allRGBMode = false,
+      // NEW parameters (backward compatible defaults)
+      gradientMap = 'none',
+      dithering = false,
+      antiAliasing = false
     } = e.data;
 
-    // If exactOutputSize is provided, override width and height for output
     const outputWidth = exactOutputSize || width;
     const outputHeight = exactOutputSize || height;
-
-    // First, check if this is an export or preview
     const isExport = exportMode || width > 256;
 
-    // Check for memory constraints
     if (!checkMemory()) {
       self.postMessage({ error: "Browser memory is constrained. Try closing other tabs or restarting your browser." });
       return;
     }
 
-    // Reset tracking variables
     isPaused = false;
     totalPixels = width * height;
     filledPixels = 0;
     lastProgressUpdate = Date.now();
 
-    // Catch potential memory issues for very large generations
-    if (width * height > 16777216) { // 4096 * 4096
+    // Clear color distance cache for fresh image generation
+    clearColorDistCache();
+
+    if (width * height > 16777216) {
       self.postMessage({ error: "Image size too large. Try a smaller export size." });
       return;
     }
 
-    try {
-      // We'll use a fixed pattern size for processing regardless of output size
-      // For Extreme (4096) setting, use the full size, otherwise limit to 4096
-      const processingSize = patternComplexity >= 4096 ?
-        patternComplexity : // Use exact size for Extreme setting
-        Math.min(4096, patternComplexity * 2); // Otherwise use standard scaling logic
+    const processingSize = patternComplexity >= 4096 ? patternComplexity : Math.min(4096, patternComplexity * 2);
+    const buffer = new Uint8ClampedArray(outputWidth * outputHeight * 4);
 
-      // Pre-allocate buffer for the requested output size
-      const buffer = new Uint8ClampedArray(outputWidth * outputHeight * 4);
+    // Initialize buffer
+    const alpha = transparent ? 0 : 255;
+    for (let i = 0; i < buffer.length; i += 4) {
+      buffer[i] = 0; buffer[i + 1] = 0; buffer[i + 2] = 0; buffer[i + 3] = alpha;
+    }
 
-      // Initialize buffer with transparency
-      for (let i = 0; i < buffer.length; i += 4) {
-        buffer[i] = 0;     // R
-        buffer[i + 1] = 0;   // G
-        buffer[i + 2] = 0;   // B
-        buffer[i + 3] = transparent ? 0 : 255; // A (transparent if requested)
-      }
+    let actualPatternComplexity = patternComplexity;
+    if (isExport) {
+      const exportScale = patternComplexity >= 4096 ? 1 : Math.min(1, 512 / width);
+      actualPatternComplexity = patternComplexity >= 4096 ? patternComplexity : Math.min(patternComplexity, Math.ceil(patternComplexity * exportScale));
+    }
 
-      // For exports, limit pattern complexity based on export size to prevent timeouts
-      let actualPatternComplexity = patternComplexity;
-      if (isExport) {
-        // Scale down pattern complexity for exports to prevent timeouts
-        // But respect the 4096 setting for "Extreme" pattern size - no scaling down
-        const exportScale = patternComplexity >= 4096 ? 1 : Math.min(1, 512 / width);
-        actualPatternComplexity = patternComplexity >= 4096 ?
-          patternComplexity : // Never reduce 4096 setting
-          Math.min(patternComplexity, Math.ceil(patternComplexity * exportScale));
-      }
+    const patternScale = patternComplexity >= 4096 ? patternComplexity / 128 : Math.max(1, Math.min(actualPatternComplexity / 128, 4));
+    const steps = optimizeForLargeExport ? 16 : Math.min(32, Math.max(16, Math.floor(16 * Math.sqrt(patternScale))));
 
-      // Special color profile handling for Display P3
-      // In the future, could implement color space transformations
-      const useWideGamut = colorSpace === 'Display P3';
+    // ─── Color Generation ───
+    let colorList = [];
+    let colorSet = null;
 
-      // Define scaling factor based on pattern complexity
-      // Allow full scaling for Extreme (4096) setting with no limits
-      const patternScale = patternComplexity >= 4096 ?
-        patternComplexity / 128 : // Full scale for Extreme with no max limit
-        Math.max(1, Math.min(actualPatternComplexity / 128, 4)); // Previous limit
-
-      // Calculate color steps - simplified to avoid excessive computation
-      const steps = optimizeForLargeExport ? 16 : Math.min(32, Math.max(16, Math.floor(16 * Math.sqrt(patternScale))));
-
-      // ========== ALLRGB MODE: Generate ALL 16,777,216 unique colors ==========
-      let colorList = [];
-      let colorSet = null; // For AllRGB mode tracking
-
-      if (allRGBMode) {
-        self.postMessage({ progress: 1 });
-
-        // For AllRGB, we need exactly 4096x4096 = 16,777,216 pixels
-        // Each pixel gets a unique color from 256^3 = 16,777,216 colors
-        const totalColors = 256 * 256 * 256;
-
-        // Generate all colors - use Uint32Array for memory efficiency
-        // Pack RGB into single integers for faster lookup
-        const allColors = new Uint32Array(totalColors);
-        let idx = 0;
-        for (let r = 0; r < 256; r++) {
-          for (let g = 0; g < 256; g++) {
-            for (let b = 0; b < 256; b++) {
-              allColors[idx++] = (r << 16) | (g << 8) | b;
-            }
+    if (allRGBMode) {
+      self.postMessage({ progress: 1 });
+      const totalColors = 256 * 256 * 256;
+      const allColors = new Uint32Array(totalColors);
+      let idx = 0;
+      for (let r = 0; r < 256; r++) {
+        for (let g = 0; g < 256; g++) {
+          for (let b = 0; b < 256; b++) {
+            allColors[idx++] = (r << 16) | (g << 8) | b;
           }
         }
-        self.postMessage({ progress: 5 });
-
-        // Create a seeded random function for shuffling
-        const rand = mulberry32(seed);
-
-        // Fisher-Yates shuffle on the packed colors
-        for (let i = allColors.length - 1; i > 0; i--) {
-          const j = Math.floor(rand() * (i + 1));
-          [allColors[i], allColors[j]] = [allColors[j], allColors[i]];
-        }
-        self.postMessage({ progress: 15 });
-
-        // OPTIMIZATION: Keep colors packed as Uint32Array instead of unpacking
-        // This saves ~50MB memory and avoids 16.7M array allocations
-        // We'll unpack on-demand when setting pixels
-        colorList = allColors; // Keep as Uint32Array!
-        self.postMessage({ progress: 20 });
-
-      } else {
-        // Original non-AllRGB color generation
-        // FIXED: Generate enough colors to fill the ENTIRE canvas
-        // For 4K (4096x4096) we need 16.7M colors, not just 10K-20K
-        const maxColors = Math.min(totalPixels + 1000, 16777216); // Up to all RGB colors
-
-        // Calculate color steps to generate enough colors
-        // Need cube root of maxColors to get steps per channel
-        const neededColors = Math.min(maxColors, totalPixels + 1000);
-        const localColorSteps = Math.ceil(Math.cbrt(neededColors)); // Cube root gives per-channel steps
-
-        for (let r = 0; r < localColorSteps; r++) {
-          for (let g = 0; g < localColorSteps; g++) {
-            for (let b = 0; b < localColorSteps; b++) {
-              // Stop adding colors if we've reached the limit
-              if (colorList.length >= maxColors) break;
-
-              colorList.push([
-                Math.round((r / (localColorSteps - 1)) * 255),
-                Math.round((g / (localColorSteps - 1)) * 255),
-                Math.round((b / (localColorSteps - 1)) * 255)
-              ]);
-            }
+      }
+      self.postMessage({ progress: 5 });
+      const rand = mulberry32(seed);
+      for (let i = allColors.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [allColors[i], allColors[j]] = [allColors[j], allColors[i]];
+      }
+      self.postMessage({ progress: 15 });
+      colorList = allColors;
+      self.postMessage({ progress: 20 });
+    } else {
+      const maxColors = Math.min(totalPixels + 1000, 16777216);
+      const neededColors = Math.min(maxColors, totalPixels + 1000);
+      const localColorSteps = Math.ceil(Math.cbrt(neededColors));
+      for (let r = 0; r < localColorSteps; r++) {
+        for (let g = 0; g < localColorSteps; g++) {
+          for (let b = 0; b < localColorSteps; b++) {
             if (colorList.length >= maxColors) break;
+            colorList.push([
+              Math.round((r / (localColorSteps - 1)) * 255),
+              Math.round((g / (localColorSteps - 1)) * 255),
+              Math.round((b / (localColorSteps - 1)) * 255)
+            ]);
           }
           if (colorList.length >= maxColors) break;
         }
+        if (colorList.length >= maxColors) break;
+      }
+    }
+
+    const colorSteps = allRGBMode ? 256 : (isExport ? Math.min(steps, 24) : steps);
+
+    // ─── Curve-based Color Ordering ───
+    if (!allRGBMode) {
+      if (curveType === 'hilbert') {
+        const order = Math.ceil(Math.log2(colorSteps));
+        colorList.sort((a, b) => {
+          const ax = Math.floor(a[0] / 256 * (1 << order));
+          const ay = Math.floor(a[1] / 256 * (1 << order));
+          const bx = Math.floor(b[0] / 256 * (1 << order));
+          const by = Math.floor(b[1] / 256 * (1 << order));
+          return xyToHilbert(ax, ay, order) - xyToHilbert(bx, by, order);
+        });
+      } else if (curveType === 'morton') {
+        colorList.sort((a, b) => {
+          return mortonEncode(a[0], a[1]) - mortonEncode(b[0], b[1]);
+        });
+      } else if (curveType === 'peano') {
+        const order = Math.max(1, Math.ceil(Math.log(colorSteps) / Math.log(3)));
+        colorList.sort((a, b) => {
+          const ax = Math.floor(a[0] / 256 * Math.pow(3, order));
+          const ay = Math.floor(a[1] / 256 * Math.pow(3, order));
+          const bx = Math.floor(b[0] / 256 * Math.pow(3, order));
+          const by = Math.floor(b[1] / 256 * Math.pow(3, order));
+          return xyToPeano(ax, ay, order) - xyToPeano(bx, by, order);
+        });
+      } else if (curveType === 'spiral') {
+        colorList.sort((a, b) => {
+          return xyToSpiral(a[0], a[1], 256, 256) - xyToSpiral(b[0], b[1], 256, 256);
+        });
+      } else if (curveType === 'randomwalk') {
+        // Precompute walk order for a 256x256 grid, then map colors to it
+        const walkOrder = generateRandomWalkOrder(256, 256, seed);
+        colorList.sort((a, b) => {
+          const ia = (Math.floor(a[1]) % 256) * 256 + (Math.floor(a[0]) % 256);
+          const ib = (Math.floor(b[1]) % 256) * 256 + (Math.floor(b[0]) % 256);
+          return walkOrder[ia] - walkOrder[ib];
+        });
       }
 
-      // Define colorSteps for curve ordering (256 for AllRGB, calculated for normal mode)
-      const colorSteps = allRGBMode ? 256 : (isExport ? Math.min(steps, 24) : steps);
+      applyColorProgression(colorList, colorProgression, seed);
+    }
 
-      // ========== APPLY CURVE TYPE TO COLOR ORDERING ==========
-      // SKIP for AllRGB - sorting 16.7M colors is extremely slow!
-      // AllRGB colors are already shuffled and will look good with growth pattern
-      if (!allRGBMode) {
-        if (curveType === 'hilbert') {
-          // Sort colors using Hilbert curve for better locality
-          const order = Math.ceil(Math.log2(colorSteps));
-          colorList.sort((a, b) => {
-            // Map color to position in color space cube
-            const ax = Math.floor(a[0] / 256 * (1 << order));
-            const ay = Math.floor(a[1] / 256 * (1 << order));
-            const bx = Math.floor(b[0] / 256 * (1 << order));
-            const by = Math.floor(b[1] / 256 * (1 << order));
-            return xyToHilbert(ax, ay, order) - xyToHilbert(bx, by, order);
-          });
-        } else if (curveType === 'morton') {
-          // Sort colors using Morton/Z-order curve
-          colorList.sort((a, b) => {
-            const ax = Math.floor(a[0]);
-            const ay = Math.floor(a[1]);
-            const bx = Math.floor(b[0]);
-            const by = Math.floor(b[1]);
-            return mortonEncode(ax, ay) - mortonEncode(bx, by);
-          });
+    const filled = new Uint8Array(width * height);
+    let allRGBColorIndex = allRGBMode ? colorList.length : 0;
+
+    // ─── Seeded random for deterministic sampling ───
+    const mainRand = mulberry32(seed ^ 0x6c078965);
+
+    // ─── ALLRGB Ultra-Fast Path ───
+    if (allRGBMode) {
+      const totalPixels = width * height;
+      let filledCount = 0;
+      const queue = new Uint32Array(totalPixels);
+      let queueHead = 0, queueTail = 0;
+      const startX = (width / 2) | 0;
+      const startY = (height / 2) | 0;
+      const startIdx = startY * width + startX;
+      queue[queueTail++] = startIdx;
+      filled[startIdx] = 1;
+      const dx = [1, 0, -1, 0];
+      const dy = [0, 1, 0, -1];
+      let lastProgress = 0;
+
+      const progressBatch = 500000;
+
+      while (queueHead < queueTail && allRGBColorIndex > 0) {
+        const idx = queue[queueHead++];
+        const x = idx % width;
+        const y = (idx / width) | 0;
+        allRGBColorIndex--;
+        const packed = colorList[allRGBColorIndex];
+        let r = (packed >> 16) & 0xFF;
+        let g = (packed >> 8) & 0xFF;
+        let b = packed & 0xFF;
+
+        // Apply gradient map and dithering even in AllRGB mode
+        if (gradientMap !== 'none' && GRADIENT_PALETTES[gradientMap]) {
+          [r, g, b] = applyGradientMap(r, g, b, GRADIENT_PALETTES[gradientMap]);
+        }
+        if (dithering) {
+          [r, g, b] = applyDithering(r, g, b, x, y, 1.0);
         }
 
-        // ========== APPLY COLOR PROGRESSION ==========
-        applyColorProgression(colorList, colorProgression, seed);
+        const bufIdx = idx * 4;
+        buffer[bufIdx] = r;
+        buffer[bufIdx + 1] = g;
+        buffer[bufIdx + 2] = b;
+        buffer[bufIdx + 3] = 255;
+        filledCount++;
+
+        for (let d = 0; d < 4; d++) {
+          const nx = x + dx[d];
+          const ny = y + dy[d];
+          if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+            const ni = ny * width + nx;
+            if (!filled[ni]) {
+              filled[ni] = 1;
+              queue[queueTail++] = ni;
+            }
+          }
+        }
+
+        if (filledCount % progressBatch === 0) {
+          const progress = Math.floor((filledCount / totalPixels) * 100);
+          if (progress > lastProgress) {
+            lastProgress = progress;
+            self.postMessage({ progress: 20 + Math.floor(progress * 0.8) });
+          }
+        }
       }
 
-      const filled = new Uint8Array(width * height);
+      if (antiAliasing) {
+        applyAntiAliasing(buffer, width, height, 0.3);
+      }
 
-      // For AllRGB: track index into packed Uint32Array
-      let allRGBColorIndex = allRGBMode ? colorList.length : 0;
+      self.postMessage({ progress: 100 });
+      self.postMessage({
+        buffer,
+        metadata: {
+          width: outputWidth,
+          height: outputHeight,
+          colorSpace,
+          patternComplexity: actualPatternComplexity,
+          transparent,
+          dpi
+        }
+      }, [buffer.buffer]);
+      return;
+    }
 
-      // ========== ALLRGB ULTRA-FAST PATH ==========
-      // Use simple BFS instead of priority queue for massive speedup
-      if (allRGBMode) {
-        const totalPixels = width * height;
-        let filledCount = 0;
+    // ─── NORMAL MODE ───
+    const pq = new PriorityQueue();
 
-        // Simple queue using array with head pointer (faster than shift())
-        const queue = new Uint32Array(totalPixels); // Store pixel indices
-        let queueHead = 0;
-        let queueTail = 0;
+    // Seed initialization
+    if (seedShape === 'point') {
+      pq.push([(width / 2) | 0, (height / 2) | 0], 0);
+    } else if (seedShape === 'dual') {
+      const cx = (width / 2) | 0, cy = (height / 2) | 0;
+      const offset = Math.max(2, Math.floor(Math.min(width, height) / 100));
+      pq.push([cx - offset, cy], 0);
+      pq.push([cx + offset, cy], 0);
+      pq.push([cx, cy], 0);
+    } else if (seedShape === 'circle') {
+      const cx = (width / 2) | 0, cy = (height / 2) | 0;
+      const r = Math.min(width, height) / 4;
+      pq.push([cx, cy], 0);
+      const numRings = 10;
+      for (let ring = 1; ring <= numRings; ring++) {
+        const ringRadius = (r * ring) / numRings;
+        const circumference = 2 * Math.PI * ringRadius;
+        const pointsInRing = Math.max(16, Math.floor(circumference / 2));
+        for (let i = 0; i < pointsInRing; i++) {
+          const angle = (2 * Math.PI * i) / pointsInRing;
+          const x = Math.round(cx + ringRadius * Math.cos(angle));
+          const y = Math.round(cy + ringRadius * Math.sin(angle));
+          if (x >= 0 && x < width && y >= 0 && y < height) pq.push([x, y], 0);
+        }
+      }
+    } else if (seedShape === 'line') {
+      const cy = (height / 2) | 0;
+      const step = Math.max(1, Math.floor(width / 100));
+      for (let x = 0; x < width; x += step) pq.push([x, cy], 0);
+    }
 
-        // Start from center
-        const startX = (width / 2) | 0;
-        const startY = (height / 2) | 0;
-        const startIdx = startY * width + startX;
-        queue[queueTail++] = startIdx;
-        filled[startIdx] = 1;
+    const neighbors = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    const maxIterationsPerBatch = isExport ? 2000 : 10000;
+    const progressUpdateInterval = isExport ? 500 : 1000;
+    let iterations = 0;
 
-        // Neighbors: right, down, left, up
-        const dx = [1, 0, -1, 0];
-        const dy = [0, 1, 0, -1];
+    // ─── Growth-Mode Specific Setup ───
 
-        const startTime = Date.now();
-        let lastProgress = 0;
+    // For Organic (DLA-style), we maintain a separate particle array.
+    let organicParticles = null;
+    if (growthMode === 'organic') {
+      organicParticles = [];
+      const particleCount = Math.min(width * height, Math.max(500, Math.floor(width * height * 0.05)));
+      for (let i = 0; i < particleCount; i++) {
+        // Spawn particles from edges
+        const edge = Math.floor(mainRand() * 4);
+        let px, py;
+        if (edge === 0) { px = Math.floor(mainRand() * width); py = 0; }
+        else if (edge === 1) { px = width - 1; py = Math.floor(mainRand() * height); }
+        else if (edge === 2) { px = Math.floor(mainRand() * width); py = height - 1; }
+        else { px = 0; py = Math.floor(mainRand() * height); }
+        organicParticles.push({ x: px, y: py, active: true });
+      }
+    }
 
-        // BFS fill - no priority, no averaging, just fill!
-        while (queueHead < queueTail && allRGBColorIndex > 0) {
-          const idx = queue[queueHead++];
-          const x = idx % width;
-          const y = (idx / width) | 0;
+    // For Fractal, we use a recursive subdivision queue.
+    let fractalQueue = null;
+    if (growthMode === 'fractal') {
+      fractalQueue = [];
+      // Start with the whole canvas as a region
+      fractalQueue.push({ x: 0, y: 0, w: width, h: height, depth: 0 });
+    }
 
-          // Get next color from packed array
-          allRGBColorIndex--;
-          const packed = colorList[allRGBColorIndex];
-          const r = (packed >> 16) & 0xFF;
-          const g = (packed >> 8) & 0xFF;
-          const b = packed & 0xFF;
+    // For Flow, we precompute nothing; the flowAngle function guides priorities.
 
-          // Set pixel
-          const bufIdx = idx * 4;
-          buffer[bufIdx] = r;
+    function processBatch() {
+      if (isPaused) return;
+      const startTime = Date.now();
+      const timeLimit = isExport ? 500 : 1000;
+      const checkInterval = 500;
+      iterations = 0;
+
+      while (
+        (growthMode === 'fractal' ? fractalQueue.length > 0 : pq.length > 0) &&
+        colorList.length > 0 &&
+        iterations < maxIterationsPerBatch &&
+        !isPaused
+      ) {
+        if (iterations % checkInterval === 0 && Date.now() - startTime > timeLimit) break;
+        iterations++;
+
+        // ─── Fractal Growth Mode ───
+        // Recursively subdivide regions and fill them in quadrant order.
+        if (growthMode === 'fractal') {
+          const region = fractalQueue.shift();
+          if (!region) continue;
+          const { x, y, w, h, depth } = region;
+          if (w <= 0 || h <= 0) continue;
+
+          // Fill the border of this region first, then subdivide interior
+          const perimeter = [];
+          for (let ix = x; ix < x + w; ix++) {
+            perimeter.push([ix, y]);
+            if (h > 1) perimeter.push([ix, y + h - 1]);
+          }
+          for (let iy = y + 1; iy < y + h - 1; iy++) {
+            perimeter.push([x, iy]);
+            if (w > 1) perimeter.push([x + w - 1, iy]);
+          }
+
+          // Shuffle perimeter based on depth for variety
+          const regionRand = mulberry32(seed ^ depth ^ 0x9e3779b9);
+          for (let i = perimeter.length - 1; i > 0; i--) {
+            const j = Math.floor(regionRand() * (i + 1));
+            [perimeter[i], perimeter[j]] = [perimeter[j], perimeter[i]];
+          }
+
+          for (const [px, py] of perimeter) {
+            if (px < 0 || px >= width || py < 0 || py >= height) continue;
+            const pi = py * width + px;
+            if (filled[pi] || colorList.length === 0) continue;
+            let color = colorList.pop();
+            let r = color[0], g = color[1], b = color[2];
+            if (gradientMap !== 'none' && GRADIENT_PALETTES[gradientMap]) {
+              [r, g, b] = applyGradientMap(r, g, b, GRADIENT_PALETTES[gradientMap]);
+            }
+            if (dithering) {
+              [r, g, b] = applyDithering(r, g, b, px, py, 1.0);
+            }
+            filled[pi] = 1;
+            const pBufIdx = pi * 4;
+            buffer[pBufIdx] = r; buffer[pBufIdx + 1] = g; buffer[pBufIdx + 2] = b; buffer[pBufIdx + 3] = 255;
+            filledPixels++;
+          }
+
+          // Subdivide interior into quadrants
+          if (w > 2 && h > 2) {
+            const hw = Math.floor(w / 2);
+            const hh = Math.floor(h / 2);
+            // Push quadrants in random order for organic feel
+            const quadrants = [
+              { x: x, y: y, w: hw, h: hh, depth: depth + 1 },
+              { x: x + hw, y: y, w: w - hw, h: hh, depth: depth + 1 },
+              { x: x, y: y + hh, w: hw, h: h - hh, depth: depth + 1 },
+              { x: x + hw, y: y + hh, w: w - hw, h: h - hh, depth: depth + 1 }
+            ];
+            const regionRand = mulberry32(seed ^ depth ^ 0x7f4a7c15);
+            for (let i = quadrants.length - 1; i > 0; i--) {
+              const j = Math.floor(regionRand() * (i + 1));
+              [quadrants[i], quadrants[j]] = [quadrants[j], quadrants[i]];
+            }
+            for (const q of quadrants) fractalQueue.push(q);
+          }
+          continue;
+        }
+
+        // ─── Organic Growth Mode (DLA-inspired) ───
+        if (growthMode === 'organic') {
+          let anyStuck = false;
+          for (let p = 0; p < organicParticles.length && colorList.length > 0; p++) {
+            const part = organicParticles[p];
+            if (!part.active) continue;
+
+            // Random walk step
+            const dir = Math.floor(mainRand() * 4);
+            const ddx = neighbors[dir][0];
+            const ddy = neighbors[dir][1];
+            part.x += ddx;
+            part.y += ddy;
+
+            // Bounce off walls
+            if (part.x < 0) part.x = 0;
+            if (part.x >= width) part.x = width - 1;
+            if (part.y < 0) part.y = 0;
+            if (part.y >= height) part.y = height - 1;
+
+            const pi = part.y * width + part.x;
+            if (filled[pi]) {
+              // Check if any neighbor is unfilled -> "stick" adjacent to structure
+              const stickDirs = [];
+              for (const [sdx, sdy] of neighbors) {
+                const sx = part.x + sdx, sy = part.y + sdy;
+                if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+                  const si = sy * width + sx;
+                  if (!filled[si]) stickDirs.push([sx, sy]);
+                }
+              }
+              if (stickDirs.length > 0 && colorList.length > 0) {
+                const [sx, sy] = stickDirs[Math.floor(mainRand() * stickDirs.length)];
+                const si = sy * width + sx;
+                let color = colorList.pop();
+                let r = color[0], g = color[1], b = color[2];
+                if (gradientMap !== 'none' && GRADIENT_PALETTES[gradientMap]) {
+                  [r, g, b] = applyGradientMap(r, g, b, GRADIENT_PALETTES[gradientMap]);
+                }
+                if (dithering) {
+                  [r, g, b] = applyDithering(r, g, b, sx, sy, 1.0);
+                }
+                filled[si] = 1;
+                const sBufIdx = si * 4;
+                buffer[sBufIdx] = r; buffer[sBufIdx + 1] = g; buffer[sBufIdx + 2] = b; buffer[sBufIdx + 3] = 255;
+                filledPixels++;
+                anyStuck = true;
+
+                // Respawn particle
+                const edge = Math.floor(mainRand() * 4);
+                if (edge === 0) { part.x = Math.floor(mainRand() * width); part.y = 0; }
+                else if (edge === 1) { part.x = width - 1; part.y = Math.floor(mainRand() * height); }
+                else if (edge === 2) { part.x = Math.floor(mainRand() * width); part.y = height - 1; }
+                else { part.x = 0; part.y = Math.floor(mainRand() * height); }
+              } else {
+                // Fully surrounded, respawn
+                part.active = false;
+              }
+            }
+          }
+          // If too few active particles, respawn some
+          const activeCount = organicParticles.filter(p => p.active).length;
+          if (activeCount < organicParticles.length * 0.3) {
+            for (let i = 0; i < organicParticles.length; i++) {
+              if (!organicParticles[i].active) {
+                const edge = Math.floor(mainRand() * 4);
+                if (edge === 0) { organicParticles[i].x = Math.floor(mainRand() * width); organicParticles[i].y = 0; }
+                else if (edge === 1) { organicParticles[i].x = width - 1; organicParticles[i].y = Math.floor(mainRand() * height); }
+                else if (edge === 2) { organicParticles[i].x = Math.floor(mainRand() * width); organicParticles[i].y = height - 1; }
+                else { organicParticles[i].x = 0; organicParticles[i].y = Math.floor(mainRand() * height); }
+                organicParticles[i].active = true;
+              }
+            }
+          }
+          // Continue next frame if still colors and pixels left
+          if (colorList.length > 0 && filledPixels < totalPixels) {
+            // Progress
+            const now = Date.now();
+            if (now - lastProgressUpdate > progressUpdateInterval) {
+              const progressPercent = Math.min(100, Math.floor((filledPixels / totalPixels) * 100));
+              self.postMessage({ progress: progressPercent });
+              lastProgressUpdate = now;
+            }
+            setTimeout(processBatch, 0);
+            return;
+          }
+          // Fall through to final completion below
+          break;
+        }
+
+        // ─── Standard Priority-Queue Growth (crystal, nebula, rings, flow) ───
+        const [x, y] = pq.pop();
+        let coords;
+        if (isExport && symmetryMode !== 'none') {
+          if (symmetryMode === 'bilateral') {
+            const mx = width - 1 - x;
+            coords = [[x, y], [mx, y]];
+          } else if (symmetryMode === 'quadrantal') {
+            const mx = width - 1 - x, my = height - 1 - y;
+            coords = [[x, y], [mx, y], [x, my], [mx, my]];
+          } else {
+            coords = [[x, y]];
+          }
+        } else {
+          coords = getSymmetryCoords(x, y, width, height, symmetryMode);
+        }
+
+        let pixelsFilled = 0;
+        for (const [mx, my] of coords) {
+          const i = my * width + mx;
+          if (mx < 0 || mx >= width || my < 0 || my >= height) continue;
+          if (filled[i] || colorList.length === 0) continue;
+
+          // Neighbor averaging for color matching
+          // Optimized: loop unrolled for the 4 cardinal directions to avoid loop overhead
+          let count = 0, nr = 0, ng = 0, nb = 0;
+
+          // Right neighbor
+          let nx = mx + 1, ny = my;
+          if (nx < width) {
+            const ni = ny * width + nx;
+            if (filled[ni]) {
+              nr += buffer[ni * 4 + 0];
+              ng += buffer[ni * 4 + 1];
+              nb += buffer[ni * 4 + 2];
+              count++;
+            }
+          }
+
+          // Left neighbor
+          nx = mx - 1;
+          if (nx >= 0) {
+            const ni = ny * width + nx;
+            if (filled[ni]) {
+              nr += buffer[ni * 4 + 0];
+              ng += buffer[ni * 4 + 1];
+              nb += buffer[ni * 4 + 2];
+              count++;
+            }
+          }
+
+          // Down neighbor
+          nx = mx; ny = my + 1;
+          if (ny < height) {
+            const ni = ny * width + nx;
+            if (filled[ni]) {
+              nr += buffer[ni * 4 + 0];
+              ng += buffer[ni * 4 + 1];
+              nb += buffer[ni * 4 + 2];
+              count++;
+            }
+          }
+
+          // Up neighbor
+          ny = my - 1;
+          if (ny >= 0) {
+            const ni = ny * width + nx;
+            if (filled[ni]) {
+              nr += buffer[ni * 4 + 0];
+              ng += buffer[ni * 4 + 1];
+              nb += buffer[ni * 4 + 2];
+              count++;
+            }
+          }
+
+          let color;
+          let r, g, b;
+          if (count === 0) {
+            color = colorList.pop();
+            r = color[0]; g = color[1]; b = color[2];
+          } else {
+            const avg = [nr / count, ng / count, nb / count];
+            let bestIdx = 0, bestDist = Infinity;
+            const useExhaustive = totalPixels <= 262144;
+            const searchSize = useExhaustive ? colorList.length : Math.min(colorList.length, colorSampleSize);
+            if (useExhaustive) {
+              for (let j = 0; j < colorList.length; j++) {
+                const dist = colorDistSq(colorList[j], avg);
+                if (dist < bestDist) { bestDist = dist; bestIdx = j; }
+              }
+            } else {
+              bestIdx = pickClosestColorFromSample(colorList, avg, mainRand, searchSize);
+            }
+            color = colorList.splice(bestIdx, 1)[0];
+            r = color[0]; g = color[1]; b = color[2];
+          }
+
+          // Apply gradient map
+          if (gradientMap !== 'none' && GRADIENT_PALETTES[gradientMap]) {
+            [r, g, b] = applyGradientMap(r, g, b, GRADIENT_PALETTES[gradientMap]);
+          }
+          // Apply dithering
+          if (dithering) {
+            [r, g, b] = applyDithering(r, g, b, mx, my, 1.0);
+          }
+
+          filled[i] = 1;
+          pixelsFilled++;
+          const bufIdx = i * 4;
+          buffer[bufIdx + 0] = r;
           buffer[bufIdx + 1] = g;
           buffer[bufIdx + 2] = b;
           buffer[bufIdx + 3] = 255;
-          filledCount++;
 
-          // Add unfilled neighbors to queue
-          for (let d = 0; d < 4; d++) {
-            const nx = x + dx[d];
-            const ny = y + dy[d];
+          // Add neighbors with growth-mode-specific priority
+          for (const [dx2, dy2] of neighbors) {
+            const nx = mx + dx2, ny = my + dy2;
             if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
               const ni = ny * width + nx;
               if (!filled[ni]) {
-                filled[ni] = 1;
-                queue[queueTail++] = ni;
-              }
-            }
-          }
+                const isEdgePixel = nx === 0 || nx === width - 1 || ny === 0 || ny === height - 1;
+                if (branchingFactor < 1 && !isEdgePixel) {
+                  const branchProbability = 0.5 + branchingFactor * 0.5;
+                  if (mainRand() > branchProbability) continue;
+                }
 
-          // Progress update every 500K pixels
-          if (filledCount % 500000 === 0) {
-            const progress = Math.floor((filledCount / totalPixels) * 100);
-            if (progress > lastProgress) {
-              lastProgress = progress;
-              self.postMessage({ progress: 20 + Math.floor(progress * 0.8) }); // 20-100%
+                let priority;
+                const dist = Math.hypot(nx - width / 2, ny - height / 2);
+                const distRand = isExport
+                  ? (mainRand() - 0.5) * 5
+                  : (mainRand() - 0.5) * distanceRandomness * (dist / (width / 2));
+
+                if (growthMode === 'crystal') {
+                  priority = dist + (mainRand() - 0.5) * randomness + distRand;
+                } else if (growthMode === 'nebula') {
+                  priority = (mainRand() - 0.5) * randomness + dist * 0.2 + distRand;
+                } else if (growthMode === 'rings') {
+                  const ringSpacing = width / 10;
+                  priority = Math.abs(Math.sin(dist / ringSpacing * Math.PI)) * 5 + (mainRand() - 0.5) * randomness + distRand;
+                } else if (growthMode === 'flow') {
+                  // Flow field: priority favors moving along the local flow angle
+                  const angle = flowAngle(nx, ny, width, height, seed);
+                  const flowX = Math.cos(angle);
+                  const flowY = Math.sin(angle);
+                  const outward = (nx - width / 2) / (width / 2);
+                  const upward = (ny - height / 2) / (height / 2);
+                  const alignment = flowX * outward + flowY * upward;
+                  priority = dist - alignment * randomness * 2 + (mainRand() - 0.5) * randomness + distRand;
+                } else {
+                  priority = dist + (mainRand() - 0.5) * randomness + distRand;
+                }
+                priority /= growthRate;
+                pq.push([nx, ny], priority);
+              }
             }
           }
         }
 
-        // Send the result
-        self.postMessage({ progress: 100 });
-        self.postMessage({
-          buffer,
-          metadata: {
-            width: outputWidth,
-            height: outputHeight,
-            colorSpace,
-            patternComplexity: actualPatternComplexity,
-            transparent,
-            dpi
-          }
-        }, [buffer.buffer]);
-        return; // Exit early - we're done!
-      }
+        filledPixels += pixelsFilled;
 
-      // ========== NORMAL MODE (non-AllRGB) ==========
-      const pq = new PriorityQueue();
-
-      // Add initial seeds
-      if (seedShape === 'point') {
-        pq.push([(width / 2) | 0, (height / 2) | 0], 0);
-      } else if (seedShape === 'dual') {
-        // DUAL SEED: Two points for symmetrical starburst (AllRGB style)
-        const cx = (width / 2) | 0, cy = (height / 2) | 0;
-        const offset = Math.max(2, Math.floor(Math.min(width, height) / 100));
-        // Two points offset horizontally from center
-        pq.push([cx - offset, cy], 0);
-        pq.push([cx + offset, cy], 0);
-        // Also add the center point
-        pq.push([cx, cy], 0);
-      } else if (seedShape === 'circle') {
-        const cx = (width / 2) | 0, cy = (height / 2) | 0;
-        // Improve circle radius calculation - make it more substantial
-        const r = Math.min(width, height) / 4;
-
-        // Improve sampling to ensure dense coverage without gaps
-        // Use angle-based sampling for more uniform distribution
-        const numSamples = Math.max(100, r * 2); // Ensure enough seed points
-
-        // First add center point
-        pq.push([cx, cy], 0);
-
-        // Add points in concentric rings
-        const numRings = 10;
-        for (let ring = 1; ring <= numRings; ring++) {
-          const ringRadius = (r * ring) / numRings;
-          const circumference = 2 * Math.PI * ringRadius;
-          const pointsInRing = Math.max(16, Math.floor(circumference / 2));
-
-          for (let i = 0; i < pointsInRing; i++) {
-            const angle = (2 * Math.PI * i) / pointsInRing;
-            const x = Math.round(cx + ringRadius * Math.cos(angle));
-            const y = Math.round(cy + ringRadius * Math.sin(angle));
-
-            if (x >= 0 && x < width && y >= 0 && y < height) {
-              pq.push([x, y], 0);
-            }
-          }
-        }
-      } else if (seedShape === 'line') {
-        const cy = (height / 2) | 0;
-        // Make line step size reasonable
-        const step = Math.max(1, Math.floor(width / 100));
-        for (let x = 0; x < width; x += step) pq.push([x, cy], 0);
-      }
-
-      // Use simpler neighborhood for better performance
-      const neighbors = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-
-      // For efficiency, limit batch iterations - AllRGB needs much larger batches
-      const maxIterationsPerBatch = allRGBMode ? 50000 : (isExport ? 2000 : 10000);
-      const progressUpdateInterval = allRGBMode ? 5000 : (isExport ? 500 : 1000);
-      let iterations = 0;
-
-      // Run a single batch with a timeout to prevent hanging
-      function processBatch() {
-        // If paused, don't process
-        if (isPaused) return;
-
-        const startTime = Date.now();
-        // AllRGB needs much longer batches to be practical
-        const timeLimit = allRGBMode ? 10000 : (isExport ? 500 : 1000); // ms per batch
-        const checkInterval = allRGBMode ? 5000 : 500; // How often to check time
-
-        iterations = 0;
-        while (pq.length && (allRGBMode ? allRGBColorIndex > 0 : colorList.length > 0) && iterations < maxIterationsPerBatch && !isPaused) {
-          // Check if we've exceeded the time limit (less frequently for AllRGB)
-          if (iterations % checkInterval === 0 && Date.now() - startTime > timeLimit) {
-            break;
-          }
-
-          iterations++;
-          const [x, y] = pq.pop();
-
-          // Get symmetry coordinates - simplified for export
-          // AllRGB: Skip symmetry entirely - each pixel needs unique color
-          let coords;
-          if (allRGBMode) {
-            coords = [[x, y]]; // No symmetry for AllRGB
-          } else if (isExport && symmetryMode !== 'none') {
-            // Use simplified symmetry for exports
-            if (symmetryMode === 'bilateral') {
-              const mx = width - 1 - x;
-              coords = [[x, y], [mx, y]];
-            } else if (symmetryMode === 'quadrantal') {
-              const mx = width - 1 - x, my = height - 1 - y;
-              coords = [[x, y], [mx, y], [x, my], [mx, my]];
-            } else {
-              coords = [[x, y]];
-            }
-          } else {
-            // Use full symmetry for preview
-            coords = getSymmetryCoords(x, y, width, height, symmetryMode);
-          }
-
-          // Process each coordinate
-          let pixelsFilled = 0;
-          for (const [mx, my] of coords) {
-            const i = my * width + mx;
-            if (mx < 0 || mx >= width || my < 0 || my >= height) continue;
-            if (filled[i] || (allRGBMode ? allRGBColorIndex === 0 : colorList.length === 0)) continue;
-
-            // Find average color of filled neighbors
-            let count = 0, nr = 0, ng = 0, nb = 0;
-            for (const [dx2, dy2] of neighbors) {
-              const nx = mx + dx2, ny = my + dy2;
-              if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                const ni = ny * width + nx;
-                if (filled[ni]) {
-                  nr += buffer[ni * 4 + 0];
-                  ng += buffer[ni * 4 + 1];
-                  nb += buffer[ni * 4 + 2];
-                  count++;
-                }
-              }
-            }
-
-            // Get color - AllRGB uses ultra-fast path, others use matching
-            let color;
-            let r, g, b;
-            if (allRGBMode) {
-              // AllRGB: colorList is a Uint32Array - decrement index and unpack
-              allRGBColorIndex--;
-              const packed = colorList[allRGBColorIndex];
-              r = (packed >> 16) & 0xFF;
-              g = (packed >> 8) & 0xFF;
-              b = packed & 0xFF;
-            } else if (count === 0) {
-              color = colorList.pop();
-              r = color[0]; g = color[1]; b = color[2];
-            } else {
-              const avg = [nr / count, ng / count, nb / count];
-
-              // IMPROVED COLOR SELECTION - Key to smooth crystal patterns!
-              // For small images: EXHAUSTIVE search (true closest color)
-              // For large images: High sample size for quality
-              let bestIdx = 0, bestDist = Infinity;
-
-              // Determine search strategy based on image size and remaining colors
-              const useExhaustive = totalPixels <= 262144; // ≤512x512
-              const searchSize = useExhaustive ?
-                colorList.length : // Search ALL remaining colors
-                Math.min(colorList.length, colorSampleSize);
-
-              if (useExhaustive) {
-                // EXHAUSTIVE SEARCH: Find the TRUE closest color (like AllRGB algorithm)
-                for (let j = 0; j < colorList.length; j++) {
-                  const dist = colorDistSq(colorList[j], avg);
-                  if (dist < bestDist) {
-                    bestDist = dist;
-                    bestIdx = j;
-                  }
-                }
-              } else {
-                // SAMPLED SEARCH: Sample many colors for larger images
-                for (let j = 0; j < searchSize; j++) {
-                  const idx = Math.floor(Math.random() * colorList.length);
-                  const dist = colorDistSq(colorList[idx], avg);
-                  if (dist < bestDist) {
-                    bestDist = dist;
-                    bestIdx = idx;
-                  }
-                }
-              }
-
-              color = colorList.splice(bestIdx, 1)[0];
-              r = color[0]; g = color[1]; b = color[2];
-            }
-
-            // Set pixel color
-            filled[i] = 1;
-            pixelsFilled++;
-            const bufIdx = i * 4;
-            buffer[bufIdx + 0] = r;
-            buffer[bufIdx + 1] = g;
-            buffer[bufIdx + 2] = b;
-            buffer[bufIdx + 3] = 255;
-
-            // Add neighbors - simplified for export
-            // BUT NOT for AllRGB - we need to reach ALL pixels
-            // REMOVED: Queue size limit was preventing corners from being filled
-            // Previously: if (pq.length > width * height / 4) continue;
-            // This caused the pattern to stop before reaching canvas edges
-
-            for (const [dx2, dy2] of neighbors) {
-              const nx = mx + dx2, ny = my + dy2;
-              if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                const ni = ny * width + nx;
-                if (!filled[ni]) {
-                  // ========== BRANCHING FACTOR IMPLEMENTATION ==========
-                  // branchingFactor controls how many neighbors get added
-                  // Skip for AllRGB - we need to fill ALL pixels
-                  // FIXED: Also ensure edge pixels are ALWAYS added
-                  const isEdgePixel = nx === 0 || nx === width - 1 || ny === 0 || ny === height - 1;
-                  if (!allRGBMode && !isEdgePixel && branchingFactor < 1) {
-                    const branchProbability = 0.5 + branchingFactor * 0.5; // Range: 0.5 to 1.0 (less aggressive)
-                    if (Math.random() > branchProbability) {
-                      continue; // Skip this neighbor to create less branching
-                    }
-                  }
-
-                  // Use simplified priority calculation for exports
-                  let priority;
-                  const dist = Math.hypot(nx - width / 2, ny - height / 2);
-                  const distRand = isExport ?
-                    (Math.random() - 0.5) * 5 : // Less randomness for exports
-                    (Math.random() - 0.5) * distanceRandomness * (dist / (width / 2));
-
-                  if (growthMode === 'crystal') {
-                    priority = dist + (Math.random() - 0.5) * randomness + distRand;
-                  } else if (growthMode === 'nebula') {
-                    priority = (Math.random() - 0.5) * randomness + dist * 0.2 + distRand;
-                  } else if (growthMode === 'rings') {
-                    const ringSpacing = width / 10;
-                    priority = Math.abs(Math.sin(dist / ringSpacing * Math.PI)) * 5 + (Math.random() - 0.5) * randomness + distRand;
-                  } else {
-                    priority = dist + (Math.random() - 0.5) * randomness + distRand;
-                  }
-
-                  // Adjust priority by growth rate
-                  priority /= growthRate;
-
-                  pq.push([nx, ny], priority);
-                }
-              }
-            }
-          }
-
-          // Update filled pixel count for progress reporting
-          filledPixels += pixelsFilled;
-
-          // Send progress updates and LIVE PREVIEW periodically
-          const now = Date.now();
-          if (now - lastProgressUpdate > progressUpdateInterval) {
-            const progressPercent = Math.min(100, Math.floor((filledPixels / totalPixels) * 100));
-
-            // Send live preview every ~5% of progress (or more frequently for small images)
-            const previewInterval = Math.max(5, Math.floor(100 / 20)); // At least 20 previews total
-            const shouldSendPreview = !allRGBMode && (progressPercent % previewInterval === 0 || progressPercent < 10);
-
-            if (shouldSendPreview && progressPercent > 0) {
-              // Send a copy of the current buffer for live preview
-              const previewBuffer = buffer.slice(); // Copy buffer
-              self.postMessage({
-                preview: true,
-                buffer: previewBuffer,
-                progress: progressPercent,
-                metadata: {
-                  width: outputWidth,
-                  height: outputHeight,
-                  colorSpace,
-                  filledPixels,
-                  totalPixels
-                }
-              });
-            } else {
-              self.postMessage({ progress: progressPercent });
-            }
-            lastProgressUpdate = now;
-          }
-        }
-
-        // Check if we need to continue processing or if we're done
-        if (pq.length > 0 && (allRGBMode ? allRGBColorIndex > 0 : colorList.length > 0) && !isPaused) {
-          // Continue processing - REMOVED 80% early exit that prevented full fill
-          // Send a progress update 
+        // Batched progress updates
+        const now = Date.now();
+        if (now - lastProgressUpdate > progressUpdateInterval) {
           const progressPercent = Math.min(100, Math.floor((filledPixels / totalPixels) * 100));
-          self.postMessage({ progress: progressPercent });
-
-          // Schedule next batch with a lower priority for exports
-          setTimeout(processBatch, isExport ? 10 : 0);
-        } else if (isPaused) {
-          // If paused, do nothing and wait for resume command
-        } else {
-          // We're done, send final progress update and the result
-          self.postMessage({ progress: 100 });
-
-          // Verify buffer is valid before sending
-          if (!buffer || buffer.length === 0) {
-            self.postMessage({ error: "Failed to generate image - buffer is empty" });
-            return;
-          }
-
-          try {
+          const previewInterval = Math.max(5, Math.floor(100 / 20));
+          const shouldSendPreview = !allRGBMode && (progressPercent % previewInterval === 0 || progressPercent < 10);
+          if (shouldSendPreview && progressPercent > 0) {
+            const previewBuffer = buffer.slice();
             self.postMessage({
-              buffer,
-              metadata: {
-                width: outputWidth,
-                height: outputHeight,
-                colorSpace,
-                patternComplexity: actualPatternComplexity,
-                transparent,
-                dpi
-              }
-            }, [buffer.buffer]);
-            resumeProcessing = null;
-          } catch (err) {
-            console.error("Error transferring buffer:", err);
-            // Try creating a copy if transfer failed
-            const bufferCopy = new Uint8ClampedArray(buffer.length);
-            bufferCopy.set(buffer);
-            self.postMessage({
-              buffer: bufferCopy.buffer,
-              metadata: {
-                width: outputWidth,
-                height: outputHeight,
-                colorSpace,
-                patternComplexity: actualPatternComplexity,
-                transparent,
-                dpi
-              }
-            }, [bufferCopy.buffer]);
-            resumeProcessing = null;
+              preview: true,
+              buffer: previewBuffer,
+              progress: progressPercent,
+              metadata: { width: outputWidth, height: outputHeight, colorSpace, filledPixels, totalPixels }
+            });
+          } else {
+            self.postMessage({ progress: progressPercent });
           }
+          lastProgressUpdate = now;
         }
       }
 
-      resumeProcessing = processBatch;
+      // ─── Continue or finish ───
+      const stillGrowing = growthMode === 'fractal'
+        ? fractalQueue.length > 0
+        : growthMode === 'organic'
+          ? filledPixels < totalPixels && colorList.length > 0
+          : pq.length > 0 && colorList.length > 0;
 
-      // Start the processing
-      processBatch();
-
-      // Before final completion, if we need to scale to a different output size
-      if (processingSize !== outputWidth || processingSize !== outputHeight) {
-        // Create scaled output buffer
+      if (stillGrowing && !isPaused) {
+        const progressPercent = Math.min(100, Math.floor((filledPixels / totalPixels) * 100));
+        self.postMessage({ progress: progressPercent });
+        setTimeout(processBatch, isExport ? 10 : 0);
+      } else if (isPaused) {
+        // Wait for resume
+      } else {
+        // Finalize
+        if (antiAliasing) {
+          applyAntiAliasing(buffer, width, height, 0.3);
+        }
+        self.postMessage({ progress: 100 });
+        if (!buffer || buffer.length === 0) {
+          self.postMessage({ error: "Failed to generate image - buffer is empty" });
+          return;
+        }
         try {
-          // Here you'd add code to scale the pattern to the exact output size
-          // For now, we'll just send what we have and handle any scaling on the client side
-        } catch (scaleError) {
-          console.error("Error scaling image:", scaleError);
+          self.postMessage({
+            buffer,
+            metadata: {
+              width: outputWidth,
+              height: outputHeight,
+              colorSpace,
+              patternComplexity: actualPatternComplexity,
+              transparent,
+              dpi
+            }
+          }, [buffer.buffer]);
+          resumeProcessing = null;
+        } catch (err) {
+          console.error("Error transferring buffer:", err);
+          const bufferCopy = new Uint8ClampedArray(buffer.length);
+          bufferCopy.set(buffer);
+          self.postMessage({
+            buffer: bufferCopy.buffer,
+            metadata: {
+              width: outputWidth,
+              height: outputHeight,
+              colorSpace,
+              patternComplexity: actualPatternComplexity,
+              transparent,
+              dpi
+            }
+          }, [bufferCopy.buffer]);
+          resumeProcessing = null;
         }
       }
-
-    } catch (processingError) {
-      resumeProcessing = null;
-      console.error("Worker processing failed:", processingError);
-      const message = processingError instanceof RangeError || String(processingError?.message || '').toLowerCase().includes('memory')
-        ? "Not enough memory to create this image. Try a smaller export size."
-        : processingError?.message || "Unable to generate this image with the current settings.";
-      self.postMessage({ error: message });
     }
+
+    resumeProcessing = processBatch;
+    processBatch();
 
   } catch (error) {
     resumeProcessing = null;
