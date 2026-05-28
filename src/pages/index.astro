@@ -200,6 +200,9 @@ import GenerationPage from "../components/GenerationPage.jsx";
 
 <script is:inline>
   // Hide loader when React component loads
+  let attempts = 0;
+  const maxAttempts = 120;
+
   const checkReactLoaded = () => {
     const loader = document.getElementById("art-loader");
     const generator = document.querySelector(".generator-container");
@@ -210,10 +213,30 @@ import GenerationPage from "../components/GenerationPage.jsx";
           loader.style.display = "none";
         }, 500);
       }
-    } else {
+      return;
+    }
+    if (attempts < maxAttempts) {
+      attempts += 1;
       requestAnimationFrame(checkReactLoaded);
+      return;
     }
   };
+
+  const forceReveal = () => {
+    const loader = document.getElementById("art-loader");
+    if (loader) {
+      loader.classList.add("fade-out");
+      loader.style.display = "none";
+    }
+  };
+
+  setTimeout(() => {
+    const loader = document.getElementById("art-loader");
+    if (loader && !loader.classList.contains("fade-out")) {
+      forceReveal();
+    }
+  }, 4000);
+
   // Start checking after a brief delay
   setTimeout(checkReactLoaded, 100);
 </script>
