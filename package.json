@@ -17,14 +17,14 @@
   "dependencies": {
     "@astrojs/react": "5.0.1",
     "@astrojs/tailwind": "^6.0.2",
-    "@types/react": "^19.2.15",
+    "@types/react": "^19.2.16",
     "@types/react-dom": "^19.2.3",
     "astro": "5.18.1",
-    "baseline-browser-mapping": "^2.10.32",
+    "baseline-browser-mapping": "^2.10.33",
     "caniuse-lite": "^1.0.30001793",
     "jspdf": "^3.0.4",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
