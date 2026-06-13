@@ -25,7 +25,7 @@ const aboutVideoSchema = {
   <div class="about-page">
     <!-- Header -->
     <header class="about-hero" data-reveal>
-      <p class="mono-text about-eyebrow">Process</p>
+      <p class="eyebrow about-hero-eyebrow">Process</p>
       <h1 class="about-header">About</h1>
       <p class="mono-text about-meta">
         By Jonathan R Reed. Updated <time datetime="2026-04-21">April 21, 2026</time>.
@@ -88,7 +88,7 @@ const aboutVideoSchema = {
         </div>
 
         <div class="video-frame" data-reveal>
-          <p class="mono-text video-eyebrow">Reference</p>
+          <p class="eyebrow video-eyebrow">Reference</p>
           <h3 class="video-title">I Made Art That HACKS Your Eyes</h3>
           <div class="video-container">
             <iframe
@@ -510,10 +510,19 @@ const aboutVideoSchema = {
      ABOUT — a process documentation sheet
      ======================================== */
   .about-page {
-    width: min(960px, calc(100% - 2rem));
-    margin: 1.5rem auto 2rem;
-    padding: 0 1rem;
+    width: 100%;
+    max-width: var(--page-max);
+    margin: var(--section-gap) auto;
+    padding-inline: var(--gutter);
     box-sizing: border-box;
+  }
+
+  /* Wider sheet, but keep long-form prose at a readable measure */
+  .about-page p:not([class]),
+  .step-content p,
+  .feature-details p,
+  .about-intro p {
+    max-width: 68ch;
   }
 
   .about-hero {
@@ -521,10 +530,9 @@ const aboutVideoSchema = {
     padding: 2.5rem 0 2.5rem;
   }
 
-  .about-eyebrow {
-    color: var(--accent-strong);
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
+  /* eyebrow visuals come from the global .eyebrow; only spacing/centering here */
+  .about-hero-eyebrow {
+    justify-content: center;
     margin-bottom: 0.75rem;
   }
 
@@ -565,7 +573,7 @@ const aboutVideoSchema = {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     background: var(--paper);
     color: var(--accent-strong);
     font-family: var(--font-mono);
@@ -586,8 +594,8 @@ const aboutVideoSchema = {
 
   .about-card {
     background: var(--paper);
-    border: 1px solid var(--line-strong);
-    border-left: 3px solid var(--accent);
+    border: var(--surface-border);
+    border-left: var(--accent-stripe);
     padding: 1.5rem 1.75rem;
   }
 
@@ -616,7 +624,7 @@ const aboutVideoSchema = {
     letter-spacing: 0.1em;
     display: inline-block;
     padding: 0.7rem 1.2rem;
-    border: 1px solid var(--rule);
+    border: var(--border-strong);
     background: var(--paper);
     transition: background var(--transition-fast), color var(--transition-fast);
   }
@@ -630,14 +638,11 @@ const aboutVideoSchema = {
   .video-frame {
     margin-top: 2rem;
     background: var(--paper);
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     padding: 1.5rem;
   }
 
   .video-eyebrow {
-    color: var(--accent-strong);
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
     margin-bottom: 0.5rem;
   }
 
@@ -648,7 +653,7 @@ const aboutVideoSchema = {
     color: var(--ink);
     margin: 0 0 1rem;
     padding-left: 0.75rem;
-    border-left: 3px solid var(--accent);
+    border-left: var(--accent-stripe);
   }
 
   .video-container {
@@ -656,7 +661,7 @@ const aboutVideoSchema = {
     padding-bottom: 56.25%;
     height: 0;
     overflow: hidden;
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     background: var(--paper-2);
   }
 
@@ -682,7 +687,7 @@ const aboutVideoSchema = {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1px;
     background: var(--line-strong);
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
   }
 
   .step-card {
@@ -701,7 +706,7 @@ const aboutVideoSchema = {
     justify-content: center;
     width: 2rem;
     height: 2rem;
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     background: var(--paper-2);
     color: var(--accent-strong);
     font-family: var(--font-mono);
@@ -764,7 +769,7 @@ const aboutVideoSchema = {
 
   .feature-item {
     background: var(--paper);
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     padding: 1.25rem;
     cursor: pointer;
     transition: border-color var(--transition-fast), background var(--transition-fast);
@@ -815,7 +820,7 @@ const aboutVideoSchema = {
     font-family: var(--font-mono);
     font-weight: 400;
     line-height: 1;
-    transition: transform 0.2s ease;
+    transition: transform var(--transition-fast);
     flex-shrink: 0;
   }
 
@@ -828,7 +833,7 @@ const aboutVideoSchema = {
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: all 0.35s cubic-bezier(0.2, 0, 0, 1);
+    transition: all var(--transition-slow);
     margin-top: 0;
   }
 
@@ -875,7 +880,7 @@ const aboutVideoSchema = {
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 1px;
     background: var(--line-strong);
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
   }
 
   .tech-card {
@@ -898,7 +903,7 @@ const aboutVideoSchema = {
     justify-content: center;
     width: 44px;
     height: 44px;
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     background: var(--paper-2);
     color: var(--accent);
   }
