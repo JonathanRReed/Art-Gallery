@@ -544,6 +544,154 @@ function applyAntiAliasing(buffer, width, height, strength = 0.3) {
   buffer.set(out);
 }
 
+// ─── Trace (line) renderer ───
+// Strokes the chosen traversal curve as one continuous colored polyline —
+// the clean "plotted line" aesthetic, as real, deterministic generator output.
+// Color advances along the path (0→1) through the gradient map (or a hue sweep
+// when no map is set). Renders onto a transparent background so it composites
+// over whatever surface holds it (preview canvas, card, export).
+
+// Sample a color at t∈[0,1] along a gradient palette, or a vivid hue sweep if none.
+function sampleTraceColor(palette, t) {
+  if (!palette || palette.length === 0) {
+    return hsv2rgb((t * 320) % 360, 0.82, 0.96);
+  }
+  const f = t * (palette.length - 1);
+  const i0 = Math.max(0, Math.min(palette.length - 1, Math.floor(f)));
+  const i1 = Math.min(palette.length - 1, i0 + 1);
+  const ft = f - i0;
+  const c0 = palette[i0], c1 = palette[i1];
+  return [
+    Math.round(c0[0] + (c1[0] - c0[0]) * ft),
+    Math.round(c0[1] + (c1[1] - c0[1]) * ft),
+    Math.round(c0[2] + (c1[2] - c0[2]) * ft)
+  ];
+}
+
+// Snap a desired cells-per-side to a value the curve can actually tile.
+function snapTraceGrid(curveType, target) {
+  target = Math.max(4, Math.min(96, target));
+  if (curveType === 'peano') {
+    const k = Math.max(2, Math.round(Math.log(target) / Math.log(3)));
+    return Math.pow(3, k); // 9, 27, 81
+  }
+  if (curveType === 'hilbert' || curveType === 'morton') {
+    const k = Math.max(2, Math.round(Math.log2(target)));
+    return 1 << k; // 4, 8, 16, 32, 64
+  }
+  return Math.round(target); // spiral / randomwalk: any size
+}
+
+// A true square spiral PATH (adjacent steps), center-out. The spiral sort key
+// used by fill mode only orders cells by radius/angle — it is NOT a drawable
+// continuous path — so trace mode walks an actual rectangular spiral instead.
+function squareSpiralSequence(G) {
+  const path = [];
+  let l = 0, r = G - 1, t = 0, b = G - 1;
+  while (l <= r && t <= b) {
+    for (let x = l; x <= r; x++) path.push([x, t]);
+    t++;
+    for (let y = t; y <= b; y++) path.push([r, y]);
+    r--;
+    if (t <= b) { for (let x = r; x >= l; x--) path.push([x, b]); b--; }
+    if (l <= r) { for (let y = b; y >= t; y--) path.push([l, y]); l++; }
+  }
+  path.reverse(); // color blooms from the center outward
+  return path;
+}
+
+// Ordered visit sequence of grid cells for a curve type (G×G grid).
+function buildTraceSequence(curveType, G, seed) {
+  if (curveType === 'spiral') return squareSpiralSequence(G);
+  const cells = new Array(G * G);
+  let k = 0;
+  for (let y = 0; y < G; y++) for (let x = 0; x < G; x++) cells[k++] = [x, y];
+  let keyOf;
+  if (curveType === 'peano') {
+    const order = Math.max(1, Math.round(Math.log(G) / Math.log(3)));
+    keyOf = (c) => xyToPeano(c[0], c[1], order);
+  } else if (curveType === 'morton') {
+    keyOf = (c) => mortonEncode(c[0], c[1]);
+  } else if (curveType === 'spiral') {
+    keyOf = (c) => xyToSpiral(c[0], c[1], G, G);
+  } else if (curveType === 'randomwalk') {
+    const sm = generateRandomWalkOrder(G, G, seed);
+    keyOf = (c) => sm[c[1] * G + c[0]];
+  } else { // hilbert
+    const order = Math.max(1, Math.round(Math.log2(G)));
+    keyOf = (c) => xyToHilbert(c[0], c[1], order);
+  }
+  cells.sort((a, b) => keyOf(a) - keyOf(b));
+  return cells;
+}
+
+// Alpha-blend a color over one pixel (premultiplied-ish, tracks max alpha).
+function blendTracePixel(buffer, idx, col, a) {
+  const pi = idx * 4;
+  const ia = 1 - a;
+  buffer[pi]     = col[0] * a + buffer[pi]     * ia;
+  buffer[pi + 1] = col[1] * a + buffer[pi + 1] * ia;
+  buffer[pi + 2] = col[2] * a + buffer[pi + 2] * ia;
+  const na = (255 * a) | 0;
+  if (na > buffer[pi + 3]) buffer[pi + 3] = na;
+}
+
+// Rasterize one anti-aliased thick segment (round caps via distance-to-segment).
+function drawTraceSegment(buffer, W, H, x0, y0, x1, y1, half, col) {
+  const minX = Math.max(0, Math.floor(Math.min(x0, x1) - half - 1));
+  const maxX = Math.min(W - 1, Math.ceil(Math.max(x0, x1) + half + 1));
+  const minY = Math.max(0, Math.floor(Math.min(y0, y1) - half - 1));
+  const maxY = Math.min(H - 1, Math.ceil(Math.max(y0, y1) + half + 1));
+  const dx = x1 - x0, dy = y1 - y0;
+  const len2 = dx * dx + dy * dy || 1;
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      let t = ((x - x0) * dx + (y - y0) * dy) / len2;
+      if (t < 0) t = 0; else if (t > 1) t = 1;
+      const px = x0 + t * dx, py = y0 + t * dy;
+      const d = Math.hypot(x - px, y - py);
+      const cov = half - d;
+      if (cov <= 0) continue;
+      blendTracePixel(buffer, y * W + x, col, cov >= 1 ? 1 : cov);
+    }
+  }
+}
+
+// Render the full trace into a transparent RGBA buffer.
+function renderTrace(buffer, W, H, opts) {
+  const { curveType, seed, gradientMap, traceStroke, traceDensity } = opts;
+  buffer.fill(0); // transparent background
+  const G = snapTraceGrid(curveType, traceDensity && traceDensity > 0 ? traceDensity : 32);
+  const seq = buildTraceSequence(curveType, G, seed || 1);
+  const pad = Math.round(Math.min(W, H) * 0.06);
+  const spanX = (W - 2 * pad) / (G - 1);
+  const spanY = (H - 2 * pad) / (G - 1);
+  const half = Math.max(0.7, Math.min(spanX, spanY) * 0.18 * (traceStroke || 1));
+  const palette = GRADIENT_PALETTES[gradientMap] || null;
+  const M = seq.length;
+  // Pen-up threshold per curve: Hilbert/Peano/Spiral are connected paths (draw
+  // every segment); Morton's Z-order has block jumps (keep local steps, drop the
+  // canvas-crossing ones); the random walk teleports when stuck (draw true steps
+  // only). This keeps every curve a clean line instead of a slash or a dash field.
+  let maxJump;
+  if (curveType === 'randomwalk') maxJump = 1;
+  else if (curveType === 'morton') maxJump = Math.max(2, Math.round(G / 4));
+  else if (curveType === 'peano') maxJump = 2; // drop construction slashes, keep local runs
+  else maxJump = Infinity; // hilbert, spiral are true continuous paths
+  for (let i = 1; i < M; i++) {
+    const a = seq[i - 1], b = seq[i];
+    const gridDist = Math.abs(b[0] - a[0]) + Math.abs(b[1] - a[1]);
+    if (gridDist <= maxJump) {
+      const col = sampleTraceColor(palette, i / (M - 1));
+      drawTraceSegment(buffer, W, H,
+        pad + a[0] * spanX, pad + a[1] * spanY,
+        pad + b[0] * spanX, pad + b[1] * spanY,
+        half, col);
+    }
+    if ((i & 2047) === 0) self.postMessage({ progress: Math.round((i / M) * 90) });
+  }
+}
+
 // ─── State ───
 let isPaused = false;
 let totalPixels = 0;
@@ -584,7 +732,11 @@ self.onmessage = function (e) {
       // NEW parameters (backward compatible defaults)
       gradientMap = 'none',
       dithering = false,
-      antiAliasing = false
+      antiAliasing = false,
+      // Trace (line) mode
+      renderMode = 'fill',
+      traceStroke = 1,
+      traceDensity = 0
     } = e.data;
 
     const outputWidth = exactOutputSize || width;
@@ -616,6 +768,26 @@ self.onmessage = function (e) {
     const alpha = transparent ? 0 : 255;
     for (let i = 0; i < buffer.length; i += 4) {
       buffer[i] = 0; buffer[i + 1] = 0; buffer[i + 2] = 0; buffer[i + 3] = alpha;
+    }
+
+    // ─── Trace (line) mode: stroke the curve and return; bypass the fill engine ───
+    if (renderMode === 'trace') {
+      renderTrace(buffer, outputWidth, outputHeight, {
+        curveType, seed, gradientMap, traceStroke, traceDensity
+      });
+      self.postMessage({ progress: 100 });
+      const traceMeta = {
+        width: outputWidth, height: outputHeight, colorSpace,
+        patternComplexity, transparent: true, dpi
+      };
+      try {
+        self.postMessage({ buffer, metadata: traceMeta }, [buffer.buffer]);
+      } catch (err) {
+        const copy = new Uint8ClampedArray(buffer.length);
+        copy.set(buffer);
+        self.postMessage({ buffer: copy.buffer, metadata: traceMeta }, [copy.buffer]);
+      }
+      return;
     }
 
     let actualPatternComplexity = patternComplexity;

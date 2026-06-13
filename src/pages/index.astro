@@ -50,19 +50,24 @@ const heroPath = toPath(hilbertPoints(5));
 // reproduces. The thumbnails are rendered live on the client from these same
 // params, and clicking a card loads the recipe into the generator and plots it.
 const PRESET_BASE = {
-  seed: 1, curveType: "hilbert", growthMode: "crystal", seedShape: "point",
-  symmetryMode: "none", colorProgression: "shuffled", branchingFactor: 0.5,
-  growthRate: 1, randomness: 10, distanceRandomness: 10, colorSampleSize: 100,
-  gradientMap: "none", dithering: false, antiAliasing: false,
-  previewSize: 128, patternSize: 128, allRGBMode: false,
+  seed: 1, curveType: "hilbert", renderMode: "trace",
+  traceStroke: 1, traceDensity: 32, gradientMap: "none",
+  // fill-mode fields kept so the recipe stays complete if the visitor switches modes
+  growthMode: "crystal", seedShape: "point", symmetryMode: "none",
+  colorProgression: "sequential", branchingFactor: 0.5, growthRate: 1,
+  randomness: 10, distanceRandomness: 10, colorSampleSize: 100,
+  dithering: false, antiAliasing: false,
+  previewSize: 256, patternSize: 256, allRGBMode: false,
 };
+// Each card is a real trace recipe — the thumbnail is the generator's actual
+// output, and clicking it loads the recipe and plots the same piece.
 const presets = [
-  { id: "crystal-bloom", name: "Crystal Bloom", sub: "Hilbert · radial", params: { ...PRESET_BASE, seed: 1337, symmetryMode: "radial" } },
-  { id: "tidewater", name: "Tidewater", sub: "Morton · ocean", params: { ...PRESET_BASE, seed: 88, curveType: "morton", growthMode: "nebula", gradientMap: "ocean" } },
-  { id: "solar-rings", name: "Solar Rings", sub: "Rings · sunset", params: { ...PRESET_BASE, seed: 42, growthMode: "rings", symmetryMode: "quadrantal", colorProgression: "sequential", gradientMap: "sunset" } },
-  { id: "neon-spiral", name: "Neon Spiral", sub: "Spiral · neon", params: { ...PRESET_BASE, seed: 7, curveType: "spiral", colorProgression: "brightness", gradientMap: "neon" } },
-  { id: "understory", name: "Understory", sub: "Peano · forest", params: { ...PRESET_BASE, seed: 256, curveType: "peano", growthMode: "flow", symmetryMode: "bilateral", colorProgression: "base-distance", gradientMap: "forest" } },
-  { id: "magma-walk", name: "Magma Walk", sub: "Random walk · magma", params: { ...PRESET_BASE, seed: 99, curveType: "randomwalk", gradientMap: "magma" } },
+  { id: "crystal-bloom", name: "Crystal Bloom", sub: "Hilbert · spectrum", params: { ...PRESET_BASE, curveType: "hilbert", gradientMap: "none", traceDensity: 32 } },
+  { id: "tidewater", name: "Tidewater", sub: "Spiral · ocean", params: { ...PRESET_BASE, curveType: "spiral", gradientMap: "ocean", traceDensity: 28, traceStroke: 1.1 } },
+  { id: "understory", name: "Understory", sub: "Peano · forest", params: { ...PRESET_BASE, curveType: "peano", gradientMap: "forest", traceDensity: 27 } },
+  { id: "ember-fold", name: "Ember Fold", sub: "Morton · sunset", params: { ...PRESET_BASE, curveType: "morton", gradientMap: "sunset", traceDensity: 32 } },
+  { id: "magma-walk", name: "Magma Walk", sub: "Random walk · magma", params: { ...PRESET_BASE, seed: 7, curveType: "randomwalk", gradientMap: "magma", traceDensity: 36 } },
+  { id: "neon-bloom", name: "Neon Bloom", sub: "Hilbert · neon", params: { ...PRESET_BASE, curveType: "hilbert", gradientMap: "neon", traceDensity: 16, traceStroke: 1.4 } },
 ];
 ---
 
@@ -145,7 +150,7 @@ const presets = [
           aria-label={`Load and plot the ${p.name} pattern`}
         >
           <span class="preset-thumb">
-            <canvas width="128" height="128" data-preset-canvas aria-hidden="true"></canvas>
+            <canvas width="256" height="256" data-preset-canvas aria-hidden="true"></canvas>
             <span class="preset-plotting mono" aria-hidden="true">plotting…</span>
           </span>
           <span class="preset-meta">
