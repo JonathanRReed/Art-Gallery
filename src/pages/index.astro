@@ -1,197 +1,276 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GenerationPage from "../components/GenerationPage.jsx";
+
+/* ------------------------------------------------------------------
+   Traversal curves computed at build time, rendered as honest line art
+   instead of decorative gradients. The Hilbert/Morton/Peano plates
+   reproduce the generator's exact traversals; the spiral plate is an
+   illustrative Archimedean spiral (the engine's spiral ordering is a
+   single radius+angle sweep, drawn here as nested rings for legibility).
+   ------------------------------------------------------------------ */
+function hilbertPoints(order: number) {
+  const n = 1 << order;
+  const total = n * n;
+  const pts = [];
+  for (let d = 0; d < total; d++) {
+    let t = d;
+    let x = 0;
+    let y = 0;
+    for (let s = 1; s < n; s <<= 1) {
+      const rx = 1 & (t >> 1);
+      const ry = 1 & (t ^ rx);
+      if (ry === 0) {
+        if (rx === 1) {
+          x = s - 1 - x;
+          y = s - 1 - y;
+        }
+        const tmp = x;
+        x = y;
+        y = tmp;
+      }
+      x += s * rx;
+      y += s * ry;
+      t >>= 2;
+    }
+    pts.push([x, y]);
+  }
+  return { pts, n };
+}
+
+function mortonPoints(order: number) {
+  const n = 1 << order;
+  const total = n * n;
+  const pts = [];
+  for (let d = 0; d < total; d++) {
+    let x = 0;
+    let y = 0;
+    for (let i = 0; i < order; i++) {
+      x |= ((d >> (2 * i)) & 1) << i;
+      y |= ((d >> (2 * i + 1)) & 1) << i;
+    }
+    pts.push([x, y]);
+  }
+  return { pts, n };
+}
+
+function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10) {
+  const inner = size - pad * 2;
+  const step = inner / (n - 1);
+  return pts
+    .map(([x, y]: number[], i: number) => {
+      const px = (pad + x * step).toFixed(2);
+      const py = (pad + y * step).toFixed(2);
+      return `${i === 0 ? "M" : "L"}${px} ${py}`;
+    })
+    .join(" ");
+}
+
+// Peano: a recursive 3×3 space-filling curve (matches the engine's traversal)
+function peanoDist(x: number, y: number, order: number) {
+  const n = Math.pow(3, order);
+  let d = 0;
+  const table = [[0, 1, 2], [5, 4, 3], [6, 7, 8]];
+  for (let s = n / 3; s >= 1; s /= 3) {
+    const rx = Math.floor(x / s) % 3;
+    const ry = Math.floor(y / s) % 3;
+    d = d * 9 + table[ry][rx];
+  }
+  return d;
+}
+function peanoPoints(order: number) {
+  const n = Math.pow(3, order);
+  const cells: number[][] = [];
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) cells.push([x, y]);
+  cells.sort((a, b) => peanoDist(a[0], a[1], order) - peanoDist(b[0], b[1], order));
+  return { pts: cells, n };
+}
+// Illustrative parametric Archimedean spiral (nested rings) for the spiral plate
+function spiralPath(size = 200, pad = 12, turns = 6, steps = 640) {
+  const c = size / 2;
+  const maxR = (size - pad * 2) / 2;
+  const maxTheta = turns * 2 * Math.PI;
+  let d = "";
+  for (let i = 0; i <= steps; i++) {
+    const th = (i / steps) * maxTheta;
+    const r = maxR * (th / maxTheta);
+    d += `${i === 0 ? "M" : "L"}${(c + r * Math.cos(th)).toFixed(2)} ${(c + r * Math.sin(th)).toFixed(2)} `;
+  }
+  return d.trim();
+}
+
+const heroPath = toPath(hilbertPoints(5));
+const showcase = [
+  { d: toPath(hilbertPoints(5)), label: "Hilbert · order 5", hint: "1,024 cells · locality-preserving", stroke: "var(--accent)" },
+  { d: toPath(mortonPoints(5)), label: "Morton · Z-order", hint: "1,024 cells · quadrant blocks", stroke: "var(--ink)" },
+  { d: toPath(peanoPoints(3)), label: "Peano · order 3", hint: "729 cells · woven 3×3 recursion", stroke: "var(--accent)" },
+  { d: spiralPath(), label: "Spiral", hint: "Archimedean · winds out in rings", stroke: "var(--ink)" },
+];
+
+const features = [
+  { n: "00", title: "Deterministic output", body: "Identical settings always produce the identical image. Every run is a reproducible study, recreatable from its parameters." },
+  { n: "01", title: "Five traversal curves", body: "Three space-filling curves — Hilbert, Morton, Peano — plus an Archimedean spiral and a constrained random walk, each visiting the canvas differently and reordering how color flows across the plate." },
+  { n: "02", title: "Growth & symmetry", body: "Four growth modes (crystal, nebula, rings, flow) and four symmetry rules fold the same seed into endlessly different compositions." },
+  { n: "03", title: "High-resolution export", body: "Render finished pieces to PNG or PDF at up to 4096×4096 — ready for print, screen, or portfolio." },
+  { n: "04", title: "Saved gallery", body: "Keep the strongest studies with their exact settings. Return later to compare, refine, or re-export." },
+  { n: "05", title: "Live preview", body: "Adjust a control and watch the plate redraw in real time. Experiment fast, commit with intent." },
+];
 ---
 
 <BaseLayout
   title="Generative Art Studio | Jonathan R Reed"
   description="Generate algorithmic artworks with curated controls, live previews, saved gallery studies, deterministic seeds, and high-resolution exports by Jonathan R Reed."
 >
-  <!-- Hero Section -->
-  <section class="hero-section" aria-labelledby="art-index-title">
-    <div class="hero-background" aria-hidden="true">
-      <div class="mesh-blob blob-1"></div>
-      <div class="mesh-blob blob-2"></div>
-      <div class="mesh-blob blob-3"></div>
-      <div class="mesh-blob blob-4"></div>
-      <div class="mesh-grid"></div>
-    </div>
-    <div class="hero-content">
-      <p class="mono-text hero-eyebrow">Generative art studio</p>
-      <h1 id="art-index-title" class="hero-title">Algorithmic<br />Art Gallery</h1>
-      <p class="mono-text hero-meta">
-        By Jonathan R Reed. Updated <time datetime="2026-04-21">April 21, 2026</time>.
-      </p>
-      <p class="hero-lead">
-        Build deterministic artwork from space-filling curves, growth modes,
-        color ordering, symmetry rules, and seed controls. Every saved output
-        can be regenerated from the same settings, then exported for sharing or
-        printing.
-      </p>
-      <div class="hero-cta-group">
-        <a href="#generator" class="cta-primary">Start Creating</a>
-        <a href="/gallery/" class="cta-secondary">View Gallery</a>
-        <a href="/about/" class="cta-secondary" aria-label="Learn more about Algorithmic Art Gallery"
-          >Learn More<span class="sr-only"> about Algorithmic Art Gallery</span></a
-        >
+  <!-- ===================== HERO ===================== -->
+  <section class="hero" aria-labelledby="art-index-title">
+    <div class="hero-sheet crop">
+      <span class="crop-tr"></span><span class="crop-bl"></span>
+
+      <figure class="hero-plot">
+        <div class="hero-plot-stage" id="hero-plot-stage">
+          <svg class="hero-plot-svg" viewBox="0 0 200 200" role="img"
+            aria-label="A Hilbert space-filling curve being plotted">
+            <rect x="10" y="10" width="180" height="180" fill="none" stroke="var(--line-strong)" stroke-width="0.5" />
+            <path id="hero-curve" class="plot-path" d={heroPath} pathLength="1" fill="none"
+              stroke="var(--accent)" stroke-width="1.4" stroke-linecap="square" stroke-linejoin="miter" />
+            <g class="plotter-head" aria-hidden="true">
+              <circle r="3" fill="none" stroke="var(--ink)" stroke-width="1" />
+              <line x1="-7" y1="0" x2="7" y2="0" stroke="var(--accent)" stroke-width="1" />
+              <line x1="0" y1="-7" x2="0" y2="7" stroke="var(--accent)" stroke-width="1" />
+              <animateMotion dur="3.4s" begin="0.2s" fill="freeze" rotate="0">
+                <mpath href="#hero-curve" />
+              </animateMotion>
+            </g>
+          </svg>
+          <div class="plot-cross" id="plot-cross" aria-hidden="true">
+            <span class="plot-cross-x"></span>
+            <span class="plot-cross-y"></span>
+            <span class="plot-cross-read mono" id="plot-cross-read">X000 Y000</span>
+          </div>
+        </div>
+        <figcaption class="plot-tag">
+          <span class="mono">FIG.01</span>
+          <span>Hilbert order n=5 · 1,024 cells · live trace</span>
+        </figcaption>
+      </figure>
+
+      <div class="hero-copy">
+        <p class="eyebrow">Generative drawing instrument</p>
+        <h1 id="art-index-title" class="hero-title">Algorithmic<br />Art Gallery</h1>
+        <p class="hero-lead">
+          Plot deterministic artwork from space-filling curves, growth modes,
+          color progression, symmetry, and seeds. Every saved piece regenerates
+          exactly from its settings — then exports for screen or print.
+        </p>
+        <dl class="titleblock">
+          <div><dt>Author</dt><dd>Jonathan R Reed</dd></div>
+          <div><dt>Method</dt><dd>Hilbert · Morton</dd></div>
+          <div><dt>Output</dt><dd>PNG · PDF · 4096²</dd></div>
+          <div><dt>Rev</dt><dd>2026.04.21</dd></div>
+        </dl>
+        <div class="hero-cta-group">
+          <a href="#generator" class="btn-accent">Start plotting</a>
+          <a href="/gallery/" class="btn">View gallery</a>
+          <a href="/about/" class="btn-ghost">About<span class="sr-only"> the Algorithmic Art Gallery</span></a>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Showcase Section -->
-  <section class="showcase-section" aria-labelledby="showcase-title">
-    <div class="showcase-header reveal-element">
-      <p class="mono-text showcase-eyebrow">Visual systems</p>
-      <h2 id="showcase-title" class="showcase-title">What the algorithm draws</h2>
-      <p class="showcase-desc">
-        A small sample of the patterns produced by varying symmetry, curve traversal, and color ordering.
+  <!-- ===================== SHOWCASE ===================== -->
+  <section class="showcase" aria-labelledby="showcase-title">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow">Plate index</p>
+      <h2 id="showcase-title" class="section-title">The curves the tool draws</h2>
+      <p class="section-desc">
+        Every image begins as one of these traversals. Color and symmetry are
+        applied along the path — change the curve and the whole composition reorders.
       </p>
-    </div>
+    </header>
+    <div class="rule-ticks" aria-hidden="true" data-reveal></div>
     <div class="showcase-grid">
-      <div class="showcase-card reveal-element" role="img" aria-label="Radial symmetry pattern with concentric color rings">
-        <div class="art-placeholder art-radial"></div>
-        <div class="showcase-card-caption">
-          <span class="caption-label mono-text">Radial / Sequential</span>
-          <span class="caption-hint">Hilbert curve</span>
-        </div>
-      </div>
-      <div class="showcase-card reveal-element" role="img" aria-label="Quadrant mirror pattern with angular geometric blocks">
-        <div class="art-placeholder art-quadrant"></div>
-        <div class="showcase-card-caption">
-          <span class="caption-label mono-text">Quadrantal / HSV</span>
-          <span class="caption-hint">Morton Z-order</span>
-        </div>
-      </div>
-      <div class="showcase-card reveal-element" role="img" aria-label="Organic nebula pattern with soft diffused gradients">
-        <div class="art-placeholder art-nebula"></div>
-        <div class="showcase-card-caption">
-          <span class="caption-label mono-text">Nebula / Shuffled</span>
-          <span class="caption-hint">Hilbert curve</span>
-        </div>
-      </div>
-      <div class="showcase-card reveal-element" role="img" aria-label="Crystalline formation with sharp angular structures">
-        <div class="art-placeholder art-crystal"></div>
-        <div class="showcase-card-caption">
-          <span class="caption-label mono-text">Crystal / Base Distance</span>
-          <span class="caption-hint">Morton Z-order</span>
-        </div>
-      </div>
+      {showcase.map((c, i) => (
+        <figure class="showcase-card crop" data-reveal>
+          <span class="crop-tr"></span><span class="crop-bl"></span>
+          <div class="showcase-plot">
+            <svg viewBox="0 0 200 200" role="img" aria-label={`${c.label} traversal curve`}>
+              <path class="showcase-path" style={`--i:${i}`} d={c.d} pathLength="1" fill="none"
+                stroke={c.stroke} stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" />
+            </svg>
+          </div>
+          <figcaption class="showcase-caption">
+            <span class="mono showcase-label">{c.label}</span>
+            <span class="showcase-hint">{c.hint}</span>
+          </figcaption>
+        </figure>
+      ))}
     </div>
   </section>
 
-  <!-- Features Section -->
-  <section class="features-section" aria-labelledby="features-title">
-    <div class="features-header reveal-element">
-      <p class="mono-text features-eyebrow">Capabilities</p>
-      <h2 id="features-title" class="features-title">Designed for exploration</h2>
-    </div>
-    <div class="features-grid">
-      <article class="feature-card reveal-element">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        <h3 class="feature-card-title">Deterministic Output</h3>
-        <p class="feature-card-text">
-          Same settings always produce the same image. Treat every run as a reproducible study.
-        </p>
-      </article>
-      <article class="feature-card reveal-element">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        </div>
-        <h3 class="feature-card-title">Space-Filling Curves</h3>
-        <p class="feature-card-text">
-          Choose Hilbert or Morton traversal to control how the canvas is visited and how color flows.
-        </p>
-      </article>
-      <article class="feature-card reveal-element">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </div>
-        <h3 class="feature-card-title">Symmetry Rules</h3>
-        <p class="feature-card-text">
-          None, bilateral, quadrantal, or radial symmetry. Each rule reshapes the same seed into a new composition.
-        </p>
-      </article>
-      <article class="feature-card reveal-element">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </div>
-        <h3 class="feature-card-title">High-Res Export</h3>
-        <p class="feature-card-text">
-          Export finished compositions as PNG or PDF. Ready for print, presentation, or portfolio use.
-        </p>
-      </article>
-      <article class="feature-card reveal-element">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <h3 class="feature-card-title">Saved Gallery</h3>
-        <p class="feature-card-text">
-          Bookmark the strongest studies. Return later to compare, refine, or export without losing the exact settings.
-        </p>
-      </article>
-      <article class="feature-card reveal-element">
-        <div class="feature-icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        </div>
-        <h3 class="feature-card-title">Live Preview</h3>
-        <p class="feature-card-text">
-          Adjust controls and watch the canvas update in real time. Experiment quickly, decide with confidence.
-        </p>
-      </article>
-    </div>
+  <!-- ===================== FEATURES (legend) ===================== -->
+  <section class="features" aria-labelledby="features-title">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow">Capabilities</p>
+      <h2 id="features-title" class="section-title">A studio built for deliberate exploration</h2>
+    </header>
+    <ol class="legend" data-reveal>
+      {features.map((f) => (
+        <li class="legend-row">
+          <span class="legend-n mono">{f.n}</span>
+          <div class="legend-body">
+            <h3 class="legend-title">{f.title}</h3>
+            <p class="legend-text">{f.body}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
   </section>
 
-  <!-- Studio Notes -->
-  <section class="notes-section reveal-element" aria-labelledby="notes-title">
-    <details class="art-index-copy">
+  <!-- ===================== STUDIO NOTES ===================== -->
+  <section class="notes" aria-labelledby="notes-title">
+    <details class="notes-sheet" data-reveal>
       <summary id="notes-title">Studio notes</summary>
-      <p>
-        The studio is designed for deliberate exploration rather than random
-        effects. Use the controls to compare Hilbert and Morton traversal,
-        change how color moves through the image, then save the strongest
-        variations into the gallery for later review.
-      </p>
-      <p>
-        A seed defines the starting point, a traversal curve determines how the
-        canvas is visited, and color rules decide how structure becomes visible.
-        Adjust one setting at a time when you want to compare related outputs.
-      </p>
-      <p>
-        Small parameter changes often explain the system better than a completely
-        new random seed. Compare related runs when you want to understand how a
-        pattern forms, then keep the saved versions that show a clear difference
-        in density, symmetry, or color rhythm.
-      </p>
-      <p>
-        The generator is useful as a sketchbook, a reference archive, and a way to
-        make algorithmic rules visible. The final image matters, but the settings
-        behind it matter too because they let the same result be recreated later.
-      </p>
-      <p>
-        When a run works, save it before changing controls. Comparing saved outputs
-        against the active canvas makes it easier to spot which choice actually
-        improved the artwork: the curve, the symmetry, the seed, or the color path.
-      </p>
-      <p>
-        The tool is intentionally focused on repeatable visual systems, so each
-        experiment can become either a finished composition or a note about how a
-        particular rule behaves.
-      </p>
+      <div class="notes-body">
+        <p>
+          The studio is built for deliberate exploration, not random effects.
+          Compare Hilbert against Morton traversal, change how color moves through
+          the image, then save the strongest variations to the gallery for review.
+        </p>
+        <p>
+          A seed defines the starting point, a traversal curve determines how the
+          canvas is visited, and the color rules decide how structure becomes
+          visible. Adjust one setting at a time when you want to compare related outputs.
+        </p>
+        <p>
+          Small parameter changes often explain the system better than a brand-new
+          random seed. Keep the saved versions that show a clear difference in
+          density, symmetry, or color rhythm.
+        </p>
+        <p>
+          When a run works, save it before changing controls. Comparing saved
+          outputs against the live plate makes it easier to spot which choice
+          actually improved the piece: the curve, the symmetry, the seed, or the color path.
+        </p>
+      </div>
     </details>
   </section>
 
-  <!-- Generator -->
-  <section id="generator" class="generator-wrapper reveal-element">
-    <!-- Minimalist Brutal Loader -->
+  <!-- ===================== GENERATOR ===================== -->
+  <section id="generator" class="generator">
+    <header class="section-head" data-reveal>
+      <p class="eyebrow">The instrument</p>
+      <h2 class="section-title">Plot a new piece</h2>
+    </header>
+
     <div class="art-loader" id="art-loader">
-      <div class="loader-container">
-        <div class="brutal-spinner"></div>
-        <div class="loader-text mono-text">[INITIALIZING SYSTEM]</div>
-        <div class="loader-subtext mono-text">Loading generative engine...</div>
+      <div class="loader-container crop">
+        <span class="crop-tr"></span><span class="crop-bl"></span>
+        <div class="loader-spinner" aria-hidden="true"></div>
+        <div class="loader-text mono">Initializing plotter</div>
+        <div class="loader-subtext mono">Loading the generative engine<span class="loader-cursor">_</span></div>
       </div>
     </div>
+
     <div class="generator-container">
       <GenerationPage client:only="react" />
     </div>
@@ -199,508 +278,481 @@ import GenerationPage from "../components/GenerationPage.jsx";
 </BaseLayout>
 
 <script is:inline>
-  // Hide loader when React component loads
-  let attempts = 0;
-  const maxAttempts = 120;
+  (function () {
+    if (window.__aagIndex) return;
+    window.__aagIndex = true;
 
-  const checkReactLoaded = () => {
-    const loader = document.getElementById("art-loader");
-    const generator = document.querySelector(".generator-container");
-    if (generator && generator.children.length > 0) {
-      if (loader) {
-        loader.classList.add("fade-out");
-        setTimeout(() => {
-          loader.style.display = "none";
-        }, 500);
+    function initIndex() {
+      // Under reduced-motion, remove the SMIL plotter head entirely so its
+      // timeline never runs (CSS display:none only hides it).
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const head = document.querySelector(".plotter-head");
+        if (head) head.remove();
       }
-      return;
-    }
-    if (attempts < maxAttempts) {
-      attempts += 1;
-      requestAnimationFrame(checkReactLoaded);
-      return;
-    }
-  };
 
-  const forceReveal = () => {
-    const loader = document.getElementById("art-loader");
-    if (loader) {
-      loader.classList.add("fade-out");
-      loader.style.display = "none";
-    }
-  };
+      // --- Loader: mask the gap until the React generator hydrates ---
+      const loader = document.getElementById("art-loader");
+      if (loader) {
+        if (window.__aagLoaderDone) {
+          loader.classList.add("fade-out");
+          loader.style.display = "none";
+        } else {
+          let attempts = 0;
+          const check = () => {
+            const generator = document.querySelector(".generator-container");
+            if (generator && generator.children.length > 0) {
+              loader.classList.add("fade-out");
+              setTimeout(() => { loader.style.display = "none"; }, 500);
+              window.__aagLoaderDone = true;
+              return;
+            }
+            if (attempts++ < 120) requestAnimationFrame(check);
+          };
+          setTimeout(() => {
+            if (!loader.classList.contains("fade-out")) {
+              loader.classList.add("fade-out");
+              loader.style.display = "none";
+              window.__aagLoaderDone = true;
+            }
+          }, 4000);
+          setTimeout(check, 100);
+        }
+      }
 
-  setTimeout(() => {
-    const loader = document.getElementById("art-loader");
-    if (loader && !loader.classList.contains("fade-out")) {
-      forceReveal();
+      // --- Interactive coordinate crosshair over the hero plot ---
+      const stage = document.getElementById("hero-plot-stage");
+      const cross = document.getElementById("plot-cross");
+      const read = document.getElementById("plot-cross-read");
+      if (stage && cross && read && !stage.dataset.wired) {
+        stage.dataset.wired = "1";
+        const xline = cross.querySelector(".plot-cross-x");
+        const yline = cross.querySelector(".plot-cross-y");
+        const pad2 = (n) => String(n).padStart(2, "0");
+        let rect = null;
+        const invalidate = () => { rect = null; };
+        stage.addEventListener("pointermove", (e) => {
+          const r = rect || (rect = stage.getBoundingClientRect());
+          const px = Math.min(Math.max(e.clientX - r.left, 0), r.width);
+          const py = Math.min(Math.max(e.clientY - r.top, 0), r.height);
+          if (xline) xline.style.top = py + "px";
+          if (yline) yline.style.left = px + "px";
+          read.style.left = px + "px";
+          read.style.top = py + "px";
+          // Real coordinate: which of the 32x32 Hilbert cells (order n=5) is under the cursor
+          const col = Math.min(31, Math.floor((px / r.width) * 32));
+          const row = Math.min(31, Math.floor((py / r.height) * 32));
+          read.textContent = "C" + pad2(col) + " R" + pad2(row);
+        });
+        // Re-measure per hover session; invalidate on scroll/resize while active.
+        // Listeners are scoped to the hover so nothing leaks across navigations.
+        stage.addEventListener("pointerenter", () => {
+          rect = stage.getBoundingClientRect();
+          cross.classList.add("is-on");
+          window.addEventListener("scroll", invalidate, { passive: true });
+          window.addEventListener("resize", invalidate);
+        });
+        stage.addEventListener("pointerleave", () => {
+          cross.classList.remove("is-on");
+          window.removeEventListener("scroll", invalidate);
+          window.removeEventListener("resize", invalidate);
+        });
+      }
     }
-  }, 4000);
 
-  // Start checking after a brief delay
-  setTimeout(checkReactLoaded, 100);
+    document.addEventListener("astro:page-load", initIndex);
+  })();
 </script>
 
 <style>
-  /* ========================================
-     HERO
-     ======================================== */
-  .hero-section {
-    position: relative;
-    width: 100%;
-    min-height: 70vh;
-    display: flex;
+  /* ===================== HERO ===================== */
+  .hero {
+    width: min(1240px, calc(100% - 2rem));
+    margin: clamp(1.5rem, 5vw, 3.5rem) auto clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .hero-sheet {
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 6rem 1.5rem 4rem;
-    box-sizing: border-box;
   }
 
-  .hero-background {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-    background: var(--color-paper);
+  .hero-plot {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
   }
 
-  .mesh-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(85,103,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(85,103,255,0.04) 1px, transparent 1px);
-    background-size: 60px 60px;
-    z-index: 1;
+  .hero-plot-svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    display: block;
   }
 
-  .mesh-blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.45;
-    animation: blobFloat 20s ease-in-out infinite;
-    z-index: 0;
+  .plot-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw-on 3.4s var(--easing-smooth) 0.2s forwards;
   }
 
-  .blob-1 {
-    width: 50vw;
-    height: 50vw;
-    max-width: 600px;
-    max-height: 600px;
-    background: radial-gradient(circle at 30% 30%, var(--color-accent), transparent 70%);
-    top: -10%;
-    left: -10%;
-    animation-delay: 0s;
+  .plot-tag {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
   }
 
-  .blob-2 {
-    width: 40vw;
-    height: 40vw;
-    max-width: 500px;
-    max-height: 500px;
-    background: radial-gradient(circle at 50% 50%, #7c3aed, transparent 70%);
-    bottom: -5%;
-    right: -5%;
-    animation-delay: -5s;
-    opacity: 0.3;
+  .plot-tag .mono {
+    color: var(--accent-strong);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
   }
 
-  .blob-3 {
-    width: 35vw;
-    height: 35vw;
-    max-width: 420px;
-    max-height: 420px;
-    background: radial-gradient(circle at 60% 40%, #ec4899, transparent 70%);
-    top: 30%;
-    right: 15%;
-    animation-delay: -10s;
-    opacity: 0.25;
-  }
-
-  .blob-4 {
-    width: 30vw;
-    height: 30vw;
-    max-width: 360px;
-    max-height: 360px;
-    background: radial-gradient(circle at 40% 60%, #06b6d4, transparent 70%);
-    bottom: 20%;
-    left: 10%;
-    animation-delay: -15s;
-    opacity: 0.2;
-  }
-
-  @keyframes blobFloat {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    25% { transform: translate(30px, -20px) scale(1.05); }
-    50% { transform: translate(-20px, 30px) scale(0.95); }
-    75% { transform: translate(20px, 20px) scale(1.02); }
-  }
-
-  .hero-content {
+  /* Plot stage holds the SVG + the interactive crosshair overlay */
+  .hero-plot-stage {
     position: relative;
-    z-index: 2;
-    width: min(900px, 100%);
-    text-align: center;
+    cursor: crosshair;
   }
 
-  .hero-eyebrow {
-    color: var(--color-accent);
-    font-size: 0.8rem;
-    margin-bottom: 1rem;
+  /* Interactive coordinate crosshair — like a plotter bed readout */
+  .plot-cross {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: 2;
+  }
+
+  .plot-cross.is-on {
+    opacity: 1;
+  }
+
+  .plot-cross-x,
+  .plot-cross-y {
+    position: absolute;
+    background: var(--ink);
+    opacity: 0.45;
+  }
+
+  .plot-cross-x { left: 0; right: 0; height: 1px; }
+  .plot-cross-y { top: 0; bottom: 0; width: 1px; }
+
+  .plot-cross-read {
+    position: absolute;
+    transform: translate(8px, 8px);
+    padding: 0.12rem 0.36rem;
+    background: var(--ink);
+    color: var(--table);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  /* Choreographed hero entrance — the sheet plots itself in */
+  @keyframes heroIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* The plot bed stays still while it draws; the copy column staggers in */
+  .hero-copy > .eyebrow,
+  .hero-title,
+  .hero-lead,
+  .titleblock,
+  .hero-cta-group {
+    animation: heroIn 0.7s var(--easing-smooth) both;
+  }
+
+  .hero-copy > .eyebrow { animation-delay: 0.08s; }
+  .hero-title { animation-delay: 0.16s; }
+  .hero-lead { animation-delay: 0.3s; }
+  .titleblock { animation-delay: 0.42s; }
+  .hero-cta-group { animation-delay: 0.54s; }
+
+  .hero-copy {
+    min-width: 0;
   }
 
   .hero-title {
-    font-family: var(--font-serif);
-    font-size: clamp(3rem, 10vw, 7rem);
-    line-height: 0.95;
-    color: var(--color-ink);
-    margin: 0 0 1rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, 8vw, 5.75rem);
+    font-weight: 480;
+    line-height: 0.96;
     letter-spacing: -0.03em;
-  }
-
-  .hero-meta {
-    color: var(--color-ink-light);
-    font-size: 0.8rem;
-    margin-bottom: 1.5rem;
+    margin: 0.9rem 0 1.1rem;
+    color: var(--ink);
   }
 
   .hero-lead {
-    max-width: 60ch;
-    margin: 0 auto 2rem;
-    color: var(--color-ink-light);
-    font-size: 1.1rem;
+    max-width: 54ch;
+    color: var(--ink-2);
+    font-size: 1.05rem;
     line-height: 1.7;
+    margin: 0 0 1.6rem;
+  }
+
+  .titleblock {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line-strong);
+    border: 1px solid var(--line-strong);
+    margin: 0 0 1.75rem;
+  }
+
+  .titleblock > div {
+    background: var(--paper);
+    padding: 0.65rem 0.85rem;
+  }
+
+  .titleblock dt {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+    margin-bottom: 0.2rem;
+  }
+
+  .titleblock dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink);
   }
 
   .hero-cta-group {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
+    gap: 0.7rem;
   }
 
-  .cta-primary,
-  .cta-secondary {
-    display: inline-flex;
-    align-items: center;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.85rem 1.5rem;
-    border: var(--border-ink);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  /* ===================== SECTION HEADS ===================== */
+  .section-head {
+    margin-bottom: 1.75rem;
   }
 
-  .cta-primary {
-    background: var(--color-ink);
-    color: var(--color-paper);
-    box-shadow: 4px 4px 0 0 var(--color-accent);
-  }
-
-  .cta-primary:hover {
-    background: var(--color-accent);
-    color: var(--color-paper);
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 var(--color-ink);
-  }
-
-  .cta-secondary {
-    background: var(--color-paper);
-    color: var(--color-ink);
-    box-shadow: 4px 4px 0 0 var(--color-ink);
-  }
-
-  .cta-secondary:hover {
-    background: var(--color-ink);
-    color: var(--color-paper);
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 var(--color-accent);
-  }
-
-  /* ========================================
-     SHOWCASE
-     ======================================== */
-  .showcase-section {
-    width: min(1240px, calc(100% - 2rem));
-    margin: 4rem auto;
-    padding: 0 1rem;
-    box-sizing: border-box;
-  }
-
-  .showcase-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
-  }
-
-  .showcase-eyebrow {
-    color: var(--color-accent);
-    font-size: 0.8rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .showcase-title {
-    font-family: var(--font-serif);
-    font-size: clamp(1.75rem, 5vw, 3rem);
-    color: var(--color-ink);
-    margin: 0 0 0.75rem;
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 460;
     letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 0.7rem 0 0;
+    max-width: 22ch;
   }
 
-  .showcase-desc {
-    max-width: 55ch;
-    margin: 0 auto;
-    color: var(--color-ink-light);
+  .section-desc {
+    max-width: 58ch;
+    margin: 0.85rem 0 0;
+    color: var(--ink-2);
     line-height: 1.7;
+  }
+
+  /* ===================== SHOWCASE ===================== */
+  .showcase {
+    width: min(1240px, calc(100% - 2rem));
+    margin: clamp(2.5rem, 6vw, 4.5rem) auto;
+  }
+
+  .showcase .rule-ticks {
+    margin: 1.5rem 0;
   }
 
   .showcase-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.25rem;
   }
 
   .showcase-card {
-    background: var(--color-paper-alt);
-    border: var(--border-ink);
-    box-shadow: 6px 6px 0 0 var(--color-ink);
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    display: flex;
+    flex-direction: column;
+    transition: border-color var(--transition-base);
   }
 
   .showcase-card:hover {
-    transform: translate(-3px, -3px);
-    box-shadow: 9px 9px 0 0 var(--color-accent);
+    border-color: var(--accent);
   }
 
-  .art-placeholder {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    position: relative;
+  .showcase-plot {
+    padding: 1rem;
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line);
+    cursor: crosshair;
     overflow: hidden;
   }
 
-  .art-radial {
-    background:
-      repeating-conic-gradient(from 0deg at 50% 50%,
-        hsl(250, 80%, 60%) 0deg 15deg,
-        hsl(280, 70%, 55%) 15deg 30deg,
-        hsl(320, 60%, 50%) 30deg 45deg,
-        hsl(10, 70%, 55%) 45deg 60deg,
-        hsl(40, 80%, 60%) 60deg 75deg,
-        hsl(170, 70%, 55%) 75deg 90deg
-      );
-    opacity: 0.85;
-  }
-
-  .art-radial::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 50% 50%, transparent 20%, var(--color-paper-alt) 70%);
-  }
-
-  .art-quadrant {
-    background:
-      conic-gradient(from 0deg at 50% 50%,
-        #5567ff 0deg 90deg,
-        #7c3aed 90deg 180deg,
-        #ec4899 180deg 270deg,
-        #06b6d4 270deg 360deg
-      );
-  }
-
-  .art-quadrant::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(45deg, transparent 48%, rgba(27,34,52,0.15) 49%, rgba(27,34,52,0.15) 51%, transparent 52%),
-      linear-gradient(-45deg, transparent 48%, rgba(27,34,52,0.15) 49%, rgba(27,34,52,0.15) 51%, transparent 52%);
-    background-size: 24px 24px;
-  }
-
-  .art-nebula {
-    background:
-      radial-gradient(circle at 30% 30%, rgba(85,103,255,0.6) 0%, transparent 50%),
-      radial-gradient(circle at 70% 60%, rgba(236,72,153,0.5) 0%, transparent 50%),
-      radial-gradient(circle at 50% 80%, rgba(6,182,212,0.5) 0%, transparent 50%),
-      radial-gradient(circle at 20% 70%, rgba(124,58,237,0.4) 0%, transparent 50%);
-    filter: blur(1px);
-  }
-
-  .art-crystal {
-    background:
-      linear-gradient(135deg, #1b2234 0%, #465069 50%, #1b2234 100%);
-  }
-
-  .art-crystal::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(30deg, transparent 40%, rgba(85,103,255,0.3) 45%, rgba(85,103,255,0.3) 55%, transparent 60%),
-      linear-gradient(150deg, transparent 40%, rgba(236,72,153,0.25) 45%, rgba(236,72,153,0.25) 55%, transparent 60%),
-      linear-gradient(90deg, transparent 40%, rgba(6,182,212,0.2) 45%, rgba(6,182,212,0.2) 55%, transparent 60%);
-    background-size: 40px 40px;
-  }
-
-  .showcase-card-caption {
-    padding: 1rem;
-    border-top: var(--border-ink);
-    background: var(--color-paper);
-  }
-
-  .caption-label {
+  .showcase-plot svg {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
     display: block;
-    font-size: 0.75rem;
-    color: var(--color-ink);
-    margin-bottom: 0.25rem;
+    transition: transform var(--transition-slow);
   }
 
-  .caption-hint {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--color-ink-light);
+  .showcase-card:hover .showcase-plot svg {
+    transform: scale(1.04);
   }
 
-  /* ========================================
-     FEATURES
-     ======================================== */
-  .features-section {
-    width: min(1120px, calc(100% - 2rem));
-    margin: 5rem auto;
-    padding: 0 1rem;
-    box-sizing: border-box;
+  .showcase-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw-on 2.6s var(--easing-smooth) calc(var(--i) * 0.18s + 0.3s) forwards;
+    transition: stroke var(--transition-base);
   }
 
-  .features-header {
-    text-align: center;
-    margin-bottom: 2.5rem;
+  /* On hover, every plate re-inks in the oxide plot-colour */
+  .showcase-card:hover .showcase-path {
+    stroke: var(--accent);
   }
 
-  .features-eyebrow {
-    color: var(--color-accent);
-    font-size: 0.8rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .features-title {
-    font-family: var(--font-serif);
-    font-size: clamp(1.75rem, 5vw, 3rem);
-    color: var(--color-ink);
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
-
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .feature-card {
-    background: var(--color-paper-alt);
-    border: var(--border-ink);
-    padding: 1.75rem;
-    box-shadow: 6px 6px 0 0 var(--color-ink);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .feature-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 0 var(--color-accent);
-  }
-
-  .feature-icon {
-    width: 48px;
-    height: 48px;
+  .showcase-caption {
+    padding: 0.85rem 1rem;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border: var(--border-ink);
-    background: var(--color-paper);
-    color: var(--color-accent);
-    margin-bottom: 1rem;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 
-  .feature-card-title {
-    font-family: var(--font-serif);
-    font-size: 1.25rem;
-    color: var(--color-ink);
-    margin: 0 0 0.5rem;
+  .showcase-label {
+    font-size: 0.72rem;
+    color: var(--ink);
+    letter-spacing: 0.1em;
+  }
+
+  .showcase-hint {
+    font-size: 0.82rem;
+    color: var(--ink-2);
+    line-height: 1.45;
+  }
+
+  /* ===================== FEATURES / LEGEND ===================== */
+  .features {
+    width: min(1080px, calc(100% - 2rem));
+    margin: clamp(2.5rem, 6vw, 4.5rem) auto;
+  }
+
+  .legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .legend-row {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 1.25rem;
+    padding: 1.4rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+    transition: background var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .legend-row:hover {
+    background: var(--accent-soft);
+    box-shadow: inset 2px 0 0 0 var(--accent);
+  }
+
+  .legend-n {
+    font-size: 0.85rem;
+    color: var(--accent-strong);
+    letter-spacing: 0.05em;
+    padding-top: 0.2rem;
+  }
+
+  .legend-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 480;
+    color: var(--ink);
+    margin: 0 0 0.3rem;
     letter-spacing: -0.01em;
   }
 
-  .feature-card-text {
-    font-size: 0.9rem;
+  .legend-text {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 0.92rem;
     line-height: 1.65;
-    color: var(--color-ink-light);
-    margin: 0;
+    max-width: 64ch;
   }
 
-  /* ========================================
-     STUDIO NOTES
-     ======================================== */
-  .notes-section {
-    width: min(1120px, calc(100% - 2rem));
-    margin: 0 auto 3rem;
-    padding: 0 1rem;
-    box-sizing: border-box;
+  /* ===================== STUDIO NOTES ===================== */
+  .notes {
+    width: min(1080px, calc(100% - 2rem));
+    margin: clamp(2rem, 5vw, 3.5rem) auto;
   }
 
-  .art-index-copy {
-    border: var(--border-ink);
-    background: var(--color-paper-alt);
-    box-shadow: 8px 8px 0 0 var(--color-ink);
-    color: var(--color-ink);
+  .notes-sheet {
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
   }
 
-  .art-index-copy summary {
+  .notes-sheet summary {
     cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
     list-style-position: inside;
-    padding: 0.75rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
+    padding: 1rem 1.25rem;
+    color: var(--ink);
   }
 
-  .art-index-copy summary:hover {
-    background: var(--color-ink);
-    color: var(--color-paper);
+  .notes-sheet summary:hover {
+    color: var(--accent);
   }
 
-  .art-index-copy p {
-    margin: 0;
-    padding: 0 1rem 1rem;
-    max-width: 72ch;
+  .notes-body {
+    padding: 0 1.25rem 1.25rem;
+    columns: 2;
+    column-gap: 2.5rem;
+  }
+
+  .notes-body p {
+    margin: 0 0 1rem;
+    color: var(--ink-2);
     line-height: 1.7;
-    color: var(--color-ink-light);
+    font-size: 0.92rem;
+    break-inside: avoid;
   }
 
-  /* ========================================
-     GENERATOR & LOADER
-     ======================================== */
-  .generator-wrapper {
-    width: 100%;
+  /* ===================== GENERATOR + LOADER ===================== */
+  .generator {
+    width: min(1240px, calc(100% - 2rem));
+    margin: clamp(2.5rem, 6vw, 4rem) auto 0;
     display: flex;
     flex-direction: column;
-    align-items: center;
     position: relative;
-    margin-bottom: 3rem;
+  }
+
+  .generator .section-head {
+    align-self: center;
+    text-align: center;
+  }
+
+  .generator .section-head .eyebrow {
+    justify-content: center;
   }
 
   .generator-container {
     width: 100%;
-    max-width: 1240px;
-    padding: 0 1rem;
-    box-sizing: border-box;
   }
 
   .art-loader {
@@ -710,9 +762,10 @@ import GenerationPage from "../components/GenerationPage.jsx";
     align-items: center;
     justify-content: center;
     z-index: 50;
-    background: var(--color-paper);
+    background: var(--overlay);
+    backdrop-filter: blur(6px);
     opacity: 1;
-    transition: opacity 0.4s cubic-bezier(0.2, 0, 0, 1);
+    transition: opacity 0.4s var(--easing-smooth);
   }
 
   .art-loader.fade-out {
@@ -724,67 +777,89 @@ import GenerationPage from "../components/GenerationPage.jsx";
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.25rem;
-    background: var(--color-paper-alt);
-    padding: 2.5rem 5rem;
-    border: var(--border-ink);
-    box-shadow: 12px 12px 0 0 var(--color-ink);
+    gap: 1rem;
+    background: var(--paper);
+    padding: 2.5rem 4rem;
+    border: 1px solid var(--rule);
   }
 
-  .brutal-spinner {
-    width: 44px;
-    height: 44px;
-    border: 4px solid var(--color-ink);
-    border-right-color: transparent;
+  .loader-spinner {
+    width: 38px;
+    height: 38px;
+    border: 2px solid var(--line-strong);
+    border-top-color: var(--accent);
     animation: spin 0.8s linear infinite;
   }
 
   .loader-text {
-    color: var(--color-ink);
+    color: var(--ink);
     font-weight: 600;
-    animation: blink 1.2s step-end infinite;
+    font-size: 0.8rem;
+    letter-spacing: 0.14em;
   }
 
   .loader-subtext {
-    color: var(--color-ink-light);
-    font-size: 0.75rem;
-    animation: blink 1.2s step-end infinite;
-    animation-delay: 0.3s;
+    color: var(--ink-2);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
   }
 
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  .loader-cursor {
+    color: var(--accent);
+    animation: blink 1s step-end infinite;
   }
 
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 860px) {
+    .hero-sheet {
+      grid-template-columns: 1fr;
+    }
+    .hero-plot {
+      max-width: 360px;
+    }
+    .notes-body {
+      columns: 1;
+    }
   }
 
-  /* ========================================
-     REDUCED MOTION & RESPONSIVE
-     ======================================== */
+  @media (max-width: 520px) {
+    .hero-cta-group .btn,
+    .hero-cta-group .btn-accent,
+    .hero-cta-group .btn-ghost {
+      flex: 1 1 100%;
+    }
+    .titleblock {
+      grid-template-columns: 1fr;
+    }
+    .loader-container {
+      padding: 2rem 2.5rem;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .mesh-blob { animation: none; }
-    .brutal-spinner { animation: none; border-right-color: var(--color-ink); }
-    .loader-text, .loader-subtext { animation: none; }
-  }
-
-  @media (max-width: 768px) {
-    .hero-section { min-height: auto; padding: 4rem 1rem 3rem; }
-    .hero-title { font-size: clamp(2.5rem, 12vw, 4rem); }
-    .showcase-grid { grid-template-columns: 1fr 1fr; }
-    .features-grid { grid-template-columns: 1fr; }
-    .generator-container { padding: 0 0.75rem; }
-    .loader-container { padding: 2rem 3rem; }
-  }
-
-  @media (max-width: 480px) {
-    .showcase-grid { grid-template-columns: 1fr; }
-    .hero-section { min-height: 50vh; padding: 4rem 1rem 3rem; }
-    .hero-title { font-size: clamp(2rem, 14vw, 3.5rem); }
-    .hero-cta-group { flex-direction: column; align-items: stretch; }
-    .cta-primary, .cta-secondary { justify-content: center; min-height: 44px; }
+    .plot-path,
+    .showcase-path {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+    .loader-cursor {
+      animation: none;
+    }
+    .plotter-head {
+      display: none;
+    }
+    .hero-plot,
+    .hero-copy > .eyebrow,
+    .hero-title,
+    .hero-lead,
+    .titleblock,
+    .hero-cta-group {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .showcase-card:hover .showcase-plot svg {
+      transform: none;
+    }
   }
 </style>

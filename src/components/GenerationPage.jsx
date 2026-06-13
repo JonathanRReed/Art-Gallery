@@ -5,6 +5,11 @@ import ExportPanel from './ExportPanel.jsx';
 
 const PREVIEW_SIZE = 512; // Use a small preview for static hosting
 
+// Growth modes the UI exposes. Used to sanitize values restored from older
+// saved gallery items / configs (which could still carry 'fractal'/'organic').
+const ALLOWED_GROWTH_MODES = ['crystal', 'nebula', 'rings', 'flow'];
+const sanitizeGrowthMode = (m) => (ALLOWED_GROWTH_MODES.includes(m) ? m : 'crystal');
+
 // Debug helper to check for circular references or other JSON issues
 function checkSerializable(obj, name = 'object') {
   try {
@@ -46,14 +51,12 @@ function saveToGallery({ imageDataUrl, params }) {
 export default function GenerationPage() {
   const [curveType, setCurveType] = useState('hilbert');
   const [seed, setSeed] = useState(1);
-  const [colorOrdering, setColorOrdering] = useState('hsv');
   const [loading, setLoading] = useState(false);
   const [imageData, setImageData] = useState(null);
   const [imageMeta, setImageMeta] = useState(null);
   const [previewSize, setPreviewSize] = useState(128);
   const [patternSize, setPatternSize] = useState(128); // Default pattern complexity
   const [lastGeneratedPatternSize, setLastGeneratedPatternSize] = useState(128); // Track last generated pattern size
-  const [symmetry, setSymmetry] = useState(true);
   const [distanceRandomness, setDistanceRandomness] = useState(10);
   const [colorSampleSize, setColorSampleSize] = useState(100);
   const [growthMode, setGrowthMode] = useState('crystal');
@@ -63,6 +66,9 @@ export default function GenerationPage() {
   const [branchingFactor, setBranchingFactor] = useState(0.5);
   const [growthRate, setGrowthRate] = useState(1);
   const [randomness, setRandomness] = useState(10);
+  const [gradientMap, setGradientMap] = useState('none');
+  const [dithering, setDithering] = useState(false);
+  const [antiAliasing, setAntiAliasing] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [allRGBMode, setAllRGBMode] = useState(false);
@@ -73,8 +79,8 @@ export default function GenerationPage() {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [settingsButtonPosition, setSettingsButtonPosition] = useState({ top: 0, left: 0 });
-  const settingsButtonRef = useRef(null);
   const workerRef = useRef(null);
+  const exportWorkerRef = useRef(null);
   const canvasRef = useRef(null);
   const isMountedRef = useRef(true);
 
@@ -89,6 +95,38 @@ export default function GenerationPage() {
     } catch (error) {
       console.error('Error loading saved settings:', error);
       setSavedSettings([]);
+    }
+  }, []);
+
+  // Restore parameters when arriving from the gallery "Regenerate" action
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('regenerateParams');
+      if (!raw) return;
+      sessionStorage.removeItem('regenerateParams');
+      const p = JSON.parse(raw);
+      if (p && typeof p === 'object') {
+        if (p.curveType) setCurveType(p.curveType);
+        if (typeof p.seed === 'number') setSeed(p.seed);
+        if (p.growthMode) setGrowthMode(sanitizeGrowthMode(p.growthMode));
+        if (p.seedShape) setSeedShape(p.seedShape);
+        if (p.symmetryMode) setSymmetryMode(p.symmetryMode);
+        if (p.colorProgression) setColorProgression(p.colorProgression);
+        if (typeof p.branchingFactor === 'number') setBranchingFactor(p.branchingFactor);
+        if (typeof p.growthRate === 'number') setGrowthRate(p.growthRate);
+        if (typeof p.randomness === 'number') setRandomness(p.randomness);
+        if (typeof p.distanceRandomness === 'number') setDistanceRandomness(p.distanceRandomness);
+        if (typeof p.colorSampleSize === 'number') setColorSampleSize(p.colorSampleSize);
+        if (p.gradientMap) setGradientMap(p.gradientMap);
+        if (typeof p.dithering === 'boolean') setDithering(p.dithering);
+        if (typeof p.antiAliasing === 'boolean') setAntiAliasing(p.antiAliasing);
+        if (typeof p.allRGBMode === 'boolean') setAllRGBMode(p.allRGBMode);
+        if (typeof p.exportSize === 'number') setPreviewSize(p.exportSize);
+        if (typeof p.patternSize === 'number') setPatternSize(p.patternSize);
+        updateFeedback('info', 'Settings restored from the gallery. Press Generate to plot this piece.');
+      }
+    } catch (error) {
+      console.error('Error restoring regenerate params:', error);
     }
   }, []);
 
@@ -115,11 +153,21 @@ export default function GenerationPage() {
     };
   }, []);
 
-  // Cleanup on unmount to prevent memory leaks
+  // Cleanup on unmount to prevent memory leaks — terminate any worker still
+  // running (e.g. a long 4096px job) so it doesn't keep computing detached
+  // after the island unmounts (notably across View Transitions navigation).
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+      if (exportWorkerRef.current) {
+        exportWorkerRef.current.terminate();
+        exportWorkerRef.current = null;
+      }
     };
   }, []);
 
@@ -127,9 +175,7 @@ export default function GenerationPage() {
     return {
       curveType,
       seed,
-      colorOrdering,
       previewSize,
-      symmetry,
       distanceRandomness,
       colorSampleSize,
       growthMode,
@@ -139,6 +185,10 @@ export default function GenerationPage() {
       branchingFactor,
       growthRate,
       randomness,
+      gradientMap,
+      dithering,
+      antiAliasing,
+      allRGBMode,
       patternSize
     };
   }
@@ -182,18 +232,20 @@ export default function GenerationPage() {
     // Apply all settings
     setCurveType(settings.curveType || 'hilbert');
     setSeed(settings.seed || 1);
-    setColorOrdering(settings.colorOrdering || 'hsv');
     setPreviewSize(settings.previewSize || 128);
-    setSymmetry(settings.symmetry !== undefined ? settings.symmetry : true);
     setDistanceRandomness(settings.distanceRandomness || 10);
     setColorSampleSize(settings.colorSampleSize || 100);
-    setGrowthMode(settings.growthMode || 'crystal');
+    setGrowthMode(sanitizeGrowthMode(settings.growthMode));
     setSeedShape(settings.seedShape || 'point');
     setSymmetryMode(settings.symmetryMode || 'quadrantal');
     setColorProgression(settings.colorProgression || 'shuffled');
     setBranchingFactor(settings.branchingFactor || 0.5);
     setGrowthRate(settings.growthRate || 1);
     setRandomness(settings.randomness || 10);
+    setGradientMap(settings.gradientMap || 'none');
+    setDithering(Boolean(settings.dithering));
+    setAntiAliasing(Boolean(settings.antiAliasing));
+    setAllRGBMode(Boolean(settings.allRGBMode));
     setPatternSize(settings.patternSize || 128);
 
     setShowSettingsPanel(false);
@@ -330,11 +382,9 @@ export default function GenerationPage() {
           width: effectiveSize,
           height: effectiveSize,
           seed,
-          symmetry,
           distanceRandomness,
           colorSampleSize,
           curveType,
-          colorOrdering,
           growthMode,
           seedShape,
           symmetryMode,
@@ -342,6 +392,9 @@ export default function GenerationPage() {
           branchingFactor,
           growthRate,
           randomness,
+          gradientMap,
+          dithering,
+          antiAliasing,
           patternComplexity: allRGBMode ? 4096 : patternSize, // Force 4096 for AllRGB
           previewMode: !allRGBMode, // Not preview mode for AllRGB
           allRGBMode // NEW: Pass AllRGB mode flag to worker
@@ -411,6 +464,7 @@ export default function GenerationPage() {
 
     // Create a new worker specifically for this export
     const worker = new window.Worker('/worker/color-mapper.js');
+    exportWorkerRef.current = worker;
 
     // Add error handling
     worker.onerror = (error) => {
@@ -547,11 +601,9 @@ export default function GenerationPage() {
       width: allRGBMode ? 4096 : EXPORT_SIZE,
       height: allRGBMode ? 4096 : EXPORT_SIZE,
       seed,
-      symmetry,
       distanceRandomness,
       colorSampleSize,
       curveType,
-      colorOrdering,
       growthMode,
       seedShape,
       symmetryMode,
@@ -559,6 +611,9 @@ export default function GenerationPage() {
       branchingFactor,
       growthRate,
       randomness,
+      gradientMap,
+      dithering,
+      antiAliasing,
       patternComplexity: allRGBMode ? 4096 : patternSize,
       exportMode: true,
       exactOutputSize: allRGBMode ? 4096 : EXPORT_SIZE,
@@ -578,6 +633,7 @@ export default function GenerationPage() {
 
       // Create a new worker specifically for this export
       const worker = new window.Worker('/worker/color-mapper.js');
+      exportWorkerRef.current = worker;
 
       // Add error handling
       worker.onerror = (error) => {
@@ -735,14 +791,12 @@ export default function GenerationPage() {
 
       // Generate a completely new image at the export size
       worker.postMessage({
-        width: EXPORT_SIZE,
-        height: EXPORT_SIZE,
+        width: allRGBMode ? 4096 : EXPORT_SIZE,
+        height: allRGBMode ? 4096 : EXPORT_SIZE,
         seed,
-        symmetry,
         distanceRandomness,
         colorSampleSize,
         curveType,
-        colorOrdering,
         growthMode,
         seedShape,
         symmetryMode,
@@ -750,10 +804,14 @@ export default function GenerationPage() {
         branchingFactor,
         growthRate,
         randomness,
-        patternComplexity: patternSize,
+        gradientMap,
+        dithering,
+        antiAliasing,
+        patternComplexity: allRGBMode ? 4096 : patternSize,
         exportMode: true,
         format: 'pdf',
-        exactOutputSize: EXPORT_SIZE // Force exact output size
+        exactOutputSize: allRGBMode ? 4096 : EXPORT_SIZE, // Force exact output size
+        allRGBMode
       });
     }).catch(error => {
       console.error("Error loading PDF library:", error);
@@ -770,7 +828,19 @@ export default function GenerationPage() {
       params: {
         curveType,
         seed,
-        colorOrdering,
+        growthMode,
+        seedShape,
+        symmetryMode,
+        colorProgression,
+        branchingFactor,
+        growthRate,
+        randomness,
+        distanceRandomness,
+        colorSampleSize,
+        gradientMap,
+        dithering,
+        antiAliasing,
+        allRGBMode,
         exportSize: previewSize,
         patternSize
       },
@@ -786,12 +856,8 @@ export default function GenerationPage() {
           setCurveType={setCurveType}
           seed={seed}
           setSeed={setSeed}
-          colorOrdering={colorOrdering}
-          setColorOrdering={setColorOrdering}
           previewSize={previewSize}
           setPreviewSize={setPreviewSize}
-          symmetry={symmetry}
-          setSymmetry={setSymmetry}
           distanceRandomness={distanceRandomness}
           setDistanceRandomness={setDistanceRandomness}
           colorSampleSize={colorSampleSize}
@@ -815,6 +881,12 @@ export default function GenerationPage() {
           setRandomness={setRandomness}
           patternSize={patternSize}
           setPatternSize={setPatternSize}
+          gradientMap={gradientMap}
+          setGradientMap={setGradientMap}
+          dithering={dithering}
+          setDithering={setDithering}
+          antiAliasing={antiAliasing}
+          setAntiAliasing={setAntiAliasing}
           allRGBMode={allRGBMode}
           setAllRGBMode={setAllRGBMode}
         />
@@ -823,18 +895,10 @@ export default function GenerationPage() {
       <div className="preview-wrapper">
         <div className="preview-container">
           {feedback && (
-            <div style={{
-              width: '100%',
-              marginBottom: '1rem',
-              padding: '0.75rem 1rem',
-              border: 'var(--border-ink)',
-              backgroundColor: feedback.type === 'error' ? 'rgba(228, 61, 48, 0.16)' : feedback.type === 'success' ? 'rgba(85, 103, 255, 0.14)' : 'var(--color-paper-alt)',
-              color: 'var(--color-ink)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em'
-            }}>
+            <div
+              className={`gen-feedback${feedback.type === 'error' ? ' is-error' : feedback.type === 'success' ? ' is-success' : ''}`}
+              role="status"
+            >
               {feedback.message}
             </div>
           )}
@@ -850,56 +914,15 @@ export default function GenerationPage() {
           />
 
           {loading && (
-            <div className="progress-container" style={{
-              width: '100%',
-              marginTop: '1.5rem',
-              border: 'var(--border-ink)',
-              padding: '0.5rem',
-              backgroundColor: 'var(--color-paper-alt)'
-            }}>
-              <div className="progress-bar" style={{
-                width: '100%',
-                height: '0.5rem',
-                backgroundColor: 'var(--color-paper)',
-                border: 'var(--border-ink)',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  height: '100%',
-                  width: `${progress}%`,
-                  backgroundColor: 'var(--color-accent)',
-                  transition: 'width 0.2s cubic-bezier(0.2, 0, 0, 1)'
-                }}></div>
+            <div className="gen-progress">
+              <div className="gen-progress-track">
+                <div className="gen-progress-fill" style={{ width: `${progress}%` }}></div>
               </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '0.5rem',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                textTransform: 'uppercase',
-                color: 'var(--color-ink)',
-              }}>
-                <div>[PROGRESS_REQ: {progress}%]</div>
+              <div className="gen-progress-meta">
+                <span>{progress}% plotted</span>
                 {patternSize > 512 && (
-                  <button
-                    onClick={handlePauseResume}
-                    style={{
-                      backgroundColor: 'var(--color-ink)',
-                      border: 'var(--border-ink)',
-                      color: 'var(--color-paper)',
-                      fontFamily: 'var(--font-mono)',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      fontSize: '0.75rem',
-                      padding: '0.25rem 0.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      boxShadow: '2px 2px 0 0 var(--color-accent)',
-                    }}
-                  >
-                    {isPaused ? 'RESUME' : 'PAUSE'}
+                  <button type="button" className="gen-pause-btn" onClick={handlePauseResume}>
+                    {isPaused ? 'Resume' : 'Pause'}
                   </button>
                 )}
               </div>
@@ -987,7 +1010,7 @@ export default function GenerationPage() {
                         handleLoadSettings(setting);
                       }}
                     >
-                      LOAD
+                      Load
                     </button>
 
                     <button
@@ -997,7 +1020,7 @@ export default function GenerationPage() {
                         handleDeleteSettings(setting.id);
                       }}
                     >
-                      DELETE
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -1011,31 +1034,32 @@ export default function GenerationPage() {
       {showSaveDialog && (
         <div className="dialog-overlay">
           <div className="dialog-container">
-            <h2 className="dialog-heading">Save Conf.</h2>
+            <h2 className="dialog-heading">Save configuration</h2>
 
-            <label className="dialog-label">
-              Configuration Name
+            <label className="dialog-label" htmlFor="config-name-input">
+              Configuration name
             </label>
             <input
+              id="config-name-input"
               type="text"
               value={settingsName}
               onChange={(e) => setSettingsName(e.target.value)}
-              placeholder="e.g. MONOCHROME_VOID"
+              placeholder="e.g. quadrant-study-01"
               className="dialog-input"
             />
 
             <div className="dialog-note">
               <p>
-                [SYS_NOTE] Settings are preserved in local browser cache. Cross-device synchronization is unavailable.
+                Saved to this browser's local storage. Configurations don't sync across devices.
               </p>
             </div>
 
             <div className="dialog-actions">
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="gallery-action-btn dialog-button"
+                className="dialog-button"
               >
-                CANCEL
+                Cancel
               </button>
 
               <button
@@ -1043,7 +1067,7 @@ export default function GenerationPage() {
                 className="dialog-button-primary"
                 disabled={!settingsName.trim()}
               >
-                COMMIT
+                Save
               </button>
             </div>
           </div>

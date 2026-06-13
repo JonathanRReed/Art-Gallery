@@ -6,27 +6,30 @@ function formatDimension(n) {
   return `${n.toLocaleString()} × ${n.toLocaleString()}`;
 }
 
-function drawPlaceholder(ctx, w, h, imgWidth, imgHeight) {
-  const gradient = ctx.createLinearGradient(0, 0, w, h);
-  gradient.addColorStop(0, '#1b2234');
-  gradient.addColorStop(0.5, '#5567ff');
-  gradient.addColorStop(1, '#111827');
-  ctx.fillStyle = gradient;
+function drawPlaceholder(ctx, w, h, imgWidth) {
+  const root = getComputedStyle(document.documentElement);
+  const paperAlt = root.getPropertyValue('--paper-2').trim() || '#efe9dc';
+  const ink = root.getPropertyValue('--ink').trim() || '#1f1d17';
+  const ink2 = root.getPropertyValue('--ink-2').trim() || '#6b6757';
+  const edge = root.getPropertyValue('--line-strong').trim() || 'rgba(31,29,23,0.3)';
+
+  ctx.fillStyle = paperAlt;
   ctx.fillRect(0, 0, w, h);
 
-  ctx.fillStyle = '#eef2ff';
-  ctx.font = 'bold 48px sans-serif';
+  // hairline inset frame, matching the drafting-plate motif
+  ctx.strokeStyle = edge;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(8.5, 8.5, w - 17, h - 17);
+
   ctx.textAlign = 'center';
-  ctx.fillText('✓', w / 2, h / 2 - 20);
+  ctx.fillStyle = ink;
+  ctx.font = '600 14px "IBM Plex Mono", monospace';
+  ctx.fillText('ALLRGB COMPLETE', w / 2, h / 2 - 8);
 
-  ctx.fillStyle = '#f6f7fb';
-  ctx.font = 'bold 16px sans-serif';
-  ctx.fillText('AllRGB Complete!', w / 2, h / 2 + 20);
-
-  ctx.fillStyle = '#d9e1ff';
-  ctx.font = '14px sans-serif';
-  ctx.fillText(`${formatDimension(imgWidth)} pixels`, w / 2, h / 2 + 45);
-  ctx.fillText('Click "Download PNG" to save', w / 2, h / 2 + 70);
+  ctx.fillStyle = ink2;
+  ctx.font = '12px "IBM Plex Mono", monospace';
+  ctx.fillText(`${formatDimension(imgWidth)} PX`, w / 2, h / 2 + 16);
+  ctx.fillText('DOWNLOAD PNG TO SAVE', w / 2, h / 2 + 36);
 }
 
 function drawDownsampledThumbnail(ctx, imageData, srcW, srcH, dstW, dstH) {
@@ -44,7 +47,10 @@ function drawDownsampledThumbnail(ctx, imageData, srcW, srcH, dstW, dstH) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.clearRect(0, 0, dstW, dstH);
-    ctx.fillStyle = 'var(--color-paper-alt)';
+    const paperAlt = getComputedStyle(document.documentElement)
+      .getPropertyValue('--paper-2')
+      .trim() || '#efe9dc';
+    ctx.fillStyle = paperAlt;
     ctx.fillRect(0, 0, dstW, dstH);
     const offsetX = (dstW - thumbW) / 2;
     const offsetY = (dstH - thumbH) / 2;
@@ -176,14 +182,16 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
 
   const transformStyle = {
     transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-    cursor: isDragging ? 'grabbing' : zoom > 1 ? 'grab' : 'default',
+    cursor: isDragging ? 'grabbing' : zoom > 1 ? 'grab' : 'crosshair',
   };
 
   const metaLabel = metadata ? `${metadata.width || width} × ${metadata.height || height}` : null;
 
   return (
     <div className="preview-canvas-frame">
-      <div
+      <div className="preview-plate crop">
+        <span className="crop-tr"></span><span className="crop-bl"></span>
+        <div
         ref={wrapperRef}
         className="preview-canvas-viewport"
         onWheel={handleWheel}
@@ -206,12 +214,13 @@ const PreviewCanvas = forwardRef(function PreviewCanvas({
             <div className="preview-loading-spinner" aria-hidden="true" />
             <div className="preview-loading-text">
               <p className="preview-loading-title">
-                Generating artwork<span className="preview-cursor-blink">_</span>
+                Plotting<span className="preview-cursor-blink">_</span>
               </p>
-              <p className="preview-loading-subtitle">Rendering your current settings</p>
+              <p className="preview-loading-subtitle">Rendering the current settings</p>
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Metadata bar */}
