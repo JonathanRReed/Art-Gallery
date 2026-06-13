@@ -60,6 +60,84 @@
   margin: 0 auto;
 }
 
+/* Render-mode segmented switch — two big, obvious segments, active in oxide */
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: var(--border-strong);
+  margin-bottom: 0.75rem;
+}
+
+.mode-seg {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.75rem;
+  background: var(--paper);
+  color: var(--ink-2);
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.mode-seg + .mode-seg {
+  border-left: 1px solid var(--line-strong);
+}
+
+.mode-seg:hover:not(.is-active):not(:disabled) {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.mode-seg.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.mode-seg:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mode-seg-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.mode-seg-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mode-seg-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.mode-seg-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.mode-seg-sub {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .control-actions-bar {
   display: flex;
   gap: 0.6rem;

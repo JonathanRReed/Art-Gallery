@@ -47,27 +47,36 @@ function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10
 const heroPath = toPath(hilbertPoints(5));
 
 // Curated starting points — each is a real, exact recipe the generator
-// reproduces. The thumbnails are rendered live on the client from these same
-// params, and clicking a card loads the recipe into the generator and plots it.
-const PRESET_BASE = {
-  seed: 1, curveType: "hilbert", renderMode: "trace",
-  traceStroke: 1, traceDensity: 32, gradientMap: "none",
-  // fill-mode fields kept so the recipe stays complete if the visitor switches modes
-  growthMode: "crystal", seedShape: "point", symmetryMode: "none",
-  colorProgression: "sequential", branchingFactor: 0.5, growthRate: 1,
-  randomness: 10, distanceRandomness: 10, colorSampleSize: 100,
-  dithering: false, antiAliasing: false,
-  previewSize: 256, patternSize: 256, allRGBMode: false,
+// reproduces. Thumbnails render live on the client from these same params, and
+// clicking a card loads the recipe into the generator and plots it. The set
+// mixes both render modes so the showcase shows what each one makes.
+const COMMON = {
+  seed: 1, seedShape: "point", branchingFactor: 0.5, growthRate: 1,
+  colorSampleSize: 100, distanceRandomness: 10,
+  dithering: false, antiAliasing: false, allRGBMode: false,
 };
-// Each card is a real trace recipe — the thumbnail is the generator's actual
-// output, and clicking it loads the recipe and plots the same piece.
+// Trace recipes render fast at 256 (no color-match); fill recipes stay at 128
+// because the color-field engine's match is O(pixels²). Canvas size == previewSize
+// so each thumbnail is exactly what clicking the card plots.
+const TRACE_BASE = {
+  ...COMMON, renderMode: "trace", traceStroke: 1, traceDensity: 32,
+  curveType: "hilbert", gradientMap: "none", growthMode: "crystal",
+  symmetryMode: "none", colorProgression: "sequential", randomness: 10,
+  previewSize: 256, patternSize: 256,
+};
+const FILL_BASE = {
+  ...COMMON, renderMode: "fill", traceStroke: 1, traceDensity: 32,
+  curveType: "hilbert", gradientMap: "none", growthMode: "crystal",
+  symmetryMode: "none", colorProgression: "sequential", randomness: 3,
+  previewSize: 128, patternSize: 128,
+};
 const presets = [
-  { id: "crystal-bloom", name: "Crystal Bloom", sub: "Hilbert · spectrum", params: { ...PRESET_BASE, curveType: "hilbert", gradientMap: "none", traceDensity: 32 } },
-  { id: "tidewater", name: "Tidewater", sub: "Spiral · ocean", params: { ...PRESET_BASE, curveType: "spiral", gradientMap: "ocean", traceDensity: 28, traceStroke: 1.1 } },
-  { id: "understory", name: "Understory", sub: "Peano · forest", params: { ...PRESET_BASE, curveType: "peano", gradientMap: "forest", traceDensity: 27 } },
-  { id: "ember-fold", name: "Ember Fold", sub: "Morton · sunset", params: { ...PRESET_BASE, curveType: "morton", gradientMap: "sunset", traceDensity: 32 } },
-  { id: "magma-walk", name: "Magma Walk", sub: "Random walk · magma", params: { ...PRESET_BASE, seed: 7, curveType: "randomwalk", gradientMap: "magma", traceDensity: 36 } },
-  { id: "neon-bloom", name: "Neon Bloom", sub: "Hilbert · neon", params: { ...PRESET_BASE, curveType: "hilbert", gradientMap: "neon", traceDensity: 16, traceStroke: 1.4 } },
+  { id: "hilbert-bloom", name: "Hilbert Bloom", mode: "Trace", sub: "Hilbert · spectrum", params: { ...TRACE_BASE, curveType: "hilbert", gradientMap: "none", traceDensity: 32 } },
+  { id: "magma-field", name: "Magma Field", mode: "Field", sub: "Hilbert · magma", params: { ...FILL_BASE, curveType: "hilbert", gradientMap: "magma", symmetryMode: "radial", colorProgression: "brightness", randomness: 2, seed: 1337 } },
+  { id: "tide-spiral", name: "Tide Spiral", mode: "Trace", sub: "Spiral · ocean", params: { ...TRACE_BASE, curveType: "spiral", gradientMap: "ocean", traceDensity: 26, traceStroke: 1.1 } },
+  { id: "nebula", name: "Nebula", mode: "Field", sub: "Morton · ocean", params: { ...FILL_BASE, curveType: "morton", gradientMap: "ocean", growthMode: "nebula", symmetryMode: "quadrantal", colorProgression: "sequential", randomness: 4, seed: 88 } },
+  { id: "drift-walk", name: "Drift Walk", mode: "Trace", sub: "Random walk · neon", params: { ...TRACE_BASE, curveType: "randomwalk", gradientMap: "neon", traceDensity: 34, seed: 7 } },
+  { id: "understory", name: "Understory", mode: "Field", sub: "Peano · forest", params: { ...FILL_BASE, curveType: "peano", gradientMap: "forest", growthMode: "flow", symmetryMode: "bilateral", colorProgression: "base-distance", randomness: 3, seed: 256 } },
 ];
 ---
 
@@ -150,8 +159,9 @@ const presets = [
           aria-label={`Load and plot the ${p.name} pattern`}
         >
           <span class="preset-thumb">
-            <canvas width="256" height="256" data-preset-canvas aria-hidden="true"></canvas>
+            <canvas width={p.params.previewSize} height={p.params.previewSize} data-preset-canvas aria-hidden="true"></canvas>
             <span class="preset-plotting mono" aria-hidden="true">plotting…</span>
+            <span class={`preset-mode mono${p.mode === "Trace" ? " is-trace" : ""}`}>{p.mode}</span>
           </span>
           <span class="preset-meta">
             <span class="preset-name">{p.name}</span>
@@ -572,6 +582,27 @@ const presets = [
 
   .preset-card.is-rendered .preset-plotting {
     opacity: 0;
+  }
+
+  /* mode badge — tells you at a glance which render mode made the piece */
+  .preset-mode {
+    position: absolute;
+    top: 0.45rem;
+    left: 0.45rem;
+    z-index: 2;
+    padding: 0.18rem 0.4rem;
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+  }
+
+  .preset-mode.is-trace {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
   }
 
   /* "plot this" affordance slides up on hover */

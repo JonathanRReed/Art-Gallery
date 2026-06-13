@@ -41,9 +41,35 @@ const gradientMaps = [
   { label: 'Forest', value: 'forest' },
   { label: 'Magma', value: 'magma' },
 ];
-const renderModes = [
-  { label: 'Color field (fill)', value: 'fill' },
-  { label: 'Line trace', value: 'trace' },
+const renderModeSegments = [
+  {
+    value: 'fill',
+    label: 'Color field',
+    sub: 'Dense pixel fill',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <rect x="2" y="2" width="4" height="4" />
+        <rect x="8" y="2" width="4" height="4" opacity="0.5" />
+        <rect x="14" y="2" width="4" height="4" />
+        <rect x="2" y="8" width="4" height="4" opacity="0.5" />
+        <rect x="8" y="8" width="4" height="4" />
+        <rect x="14" y="8" width="4" height="4" opacity="0.5" />
+        <rect x="2" y="14" width="4" height="4" />
+        <rect x="8" y="14" width="4" height="4" opacity="0.5" />
+        <rect x="14" y="14" width="4" height="4" />
+      </svg>
+    ),
+  },
+  {
+    value: 'trace',
+    label: 'Line trace',
+    sub: 'Plotted curve',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true">
+        <path d="M3 5h4V9H3v6h4v-4h6v4h4V9h-4V5h4" />
+      </svg>
+    ),
+  },
 ];
 // In trace mode 'none' draws a full-spectrum hue sweep along the line.
 const traceColorMaps = [
@@ -200,6 +226,31 @@ function RangeControl({ id, label, value, onChange, min, max, step, tooltip, loa
   );
 }
 
+// Prominent segmented switch for the two render modes — the primary creative choice.
+function ModeToggle({ value, onChange, loading }) {
+  return (
+    <div className="mode-toggle" role="group" aria-label="Render mode">
+      {renderModeSegments.map((seg) => (
+        <button
+          key={seg.value}
+          type="button"
+          className={`mode-seg${value === seg.value ? ' is-active' : ''}`}
+          aria-pressed={value === seg.value}
+          onClick={() => onChange(seg.value)}
+          disabled={loading}
+          title={tooltips.renderMode[seg.value]}
+        >
+          <span className="mode-seg-icon">{seg.icon}</span>
+          <span className="mode-seg-text">
+            <span className="mode-seg-label">{seg.label}</span>
+            <span className="mode-seg-sub">{seg.sub}</span>
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ControlsPanel({
   curveType, setCurveType,
   seed, setSeed,
@@ -280,6 +331,9 @@ export default function ControlsPanel({
 
   return (
     <div className="panel-container">
+      {/* Render mode — the primary creative choice, up top */}
+      <ModeToggle value={renderMode} onChange={setRenderMode} loading={loading} />
+
       {/* Top actions bar */}
       <div className="control-actions-bar">
         <button
@@ -305,17 +359,6 @@ export default function ControlsPanel({
 
       {/* Seed & Quick Actions */}
       <CollapsibleSection title="Seed & Quick Actions" defaultOpen={true}>
-        <SelectControl
-          id="render-mode-select"
-          label="Render Mode"
-          value={renderMode}
-          onChange={setRenderMode}
-          options={renderModes}
-          tooltipMap={tooltips.renderMode}
-          loading={loading}
-          getLabel={getSelectedLabel}
-        />
-
         <div className="seed-control-row">
           <div className="seed-input-wrap">
             <label htmlFor="seed-input" className="control-label">
