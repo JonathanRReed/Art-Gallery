@@ -72,6 +72,10 @@ export default function GenerationPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [allRGBMode, setAllRGBMode] = useState(false);
+  const [renderMode, setRenderMode] = useState('fill'); // 'fill' (color field) | 'trace' (line)
+  const [traceStroke, setTraceStroke] = useState(1); // line weight multiplier
+  const [traceDensity, setTraceDensity] = useState(32); // curve cells per side
+  const [pendingPreset, setPendingPreset] = useState(null); // set when a home preset asks to load+generate
   const [renderKey, setRenderKey] = useState(0); // Force re-render key
   const [savedSettings, setSavedSettings] = useState([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -121,6 +125,9 @@ export default function GenerationPage() {
         if (typeof p.dithering === 'boolean') setDithering(p.dithering);
         if (typeof p.antiAliasing === 'boolean') setAntiAliasing(p.antiAliasing);
         if (typeof p.allRGBMode === 'boolean') setAllRGBMode(p.allRGBMode);
+        if (p.renderMode === 'trace' || p.renderMode === 'fill') setRenderMode(p.renderMode);
+        if (typeof p.traceStroke === 'number') setTraceStroke(p.traceStroke);
+        if (typeof p.traceDensity === 'number') setTraceDensity(p.traceDensity);
         if (typeof p.exportSize === 'number') setPreviewSize(p.exportSize);
         if (typeof p.patternSize === 'number') setPatternSize(p.patternSize);
         updateFeedback('info', 'Settings restored from the gallery. Press Generate to plot this piece.');
@@ -129,6 +136,44 @@ export default function GenerationPage() {
       console.error('Error restoring regenerate params:', error);
     }
   }, []);
+
+  // Home-page preset cards dispatch this with a full recipe: apply it, then plot.
+  useEffect(() => {
+    const onPreset = (e) => {
+      const p = e.detail;
+      if (!p || typeof p !== 'object') return;
+      if (p.curveType) setCurveType(p.curveType);
+      if (typeof p.seed === 'number') setSeed(p.seed);
+      if (p.growthMode) setGrowthMode(sanitizeGrowthMode(p.growthMode));
+      if (p.seedShape) setSeedShape(p.seedShape);
+      if (p.symmetryMode) setSymmetryMode(p.symmetryMode);
+      if (p.colorProgression) setColorProgression(p.colorProgression);
+      if (typeof p.branchingFactor === 'number') setBranchingFactor(p.branchingFactor);
+      if (typeof p.growthRate === 'number') setGrowthRate(p.growthRate);
+      if (typeof p.randomness === 'number') setRandomness(p.randomness);
+      if (typeof p.distanceRandomness === 'number') setDistanceRandomness(p.distanceRandomness);
+      if (typeof p.colorSampleSize === 'number') setColorSampleSize(p.colorSampleSize);
+      if (p.gradientMap) setGradientMap(p.gradientMap);
+      if (typeof p.dithering === 'boolean') setDithering(p.dithering);
+      if (typeof p.antiAliasing === 'boolean') setAntiAliasing(p.antiAliasing);
+      if (typeof p.previewSize === 'number') setPreviewSize(p.previewSize);
+      if (typeof p.patternSize === 'number') setPatternSize(p.patternSize);
+      if (typeof p.allRGBMode === 'boolean') setAllRGBMode(p.allRGBMode);
+      if (p.renderMode === 'trace' || p.renderMode === 'fill') setRenderMode(p.renderMode);
+      if (typeof p.traceStroke === 'number') setTraceStroke(p.traceStroke);
+      if (typeof p.traceDensity === 'number') setTraceDensity(p.traceDensity);
+      // Trigger a generate once React has committed the new state (see effect below).
+      setPendingPreset({});
+    };
+    window.addEventListener('aag-load-preset', onPreset);
+    return () => window.removeEventListener('aag-load-preset', onPreset);
+  }, []);
+
+  // Plot after a preset's params have been committed to state.
+  useEffect(() => {
+    if (pendingPreset) handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPreset]);
 
   // Add event listeners for settings buttons
   useEffect(() => {
@@ -189,6 +234,9 @@ export default function GenerationPage() {
       dithering,
       antiAliasing,
       allRGBMode,
+      renderMode,
+      traceStroke,
+      traceDensity,
       patternSize
     };
   }
@@ -246,6 +294,9 @@ export default function GenerationPage() {
     setDithering(Boolean(settings.dithering));
     setAntiAliasing(Boolean(settings.antiAliasing));
     setAllRGBMode(Boolean(settings.allRGBMode));
+    setRenderMode(settings.renderMode === 'trace' ? 'trace' : 'fill');
+    setTraceStroke(typeof settings.traceStroke === 'number' ? settings.traceStroke : 1);
+    setTraceDensity(typeof settings.traceDensity === 'number' ? settings.traceDensity : 32);
     setPatternSize(settings.patternSize || 128);
 
     setShowSettingsPanel(false);
@@ -397,7 +448,10 @@ export default function GenerationPage() {
           antiAliasing,
           patternComplexity: allRGBMode ? 4096 : patternSize, // Force 4096 for AllRGB
           previewMode: !allRGBMode, // Not preview mode for AllRGB
-          allRGBMode // NEW: Pass AllRGB mode flag to worker
+          allRGBMode, // NEW: Pass AllRGB mode flag to worker
+          renderMode,
+          traceStroke,
+          traceDensity
         };
 
         // Send the message to the worker
@@ -617,7 +671,10 @@ export default function GenerationPage() {
       patternComplexity: allRGBMode ? 4096 : patternSize,
       exportMode: true,
       exactOutputSize: allRGBMode ? 4096 : EXPORT_SIZE,
-      allRGBMode // Add AllRGB mode flag
+      allRGBMode, // Add AllRGB mode flag
+      renderMode,
+      traceStroke,
+      traceDensity
     });
   }
 
@@ -811,7 +868,10 @@ export default function GenerationPage() {
         exportMode: true,
         format: 'pdf',
         exactOutputSize: allRGBMode ? 4096 : EXPORT_SIZE, // Force exact output size
-        allRGBMode
+        allRGBMode,
+        renderMode,
+        traceStroke,
+        traceDensity
       });
     }).catch(error => {
       console.error("Error loading PDF library:", error);
@@ -841,6 +901,9 @@ export default function GenerationPage() {
         dithering,
         antiAliasing,
         allRGBMode,
+        renderMode,
+        traceStroke,
+        traceDensity,
         exportSize: previewSize,
         patternSize
       },
@@ -889,6 +952,12 @@ export default function GenerationPage() {
           setAntiAliasing={setAntiAliasing}
           allRGBMode={allRGBMode}
           setAllRGBMode={setAllRGBMode}
+          renderMode={renderMode}
+          setRenderMode={setRenderMode}
+          traceStroke={traceStroke}
+          setTraceStroke={setTraceStroke}
+          traceDensity={traceDensity}
+          setTraceDensity={setTraceDensity}
         />
       </div>
 

@@ -41,6 +41,46 @@ const gradientMaps = [
   { label: 'Forest', value: 'forest' },
   { label: 'Magma', value: 'magma' },
 ];
+const renderModeSegments = [
+  {
+    value: 'fill',
+    label: 'Color field',
+    sub: 'Dense pixel fill',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <rect x="2" y="2" width="4" height="4" />
+        <rect x="8" y="2" width="4" height="4" opacity="0.5" />
+        <rect x="14" y="2" width="4" height="4" />
+        <rect x="2" y="8" width="4" height="4" opacity="0.5" />
+        <rect x="8" y="8" width="4" height="4" />
+        <rect x="14" y="8" width="4" height="4" opacity="0.5" />
+        <rect x="2" y="14" width="4" height="4" />
+        <rect x="8" y="14" width="4" height="4" opacity="0.5" />
+        <rect x="14" y="14" width="4" height="4" />
+      </svg>
+    ),
+  },
+  {
+    value: 'trace',
+    label: 'Line trace',
+    sub: 'Plotted curve',
+    icon: (
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true">
+        <path d="M3 5h4V9H3v6h4v-4h6v4h4V9h-4V5h4" />
+      </svg>
+    ),
+  },
+];
+// In trace mode 'none' draws a full-spectrum hue sweep along the line.
+const traceColorMaps = [
+  { label: 'Spectrum (hue sweep)', value: 'none' },
+  { label: 'Sunset', value: 'sunset' },
+  { label: 'Ocean', value: 'ocean' },
+  { label: 'Monochrome', value: 'monochrome' },
+  { label: 'Neon', value: 'neon' },
+  { label: 'Forest', value: 'forest' },
+  { label: 'Magma', value: 'magma' },
+];
 
 const tooltips = {
   seed: "A numerical value that determines the starting point for the generation. The same seed will always produce the same result.",
@@ -95,6 +135,13 @@ const tooltips = {
   colorSampleSize: "Color-matching sample size for high-resolution exports only. Higher values mean more accurate color choices (slower); the on-screen preview always uses an exhaustive search, so this has no visible effect while tuning.",
   previewSize: "Sets the resolution of the preview. Higher values show more detail but take longer to generate.",
   allRGBMode: "When enabled, forces a 4096×4096 AllRGB generation where every RGB color appears exactly once.",
+  renderMode: {
+    fill: "Color field — fills every pixel along the traversal curve with a different color. Dense, painterly output.",
+    trace: "Line trace — strokes the traversal curve itself as one continuous colored line, advancing color along its length. Clean, plotted line art.",
+  },
+  traceStroke: "Line weight of the traced curve. Higher is bolder.",
+  traceDensity: "How many cells the curve fills per side — higher is finer and more intricate, lower is bolder. Snaps to the nearest value each curve can tile.",
+  traceColorMap: "Colors the line as it advances along the curve. 'Spectrum' sweeps the full hue wheel; the others ride a themed gradient.",
 };
 
 function LabelWithTooltip({ children, tooltip, position = "top" }) {
@@ -179,6 +226,31 @@ function RangeControl({ id, label, value, onChange, min, max, step, tooltip, loa
   );
 }
 
+// Prominent segmented switch for the two render modes — the primary creative choice.
+function ModeToggle({ value, onChange, loading }) {
+  return (
+    <div className="mode-toggle" role="group" aria-label="Render mode">
+      {renderModeSegments.map((seg) => (
+        <button
+          key={seg.value}
+          type="button"
+          className={`mode-seg${value === seg.value ? ' is-active' : ''}`}
+          aria-pressed={value === seg.value}
+          onClick={() => onChange(seg.value)}
+          disabled={loading}
+          title={tooltips.renderMode[seg.value]}
+        >
+          <span className="mode-seg-icon">{seg.icon}</span>
+          <span className="mode-seg-text">
+            <span className="mode-seg-label">{seg.label}</span>
+            <span className="mode-seg-sub">{seg.sub}</span>
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ControlsPanel({
   curveType, setCurveType,
   seed, setSeed,
@@ -199,7 +271,11 @@ export default function ControlsPanel({
   dithering, setDithering,
   antiAliasing, setAntiAliasing,
   allRGBMode, setAllRGBMode,
+  renderMode, setRenderMode,
+  traceStroke, setTraceStroke,
+  traceDensity, setTraceDensity,
 }) {
+  const isTrace = renderMode === 'trace';
   const settingsButtonRef = useRef(null);
   const seedInputRef = useRef(null);
 
@@ -255,6 +331,9 @@ export default function ControlsPanel({
 
   return (
     <div className="panel-container">
+      {/* Render mode — the primary creative choice, up top */}
+      <ModeToggle value={renderMode} onChange={setRenderMode} loading={loading} />
+
       {/* Top actions bar */}
       <div className="control-actions-bar">
         <button
@@ -327,7 +406,56 @@ export default function ControlsPanel({
         </div>
       </CollapsibleSection>
 
-      {/* Growth Parameters */}
+      {/* Line / Trace — the only relevant knobs when stroking the curve */}
+      {isTrace && (
+        <CollapsibleSection title="Line" defaultOpen={true}>
+          <SelectControl
+            id="curve-type-select"
+            label="Curve"
+            value={curveType}
+            onChange={setCurveType}
+            options={curveTypes}
+            tooltipMap={tooltips.curveType}
+            loading={loading}
+            getLabel={getSelectedLabel}
+          />
+          <SelectControl
+            id="trace-color-select"
+            label="Color"
+            value={gradientMap}
+            onChange={setGradientMap}
+            options={traceColorMaps}
+            tooltipMap={tooltips.traceColorMap}
+            loading={loading}
+            getLabel={getSelectedLabel}
+          />
+          <RangeControl
+            id="trace-density-range"
+            label="Detail"
+            value={traceDensity}
+            onChange={setTraceDensity}
+            min={8}
+            max={64}
+            step={1}
+            tooltip={tooltips.traceDensity}
+            loading={loading}
+          />
+          <RangeControl
+            id="trace-stroke-range"
+            label="Line Weight"
+            value={traceStroke}
+            onChange={setTraceStroke}
+            min={0.4}
+            max={2}
+            step={0.05}
+            tooltip={tooltips.traceStroke}
+            loading={loading}
+          />
+        </CollapsibleSection>
+      )}
+
+      {/* Growth Parameters (color-field mode only) */}
+      {!isTrace && (
       <CollapsibleSection title="Growth Parameters" defaultOpen={true}>
         <SelectControl
           id="growth-mode-select"
@@ -387,8 +515,10 @@ export default function ControlsPanel({
           loading={loading}
         />
       </CollapsibleSection>
+      )}
 
-      {/* Color & Symmetry */}
+      {/* Color & Symmetry (color-field mode only) */}
+      {!isTrace && (
       <CollapsibleSection title="Color & Symmetry" defaultOpen={true}>
         <SelectControl
           id="color-progression-select"
@@ -423,8 +553,10 @@ export default function ControlsPanel({
           getLabel={getSelectedLabel}
         />
       </CollapsibleSection>
+      )}
 
-      {/* Finish / Effects — disabled in AllRGB mode to keep that output exact */}
+      {/* Finish / Effects (color-field mode only) — off in AllRGB to keep output exact */}
+      {!isTrace && (
       <CollapsibleSection title="Finish" defaultOpen={false}>
         {allRGBMode && (
           <p className="finish-note">Finish effects are off in AllRGB mode to keep every color exact.</p>
@@ -476,9 +608,11 @@ export default function ControlsPanel({
           </button>
         </div>
       </CollapsibleSection>
+      )}
 
       {/* Advanced */}
       <CollapsibleSection title="Advanced" defaultOpen={false}>
+        {!isTrace && (
         <div className="control-row">
           <label htmlFor="distance-randomness-input" className="control-label">
             <LabelWithTooltip tooltip={tooltips.distanceRandomness} position="right">
@@ -498,7 +632,9 @@ export default function ControlsPanel({
             placeholder="Distance Randomness"
           />
         </div>
+        )}
 
+        {!isTrace && (
         <div className="control-row">
           <label htmlFor="color-sample-size-input" className="control-label">
             <LabelWithTooltip tooltip={tooltips.colorSampleSize} position="right">
@@ -518,6 +654,7 @@ export default function ControlsPanel({
             placeholder="Color Sample Size"
           />
         </div>
+        )}
 
         <RangeControl
           id="preview-size-range"
@@ -532,7 +669,7 @@ export default function ControlsPanel({
         />
         <div className="preview-size-readout">{previewSize} × {previewSize}</div>
 
-        {setAllRGBMode && (
+        {!isTrace && setAllRGBMode && (
           <div className="control-row allrgb-toggle">
             <label className="control-label">
               <LabelWithTooltip tooltip={tooltips.allRGBMode} position="right">
