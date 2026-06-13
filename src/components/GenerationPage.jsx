@@ -73,8 +73,8 @@ export default function GenerationPage() {
   const [showSettingsPanel, setShowSettingsPanel] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [settingsButtonPosition, setSettingsButtonPosition] = useState({ top: 0, left: 0 });
-  const settingsButtonRef = useRef(null);
   const workerRef = useRef(null);
+  const exportWorkerRef = useRef(null);
   const canvasRef = useRef(null);
   const isMountedRef = useRef(true);
 
@@ -89,6 +89,26 @@ export default function GenerationPage() {
     } catch (error) {
       console.error('Error loading saved settings:', error);
       setSavedSettings([]);
+    }
+  }, []);
+
+  // Restore parameters when arriving from the gallery "Regenerate" action
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('regenerateParams');
+      if (!raw) return;
+      sessionStorage.removeItem('regenerateParams');
+      const p = JSON.parse(raw);
+      if (p && typeof p === 'object') {
+        if (p.curveType) setCurveType(p.curveType);
+        if (typeof p.seed === 'number') setSeed(p.seed);
+        if (p.colorOrdering) setColorOrdering(p.colorOrdering);
+        if (typeof p.exportSize === 'number') setPreviewSize(p.exportSize);
+        if (typeof p.patternSize === 'number') setPatternSize(p.patternSize);
+        updateFeedback('info', 'Settings restored from the gallery. Press Generate to plot this piece.');
+      }
+    } catch (error) {
+      console.error('Error restoring regenerate params:', error);
     }
   }, []);
 
@@ -115,11 +135,21 @@ export default function GenerationPage() {
     };
   }, []);
 
-  // Cleanup on unmount to prevent memory leaks
+  // Cleanup on unmount to prevent memory leaks — terminate any worker still
+  // running (e.g. a long 4096px job) so it doesn't keep computing detached
+  // after the island unmounts (notably across View Transitions navigation).
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+      if (exportWorkerRef.current) {
+        exportWorkerRef.current.terminate();
+        exportWorkerRef.current = null;
+      }
     };
   }, []);
 
@@ -411,6 +441,7 @@ export default function GenerationPage() {
 
     // Create a new worker specifically for this export
     const worker = new window.Worker('/worker/color-mapper.js');
+    exportWorkerRef.current = worker;
 
     // Add error handling
     worker.onerror = (error) => {
@@ -578,6 +609,7 @@ export default function GenerationPage() {
 
       // Create a new worker specifically for this export
       const worker = new window.Worker('/worker/color-mapper.js');
+      exportWorkerRef.current = worker;
 
       // Add error handling
       worker.onerror = (error) => {
@@ -823,18 +855,10 @@ export default function GenerationPage() {
       <div className="preview-wrapper">
         <div className="preview-container">
           {feedback && (
-            <div style={{
-              width: '100%',
-              marginBottom: '1rem',
-              padding: '0.75rem 1rem',
-              border: 'var(--border-ink)',
-              backgroundColor: feedback.type === 'error' ? 'rgba(228, 61, 48, 0.16)' : feedback.type === 'success' ? 'rgba(85, 103, 255, 0.14)' : 'var(--color-paper-alt)',
-              color: 'var(--color-ink)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.75rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em'
-            }}>
+            <div
+              className={`gen-feedback${feedback.type === 'error' ? ' is-error' : feedback.type === 'success' ? ' is-success' : ''}`}
+              role="status"
+            >
               {feedback.message}
             </div>
           )}
@@ -850,56 +874,15 @@ export default function GenerationPage() {
           />
 
           {loading && (
-            <div className="progress-container" style={{
-              width: '100%',
-              marginTop: '1.5rem',
-              border: 'var(--border-ink)',
-              padding: '0.5rem',
-              backgroundColor: 'var(--color-paper-alt)'
-            }}>
-              <div className="progress-bar" style={{
-                width: '100%',
-                height: '0.5rem',
-                backgroundColor: 'var(--color-paper)',
-                border: 'var(--border-ink)',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  height: '100%',
-                  width: `${progress}%`,
-                  backgroundColor: 'var(--color-accent)',
-                  transition: 'width 0.2s cubic-bezier(0.2, 0, 0, 1)'
-                }}></div>
+            <div className="gen-progress">
+              <div className="gen-progress-track">
+                <div className="gen-progress-fill" style={{ width: `${progress}%` }}></div>
               </div>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '0.5rem',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '0.75rem',
-                textTransform: 'uppercase',
-                color: 'var(--color-ink)',
-              }}>
-                <div>[PROGRESS_REQ: {progress}%]</div>
+              <div className="gen-progress-meta">
+                <span>{progress}% plotted</span>
                 {patternSize > 512 && (
-                  <button
-                    onClick={handlePauseResume}
-                    style={{
-                      backgroundColor: 'var(--color-ink)',
-                      border: 'var(--border-ink)',
-                      color: 'var(--color-paper)',
-                      fontFamily: 'var(--font-mono)',
-                      textTransform: 'uppercase',
-                      cursor: 'pointer',
-                      fontSize: '0.75rem',
-                      padding: '0.25rem 0.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      boxShadow: '2px 2px 0 0 var(--color-accent)',
-                    }}
-                  >
-                    {isPaused ? 'RESUME' : 'PAUSE'}
+                  <button type="button" className="gen-pause-btn" onClick={handlePauseResume}>
+                    {isPaused ? 'Resume' : 'Pause'}
                   </button>
                 )}
               </div>
@@ -987,7 +970,7 @@ export default function GenerationPage() {
                         handleLoadSettings(setting);
                       }}
                     >
-                      LOAD
+                      Load
                     </button>
 
                     <button
@@ -997,7 +980,7 @@ export default function GenerationPage() {
                         handleDeleteSettings(setting.id);
                       }}
                     >
-                      DELETE
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -1011,31 +994,32 @@ export default function GenerationPage() {
       {showSaveDialog && (
         <div className="dialog-overlay">
           <div className="dialog-container">
-            <h2 className="dialog-heading">Save Conf.</h2>
+            <h2 className="dialog-heading">Save configuration</h2>
 
-            <label className="dialog-label">
-              Configuration Name
+            <label className="dialog-label" htmlFor="config-name-input">
+              Configuration name
             </label>
             <input
+              id="config-name-input"
               type="text"
               value={settingsName}
               onChange={(e) => setSettingsName(e.target.value)}
-              placeholder="e.g. MONOCHROME_VOID"
+              placeholder="e.g. quadrant-study-01"
               className="dialog-input"
             />
 
             <div className="dialog-note">
               <p>
-                [SYS_NOTE] Settings are preserved in local browser cache. Cross-device synchronization is unavailable.
+                Saved to this browser's local storage. Configurations don't sync across devices.
               </p>
             </div>
 
             <div className="dialog-actions">
               <button
                 onClick={() => setShowSaveDialog(false)}
-                className="gallery-action-btn dialog-button"
+                className="dialog-button"
               >
-                CANCEL
+                Cancel
               </button>
 
               <button
@@ -1043,7 +1027,7 @@ export default function GenerationPage() {
                 className="dialog-button-primary"
                 disabled={!settingsName.trim()}
               >
-                COMMIT
+                Save
               </button>
             </div>
           </div>

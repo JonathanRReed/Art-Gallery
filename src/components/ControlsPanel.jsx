@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useId } from 'react';
 
 const growthModes = [
   { label: 'Crystal', value: 'crystal' },
@@ -86,11 +86,20 @@ const tooltips = {
 };
 
 function LabelWithTooltip({ children, tooltip, position = "top" }) {
+  const tipId = useId();
   return (
-    <span className={`tooltip-wrapper tooltip-${position}`}>
+    <span className={`tooltip-wrapper${position !== "top" ? ` tooltip-${position}` : ""}`}>
       <span>{children}</span>
-      <span className="info-icon" role="img" aria-label="info">i</span>
-      <span className="tooltip" role="tooltip">{tooltip}</span>
+      <span
+        className="info-icon"
+        tabIndex={0}
+        role="img"
+        aria-label="More information"
+        aria-describedby={tipId}
+      >
+        i
+      </span>
+      <span className="tooltip" role="tooltip" id={tipId}>{tooltip}</span>
     </span>
   );
 }
@@ -215,10 +224,12 @@ export default function ControlsPanel({
 
   const dispatchToggleSettings = () => {
     const rect = settingsButtonRef.current?.getBoundingClientRect();
+    // .settings-panel is position:fixed, so feed it viewport coordinates
+    // (no scroll offset) and clamp so it can't overflow the right edge.
     window.dispatchEvent(new CustomEvent('toggle-settings-panel', {
       detail: {
         position: rect
-          ? { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX }
+          ? { top: rect.bottom, left: Math.min(rect.left, window.innerWidth - 320 - 8) }
           : { top: 0, left: 0 }
       }
     }));
@@ -479,7 +490,7 @@ export default function ControlsPanel({
               disabled={loading}
               aria-pressed={allRGBMode}
             >
-              {allRGBMode ? 'ON' : 'OFF'}
+              {allRGBMode ? 'On' : 'Off'}
             </button>
           </div>
         )}
