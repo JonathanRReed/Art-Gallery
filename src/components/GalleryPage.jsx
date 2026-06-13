@@ -84,6 +84,9 @@ export default function GalleryPage() {
         return (
           (p.curveType || '').toLowerCase().includes(q) ||
           String(p.seed).includes(q) ||
+          (p.growthMode || '').toLowerCase().includes(q) ||
+          (p.symmetryMode || '').toLowerCase().includes(q) ||
+          (p.colorProgression || '').toLowerCase().includes(q) ||
           (p.colorOrdering || '').toLowerCase().includes(q)
         );
       });
@@ -488,7 +491,7 @@ export default function GalleryPage() {
             <div className="gallery-card-image-wrapper">
               <img
                 src={item.imageDataUrl}
-                alt={`Algorithmic art with ${item.params.curveType} curve, seed ${item.params.seed}, ${item.params.colorOrdering} color ordering`}
+                alt={`Algorithmic art: ${item.params.curveType} curve, seed ${item.params.seed}${item.params.growthMode ? `, ${item.params.growthMode} growth` : ''}`}
                 className="gallery-card-image"
                 loading="lazy"
                 onClick={() => {
@@ -500,7 +503,9 @@ export default function GalleryPage() {
                   {item.params.curveType}
                 </div>
                 <div className="gallery-card-meta">
-                  Seed {item.params.seed} &middot; {item.params.colorOrdering}
+                  Seed {item.params.seed}
+                  {(item.params.growthMode || item.params.colorProgression) &&
+                    ` · ${item.params.growthMode || item.params.colorProgression}`}
                 </div>
                 <div className="gallery-card-actions">
                   <button
@@ -589,8 +594,14 @@ export default function GalleryPage() {
             <div className="gallery-modal-footer">
               <div className="gallery-modal-meta">
                 <span>{viewingItem.params.curveType}</span> &middot; Seed{' '}
-                <span>{viewingItem.params.seed}</span> &middot;{' '}
-                {viewingItem.params.colorOrdering} &middot;{' '}
+                <span>{viewingItem.params.seed}</span>
+                {viewingItem.params.growthMode && (
+                  <> &middot; <span>{viewingItem.params.growthMode}</span></>
+                )}
+                {viewingItem.params.symmetryMode && viewingItem.params.symmetryMode !== 'none' && (
+                  <> &middot; {viewingItem.params.symmetryMode}</>
+                )}
+                {' '}&middot;{' '}
                 {formatDate(viewingItem.savedAt)} {formatTime(viewingItem.savedAt)}
                 {imageDimensions.width > 0 && (
                   <>

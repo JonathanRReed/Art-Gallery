@@ -78,18 +78,6 @@ class PriorityQueue {
   }
 }
 
-// ─── Coordinate helpers ───
-function mirrorCoords(x, y, width, height) {
-  const mx = width - 1 - x;
-  const my = height - 1 - y;
-  return [
-    [x, y],
-    [mx, y],
-    [x, my],
-    [mx, my]
-  ];
-}
-
 // ─── Optimized Color Distance with Memoization ───
 // Cache for color distance calculations to avoid redundant computations
 // Key format: encodedColor1 << 32 | encodedColor2 (where each color is encoded as r<<16|g<<8|b)
@@ -220,21 +208,6 @@ function applyColorProgression(colorList, colorProgression, seed) {
     default:
       seededShuffle(colorList, seed);
   }
-}
-
-function permuteHSV(h, s, v, curveType, colorOrdering) {
-  let arr = [h, s, v];
-  const order = (colorOrdering || 'hsv').toLowerCase();
-  let idx = [0, 1, 2];
-  if (order === 'hsv') idx = [0, 1, 2];
-  else if (order === 'hvs') idx = [0, 2, 1];
-  else if (order === 'shv') idx = [1, 0, 2];
-  else if (order === 'svh') idx = [1, 2, 0];
-  else if (order === 'vhs') idx = [2, 0, 1];
-  else if (order === 'vsh') idx = [2, 1, 0];
-  if (curveType === 'morton') arr[0] = (arr[0] + 120) % 360;
-  if (curveType === 'hilbert') arr[0] = (arr[0] + 240) % 360;
-  return [arr[idx[0]], arr[idx[1]], arr[idx[2]]];
 }
 
 function simpleHash(x, y, seed) {
@@ -594,10 +567,10 @@ self.onmessage = function (e) {
   try {
     const {
       width = 128, height = 128, seed,
-      symmetry = true, distanceRandomness = 10, colorSampleSize = 100,
+      distanceRandomness = 10, colorSampleSize = 100,
       growthMode = 'crystal', seedShape = 'point', symmetryMode = 'quadrantal', colorProgression = 'shuffled',
       branchingFactor = 0.5, growthRate = 1, randomness = 10,
-      curveType = 'hilbert', colorOrdering = 'hsv',
+      curveType = 'hilbert',
       patternComplexity = 128,
       optimizeForLargeExport = false,
       previewMode = false,
@@ -655,7 +628,6 @@ self.onmessage = function (e) {
 
     // ─── Color Generation ───
     let colorList = [];
-    let colorSet = null;
 
     if (allRGBMode) {
       self.postMessage({ progress: 1 });
@@ -1070,20 +1042,10 @@ self.onmessage = function (e) {
 
         // ─── Standard Priority-Queue Growth (crystal, nebula, rings, flow) ───
         const [x, y] = pq.pop();
-        let coords;
-        if (isExport && symmetryMode !== 'none') {
-          if (symmetryMode === 'bilateral') {
-            const mx = width - 1 - x;
-            coords = [[x, y], [mx, y]];
-          } else if (symmetryMode === 'quadrantal') {
-            const mx = width - 1 - x, my = height - 1 - y;
-            coords = [[x, y], [mx, y], [x, my], [mx, my]];
-          } else {
-            coords = [[x, y]];
-          }
-        } else {
-          coords = getSymmetryCoords(x, y, width, height, symmetryMode);
-        }
+        // Honor every symmetry mode (incl. radial) at all sizes — exports
+        // previously dropped radial silently, which broke "what you preview
+        // is what you export".
+        const coords = getSymmetryCoords(x, y, width, height, symmetryMode);
 
         let pixelsFilled = 0;
         for (const [mx, my] of coords) {

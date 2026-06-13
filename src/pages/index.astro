@@ -3,9 +3,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import GenerationPage from "../components/GenerationPage.jsx";
 
 /* ------------------------------------------------------------------
-   Space-filling curves, computed at build time. These are the exact
-   traversals the generator uses — rendered here as honest line art
-   instead of decorative gradients.
+   Traversal curves computed at build time, rendered as honest line art
+   instead of decorative gradients. The Hilbert/Morton/Peano plates
+   reproduce the generator's exact traversals; the spiral plate is an
+   illustrative Archimedean spiral (the engine's spiral ordering is a
+   single radius+angle sweep, drawn here as nested rings for legibility).
    ------------------------------------------------------------------ */
 function hilbertPoints(order: number) {
   const n = 1 << order;
@@ -64,18 +66,51 @@ function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10
     .join(" ");
 }
 
+// Peano: a recursive 3×3 space-filling curve (matches the engine's traversal)
+function peanoDist(x: number, y: number, order: number) {
+  const n = Math.pow(3, order);
+  let d = 0;
+  const table = [[0, 1, 2], [5, 4, 3], [6, 7, 8]];
+  for (let s = n / 3; s >= 1; s /= 3) {
+    const rx = Math.floor(x / s) % 3;
+    const ry = Math.floor(y / s) % 3;
+    d = d * 9 + table[ry][rx];
+  }
+  return d;
+}
+function peanoPoints(order: number) {
+  const n = Math.pow(3, order);
+  const cells: number[][] = [];
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) cells.push([x, y]);
+  cells.sort((a, b) => peanoDist(a[0], a[1], order) - peanoDist(b[0], b[1], order));
+  return { pts: cells, n };
+}
+// Illustrative parametric Archimedean spiral (nested rings) for the spiral plate
+function spiralPath(size = 200, pad = 12, turns = 6, steps = 640) {
+  const c = size / 2;
+  const maxR = (size - pad * 2) / 2;
+  const maxTheta = turns * 2 * Math.PI;
+  let d = "";
+  for (let i = 0; i <= steps; i++) {
+    const th = (i / steps) * maxTheta;
+    const r = maxR * (th / maxTheta);
+    d += `${i === 0 ? "M" : "L"}${(c + r * Math.cos(th)).toFixed(2)} ${(c + r * Math.sin(th)).toFixed(2)} `;
+  }
+  return d.trim();
+}
+
 const heroPath = toPath(hilbertPoints(5));
 const showcase = [
-  { d: toPath(hilbertPoints(5)), kind: "hilbert", label: "Hilbert · order 5", hint: "1,024 cells · locality-preserving", stroke: "var(--accent)" },
-  { d: toPath(mortonPoints(5)), kind: "morton", label: "Morton · order 5", hint: "Z-order traversal · quadrant blocks", stroke: "var(--ink)" },
-  { d: toPath(hilbertPoints(3)), kind: "hilbert", label: "Hilbert · order 3", hint: "64 cells · the base motif", stroke: "var(--accent)" },
-  { d: toPath(mortonPoints(4)), kind: "morton", label: "Morton · order 4", hint: "256 cells · recursive Z", stroke: "var(--ink)" },
+  { d: toPath(hilbertPoints(5)), label: "Hilbert · order 5", hint: "1,024 cells · locality-preserving", stroke: "var(--accent)" },
+  { d: toPath(mortonPoints(5)), label: "Morton · Z-order", hint: "1,024 cells · quadrant blocks", stroke: "var(--ink)" },
+  { d: toPath(peanoPoints(3)), label: "Peano · order 3", hint: "729 cells · woven 3×3 recursion", stroke: "var(--accent)" },
+  { d: spiralPath(), label: "Spiral", hint: "Archimedean · winds out in rings", stroke: "var(--ink)" },
 ];
 
 const features = [
   { n: "00", title: "Deterministic output", body: "Identical settings always produce the identical image. Every run is a reproducible study, recreatable from its parameters." },
-  { n: "01", title: "Space-filling curves", body: "Hilbert or Morton traversal decides how the canvas is visited — and therefore how color flows across the plate." },
-  { n: "02", title: "Symmetry rules", body: "None, bilateral, quadrantal, or radial. Each rule folds the same seed into a different composition." },
+  { n: "01", title: "Five traversal curves", body: "Three space-filling curves — Hilbert, Morton, Peano — plus an Archimedean spiral and a constrained random walk, each visiting the canvas differently and reordering how color flows across the plate." },
+  { n: "02", title: "Growth & symmetry", body: "Five growth modes (crystal, nebula, rings, flow, fractal) and four symmetry rules fold the same seed into endlessly different compositions." },
   { n: "03", title: "High-resolution export", body: "Render finished pieces to PNG or PDF at up to 4096×4096 — ready for print, screen, or portfolio." },
   { n: "04", title: "Saved gallery", body: "Keep the strongest studies with their exact settings. Return later to compare, refine, or re-export." },
   { n: "05", title: "Live preview", body: "Adjust a control and watch the plate redraw in real time. Experiment fast, commit with intent." },
@@ -124,7 +159,7 @@ const features = [
         <h1 id="art-index-title" class="hero-title">Algorithmic<br />Art Gallery</h1>
         <p class="hero-lead">
           Plot deterministic artwork from space-filling curves, growth modes,
-          color ordering, symmetry, and seeds. Every saved piece regenerates
+          color progression, symmetry, and seeds. Every saved piece regenerates
           exactly from its settings — then exports for screen or print.
         </p>
         <dl class="titleblock">
@@ -158,7 +193,7 @@ const features = [
         <figure class="showcase-card crop" data-reveal>
           <span class="crop-tr"></span><span class="crop-bl"></span>
           <div class="showcase-plot">
-            <svg viewBox="0 0 200 200" role="img" aria-label={`${c.label} space-filling curve`}>
+            <svg viewBox="0 0 200 200" role="img" aria-label={`${c.label} traversal curve`}>
               <path class="showcase-path" style={`--i:${i}`} d={c.d} pathLength="1" fill="none"
                 stroke={c.stroke} stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" />
             </svg>

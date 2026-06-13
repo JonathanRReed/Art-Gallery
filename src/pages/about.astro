@@ -42,10 +42,10 @@ const aboutVideoSchema = {
         <div class="about-card">
           <p>
             This is a small generative art project by me, Jonathan Reed! It uses
-            space-filling curves (Hilbert and Morton) combined with color mapping
-            to produce patterns. You control the seed value, growth mode,
-            symmetry, and color ordering, then let the algorithm fill in the
-            pixels.
+            space-filling curves (Hilbert, Morton, Peano) plus spiral and random-walk
+            traversals, combined with color mapping to produce patterns. You control
+            the seed, traversal curve, growth mode, symmetry, and color flow, then let
+            the algorithm fill in the pixels.
           </p>
           <p>
             Every output is deterministic: same settings produce the same image.
@@ -127,8 +127,8 @@ const aboutVideoSchema = {
                 size, growth mode, seed shape, and more
               </li>
               <li>
-                <strong>Color & Symmetry</strong>: Define color progression, curve
-                type, color ordering, and symmetry options
+                <strong>Color & Symmetry</strong>: Define the traversal curve, color
+                progression, symmetry, and finishing effects
               </li>
             </ul>
           </div>
@@ -166,27 +166,68 @@ const aboutVideoSchema = {
           Click on any option below to learn more about it:
         </p>
         <div class="feature-grid">
-          <div class="feature-item" data-feature="growth-modes">
+          <div class="feature-item" data-feature="curve-types">
             <div class="feature-header">
               <div class="feature-header-text">
-                <h3>Growth Modes</h3>
-                <p class="feature-summary">Crystal, Nebula, Rings</p>
+                <h3>Curve Types</h3>
+                <p class="feature-summary">Hilbert, Morton, Peano, Spiral, Random Walk</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
             <div class="feature-details">
               <ul>
                 <li>
-                  <strong>Crystal:</strong> Creates crystalline formations with angular
-                  structures, growing in a more geometric pattern.
+                  <strong>Hilbert:</strong> A space-filling curve that preserves locality
+                  well, creating smoother color transitions and more organic patterns.
                 </li>
                 <li>
-                  <strong>Nebula:</strong> Produces cloud-like, organic shapes with
-                  diffused edges that resemble cosmic nebulae.
+                  <strong>Morton:</strong> The Z-order curve interleaves coordinate bits,
+                  creating blockier, quadrant-based color regions.
                 </li>
                 <li>
-                  <strong>Rings:</strong> Generates concentric circles and orbital
-                  patterns that expand outward like ripples.
+                  <strong>Peano:</strong> A recursive 3×3 space-filling curve — a denser,
+                  more woven path through color space than Hilbert.
+                </li>
+                <li>
+                  <strong>Spiral:</strong> Archimedean-spiral ordering from the center
+                  outward, so color winds out in rings.
+                </li>
+                <li>
+                  <strong>Random Walk:</strong> A constrained, DLA-style random walk
+                  orders the palette for organic, unpredictable color flow.
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-item" data-feature="growth-modes">
+            <div class="feature-header">
+              <div class="feature-header-text">
+                <h3>Growth Modes</h3>
+                <p class="feature-summary">Crystal, Nebula, Rings, Flow, Fractal</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
+            </div>
+            <div class="feature-details">
+              <ul>
+                <li>
+                  <strong>Crystal:</strong> Grows outward by distance from the center,
+                  forming crystalline, radial structures.
+                </li>
+                <li>
+                  <strong>Nebula:</strong> Near-random growth priority produces cloud-like,
+                  organic shapes with diffused edges.
+                </li>
+                <li>
+                  <strong>Rings:</strong> Priority follows a sine of the radius, generating
+                  concentric rings and orbital bands.
+                </li>
+                <li>
+                  <strong>Flow:</strong> Growth follows a deterministic flow field, so
+                  structure streams along curving currents.
+                </li>
+                <li>
+                  <strong>Fractal:</strong> Recursively subdivides the canvas into quadrants
+                  that fill in like a fractal.
                 </li>
               </ul>
             </div>
@@ -195,7 +236,7 @@ const aboutVideoSchema = {
             <div class="feature-header">
               <div class="feature-header-text">
                 <h3>Seed Shapes</h3>
-                <p class="feature-summary">Point, Circle, Line</p>
+                <p class="feature-summary">Point, Dual, Circle, Line</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
@@ -206,12 +247,16 @@ const aboutVideoSchema = {
                   center, creating a radial expansion pattern.
                 </li>
                 <li>
+                  <strong>Dual:</strong> Begins from two seed points for paired,
+                  symmetrical growth.
+                </li>
+                <li>
                   <strong>Circle:</strong> Begins with a circular boundary that expands
                   outward, creating ring-like structures.
                 </li>
                 <li>
-                  <strong>Line:</strong> Initiates growth from a line across the center,
-                  creating mirror-like patterns.
+                  <strong>Line:</strong> Initiates growth from a horizontal line across
+                  the center, creating mirror-like patterns.
                 </li>
               </ul>
             </div>
@@ -239,7 +284,7 @@ const aboutVideoSchema = {
                   quadrants from the center.
                 </li>
                 <li>
-                  <strong>Radial:</strong> Circular symmetry, repeating pattern radiates
+                  <strong>Radial:</strong> Eight-fold rotational symmetry radiating
                   from the center point.
                 </li>
               </ul>
@@ -249,7 +294,7 @@ const aboutVideoSchema = {
             <div class="feature-header">
               <div class="feature-header-text">
                 <h3>Color Progression</h3>
-                <p class="feature-summary">Sequential, Shuffled, Base Distance</p>
+                <p class="feature-summary">Sequential, Shuffled, Base Distance, Saturation, Brightness</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
@@ -267,63 +312,37 @@ const aboutVideoSchema = {
                   <strong>Base Distance:</strong> Colors are distributed based on
                   their distance from a base color.
                 </li>
+                <li>
+                  <strong>Saturation:</strong> Sorts the palette by saturation for an
+                  AllRGB-style flow.
+                </li>
+                <li>
+                  <strong>Brightness:</strong> Sorts the palette by brightness intensity.
+                </li>
               </ul>
             </div>
           </div>
-          <div class="feature-item" data-feature="curve-types">
+          <div class="feature-item" data-feature="finish">
             <div class="feature-header">
               <div class="feature-header-text">
-                <h3>Curve Types</h3>
-                <p class="feature-summary">Hilbert, Morton</p>
+                <h3>Finish &amp; Effects</h3>
+                <p class="feature-summary">Gradient Map, Dithering, Anti-aliasing</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
             <div class="feature-details">
               <ul>
                 <li>
-                  <strong>Hilbert:</strong> A space-filling curve that preserves locality
-                  well, creating smoother color transitions and more organic patterns.
+                  <strong>Gradient Map:</strong> Remaps the generated colors by brightness
+                  through a curated palette — sunset, ocean, monochrome, neon, forest, or magma.
                 </li>
                 <li>
-                  <strong>Morton:</strong> Also known as Z-order curve, creates more
-                  blocky, quadrant-based patterns with distinct regions.
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="feature-item" data-feature="color-ordering">
-            <div class="feature-header">
-              <div class="feature-header-text">
-                <h3>Color Ordering</h3>
-                <p class="feature-summary">HSV, HVS, SHV, SVH, VHS, VSH</p>
-              </div>
-              <span class="feature-expand-icon" aria-hidden="true">+</span>
-            </div>
-            <div class="feature-details">
-              <ul>
-                <li>
-                  <strong>HSV:</strong> Arranges colors by Hue, Saturation, Value
-                  - emphasizing color families.
+                  <strong>Dithering:</strong> Ordered (Bayer) dithering adds fine tonal
+                  texture and softens color banding.
                 </li>
                 <li>
-                  <strong>HVS:</strong> Arranges by Hue, Value, Saturation - emphasizing
-                  brightness variations within hues.
-                </li>
-                <li>
-                  <strong>SHV:</strong> Arranges by Saturation, Hue, Value - grouping
-                  by color intensity first.
-                </li>
-                <li>
-                  <strong>SVH:</strong> Arranges by Saturation, Value, Hue - emphasizing
-                  intensity and brightness patterns.
-                </li>
-                <li>
-                  <strong>VHS:</strong> Arranges by Value, Hue, Saturation - creating
-                  bands of brightness.
-                </li>
-                <li>
-                  <strong>VSH:</strong> Arranges by Value, Saturation, Hue - emphasizing
-                  brightness and intensity patterns.
+                  <strong>Anti-aliasing:</strong> Edge-preserving smoothing softens harsh
+                  boundaries between color regions.
                 </li>
               </ul>
             </div>
@@ -395,8 +414,12 @@ const aboutVideoSchema = {
             <span class="spec-value">From 128×128 to 4096×4096 pixels</span>
           </li>
           <li>
-            <span class="spec-label">Algorithms</span>
-            <span class="spec-value">Hilbert Curve, Morton Curve (Z-order)</span>
+            <span class="spec-label">Traversal curves</span>
+            <span class="spec-value">Hilbert, Morton (Z-order), Peano, Spiral, Random Walk</span>
+          </li>
+          <li>
+            <span class="spec-label">Growth modes</span>
+            <span class="spec-value">Crystal, Nebula, Rings, Flow, Fractal</span>
           </li>
           <li>
             <span class="spec-label">Export Options</span>

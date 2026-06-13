@@ -46,14 +46,12 @@ function saveToGallery({ imageDataUrl, params }) {
 export default function GenerationPage() {
   const [curveType, setCurveType] = useState('hilbert');
   const [seed, setSeed] = useState(1);
-  const [colorOrdering, setColorOrdering] = useState('hsv');
   const [loading, setLoading] = useState(false);
   const [imageData, setImageData] = useState(null);
   const [imageMeta, setImageMeta] = useState(null);
   const [previewSize, setPreviewSize] = useState(128);
   const [patternSize, setPatternSize] = useState(128); // Default pattern complexity
   const [lastGeneratedPatternSize, setLastGeneratedPatternSize] = useState(128); // Track last generated pattern size
-  const [symmetry, setSymmetry] = useState(true);
   const [distanceRandomness, setDistanceRandomness] = useState(10);
   const [colorSampleSize, setColorSampleSize] = useState(100);
   const [growthMode, setGrowthMode] = useState('crystal');
@@ -63,6 +61,9 @@ export default function GenerationPage() {
   const [branchingFactor, setBranchingFactor] = useState(0.5);
   const [growthRate, setGrowthRate] = useState(1);
   const [randomness, setRandomness] = useState(10);
+  const [gradientMap, setGradientMap] = useState('none');
+  const [dithering, setDithering] = useState(false);
+  const [antiAliasing, setAntiAliasing] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [allRGBMode, setAllRGBMode] = useState(false);
@@ -102,7 +103,18 @@ export default function GenerationPage() {
       if (p && typeof p === 'object') {
         if (p.curveType) setCurveType(p.curveType);
         if (typeof p.seed === 'number') setSeed(p.seed);
-        if (p.colorOrdering) setColorOrdering(p.colorOrdering);
+        if (p.growthMode) setGrowthMode(p.growthMode);
+        if (p.seedShape) setSeedShape(p.seedShape);
+        if (p.symmetryMode) setSymmetryMode(p.symmetryMode);
+        if (p.colorProgression) setColorProgression(p.colorProgression);
+        if (typeof p.branchingFactor === 'number') setBranchingFactor(p.branchingFactor);
+        if (typeof p.growthRate === 'number') setGrowthRate(p.growthRate);
+        if (typeof p.randomness === 'number') setRandomness(p.randomness);
+        if (typeof p.distanceRandomness === 'number') setDistanceRandomness(p.distanceRandomness);
+        if (typeof p.colorSampleSize === 'number') setColorSampleSize(p.colorSampleSize);
+        if (p.gradientMap) setGradientMap(p.gradientMap);
+        if (typeof p.dithering === 'boolean') setDithering(p.dithering);
+        if (typeof p.antiAliasing === 'boolean') setAntiAliasing(p.antiAliasing);
         if (typeof p.exportSize === 'number') setPreviewSize(p.exportSize);
         if (typeof p.patternSize === 'number') setPatternSize(p.patternSize);
         updateFeedback('info', 'Settings restored from the gallery. Press Generate to plot this piece.');
@@ -157,9 +169,7 @@ export default function GenerationPage() {
     return {
       curveType,
       seed,
-      colorOrdering,
       previewSize,
-      symmetry,
       distanceRandomness,
       colorSampleSize,
       growthMode,
@@ -169,6 +179,9 @@ export default function GenerationPage() {
       branchingFactor,
       growthRate,
       randomness,
+      gradientMap,
+      dithering,
+      antiAliasing,
       patternSize
     };
   }
@@ -212,9 +225,7 @@ export default function GenerationPage() {
     // Apply all settings
     setCurveType(settings.curveType || 'hilbert');
     setSeed(settings.seed || 1);
-    setColorOrdering(settings.colorOrdering || 'hsv');
     setPreviewSize(settings.previewSize || 128);
-    setSymmetry(settings.symmetry !== undefined ? settings.symmetry : true);
     setDistanceRandomness(settings.distanceRandomness || 10);
     setColorSampleSize(settings.colorSampleSize || 100);
     setGrowthMode(settings.growthMode || 'crystal');
@@ -224,6 +235,9 @@ export default function GenerationPage() {
     setBranchingFactor(settings.branchingFactor || 0.5);
     setGrowthRate(settings.growthRate || 1);
     setRandomness(settings.randomness || 10);
+    setGradientMap(settings.gradientMap || 'none');
+    setDithering(Boolean(settings.dithering));
+    setAntiAliasing(Boolean(settings.antiAliasing));
     setPatternSize(settings.patternSize || 128);
 
     setShowSettingsPanel(false);
@@ -360,11 +374,9 @@ export default function GenerationPage() {
           width: effectiveSize,
           height: effectiveSize,
           seed,
-          symmetry,
           distanceRandomness,
           colorSampleSize,
           curveType,
-          colorOrdering,
           growthMode,
           seedShape,
           symmetryMode,
@@ -372,6 +384,9 @@ export default function GenerationPage() {
           branchingFactor,
           growthRate,
           randomness,
+          gradientMap,
+          dithering,
+          antiAliasing,
           patternComplexity: allRGBMode ? 4096 : patternSize, // Force 4096 for AllRGB
           previewMode: !allRGBMode, // Not preview mode for AllRGB
           allRGBMode // NEW: Pass AllRGB mode flag to worker
@@ -578,11 +593,9 @@ export default function GenerationPage() {
       width: allRGBMode ? 4096 : EXPORT_SIZE,
       height: allRGBMode ? 4096 : EXPORT_SIZE,
       seed,
-      symmetry,
       distanceRandomness,
       colorSampleSize,
       curveType,
-      colorOrdering,
       growthMode,
       seedShape,
       symmetryMode,
@@ -590,6 +603,9 @@ export default function GenerationPage() {
       branchingFactor,
       growthRate,
       randomness,
+      gradientMap,
+      dithering,
+      antiAliasing,
       patternComplexity: allRGBMode ? 4096 : patternSize,
       exportMode: true,
       exactOutputSize: allRGBMode ? 4096 : EXPORT_SIZE,
@@ -770,11 +786,9 @@ export default function GenerationPage() {
         width: EXPORT_SIZE,
         height: EXPORT_SIZE,
         seed,
-        symmetry,
         distanceRandomness,
         colorSampleSize,
         curveType,
-        colorOrdering,
         growthMode,
         seedShape,
         symmetryMode,
@@ -782,6 +796,9 @@ export default function GenerationPage() {
         branchingFactor,
         growthRate,
         randomness,
+        gradientMap,
+        dithering,
+        antiAliasing,
         patternComplexity: patternSize,
         exportMode: true,
         format: 'pdf',
@@ -802,7 +819,18 @@ export default function GenerationPage() {
       params: {
         curveType,
         seed,
-        colorOrdering,
+        growthMode,
+        seedShape,
+        symmetryMode,
+        colorProgression,
+        branchingFactor,
+        growthRate,
+        randomness,
+        distanceRandomness,
+        colorSampleSize,
+        gradientMap,
+        dithering,
+        antiAliasing,
         exportSize: previewSize,
         patternSize
       },
@@ -818,12 +846,8 @@ export default function GenerationPage() {
           setCurveType={setCurveType}
           seed={seed}
           setSeed={setSeed}
-          colorOrdering={colorOrdering}
-          setColorOrdering={setColorOrdering}
           previewSize={previewSize}
           setPreviewSize={setPreviewSize}
-          symmetry={symmetry}
-          setSymmetry={setSymmetry}
           distanceRandomness={distanceRandomness}
           setDistanceRandomness={setDistanceRandomness}
           colorSampleSize={colorSampleSize}
@@ -847,6 +871,12 @@ export default function GenerationPage() {
           setRandomness={setRandomness}
           patternSize={patternSize}
           setPatternSize={setPatternSize}
+          gradientMap={gradientMap}
+          setGradientMap={setGradientMap}
+          dithering={dithering}
+          setDithering={setDithering}
+          antiAliasing={antiAliasing}
+          setAntiAliasing={setAntiAliasing}
           allRGBMode={allRGBMode}
           setAllRGBMode={setAllRGBMode}
         />
