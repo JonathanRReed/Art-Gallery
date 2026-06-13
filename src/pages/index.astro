@@ -2,13 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GenerationPage from "../components/GenerationPage.jsx";
 
-/* ------------------------------------------------------------------
-   Traversal curves computed at build time, rendered as honest line art
-   instead of decorative gradients. The Hilbert/Morton/Peano plates
-   reproduce the generator's exact traversals; the spiral plate is an
-   illustrative Archimedean spiral (the engine's spiral ordering is a
-   single radius+angle sweep, drawn here as nested rings for legibility).
-   ------------------------------------------------------------------ */
+/* Hilbert space-filling curve, computed at build time for the hero's live trace. */
 function hilbertPoints(order: number) {
   const n = 1 << order;
   const total = n * n;
@@ -38,22 +32,6 @@ function hilbertPoints(order: number) {
   return { pts, n };
 }
 
-function mortonPoints(order: number) {
-  const n = 1 << order;
-  const total = n * n;
-  const pts = [];
-  for (let d = 0; d < total; d++) {
-    let x = 0;
-    let y = 0;
-    for (let i = 0; i < order; i++) {
-      x |= ((d >> (2 * i)) & 1) << i;
-      y |= ((d >> (2 * i + 1)) & 1) << i;
-    }
-    pts.push([x, y]);
-  }
-  return { pts, n };
-}
-
 function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10) {
   const inner = size - pad * 2;
   const step = inner / (n - 1);
@@ -66,54 +44,39 @@ function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10
     .join(" ");
 }
 
-// Peano: a recursive 3×3 space-filling curve (matches the engine's traversal)
-function peanoDist(x: number, y: number, order: number) {
-  const n = Math.pow(3, order);
-  let d = 0;
-  const table = [[0, 1, 2], [5, 4, 3], [6, 7, 8]];
-  for (let s = n / 3; s >= 1; s /= 3) {
-    const rx = Math.floor(x / s) % 3;
-    const ry = Math.floor(y / s) % 3;
-    d = d * 9 + table[ry][rx];
-  }
-  return d;
-}
-function peanoPoints(order: number) {
-  const n = Math.pow(3, order);
-  const cells: number[][] = [];
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) cells.push([x, y]);
-  cells.sort((a, b) => peanoDist(a[0], a[1], order) - peanoDist(b[0], b[1], order));
-  return { pts: cells, n };
-}
-// Illustrative parametric Archimedean spiral (nested rings) for the spiral plate
-function spiralPath(size = 200, pad = 12, turns = 6, steps = 640) {
-  const c = size / 2;
-  const maxR = (size - pad * 2) / 2;
-  const maxTheta = turns * 2 * Math.PI;
-  let d = "";
-  for (let i = 0; i <= steps; i++) {
-    const th = (i / steps) * maxTheta;
-    const r = maxR * (th / maxTheta);
-    d += `${i === 0 ? "M" : "L"}${(c + r * Math.cos(th)).toFixed(2)} ${(c + r * Math.sin(th)).toFixed(2)} `;
-  }
-  return d.trim();
-}
-
 const heroPath = toPath(hilbertPoints(5));
-const showcase = [
-  { d: toPath(hilbertPoints(5)), label: "Hilbert · order 5", hint: "1,024 cells · locality-preserving", stroke: "var(--accent)" },
-  { d: toPath(mortonPoints(5)), label: "Morton · Z-order", hint: "1,024 cells · quadrant blocks", stroke: "var(--ink)" },
-  { d: toPath(peanoPoints(3)), label: "Peano · order 3", hint: "729 cells · woven 3×3 recursion", stroke: "var(--accent)" },
-  { d: spiralPath(), label: "Spiral", hint: "Archimedean · winds out in rings", stroke: "var(--ink)" },
-];
 
-const features = [
-  { n: "00", title: "Deterministic output", body: "Identical settings always produce the identical image. Every run is a reproducible study, recreatable from its parameters." },
-  { n: "01", title: "Five traversal curves", body: "Three space-filling curves — Hilbert, Morton, Peano — plus an Archimedean spiral and a constrained random walk, each visiting the canvas differently and reordering how color flows across the plate." },
-  { n: "02", title: "Growth & symmetry", body: "Four growth modes (crystal, nebula, rings, flow) and four symmetry rules fold the same seed into endlessly different compositions." },
-  { n: "03", title: "High-resolution export", body: "Render finished pieces to PNG or PDF at up to 4096×4096 — ready for print, screen, or portfolio." },
-  { n: "04", title: "Saved gallery", body: "Keep the strongest studies with their exact settings. Return later to compare, refine, or re-export." },
-  { n: "05", title: "Live preview", body: "Adjust a control and watch the plate redraw in real time. Experiment fast, commit with intent." },
+// Curated starting points — each is a real, exact recipe the generator
+// reproduces. Thumbnails render live on the client from these same params, and
+// clicking a card loads the recipe into the generator and plots it. The set
+// mixes both render modes so the showcase shows what each one makes.
+const COMMON = {
+  seed: 1, seedShape: "point", branchingFactor: 0.5, growthRate: 1,
+  colorSampleSize: 100, distanceRandomness: 10,
+  dithering: false, antiAliasing: false, allRGBMode: false,
+};
+// Trace recipes render fast at 256 (no color-match); fill recipes stay at 128
+// because the color-field engine's match is O(pixels²). Canvas size == previewSize
+// so each thumbnail is exactly what clicking the card plots.
+const TRACE_BASE = {
+  ...COMMON, renderMode: "trace", traceStroke: 1, traceDensity: 32,
+  curveType: "hilbert", gradientMap: "none", growthMode: "crystal",
+  symmetryMode: "none", colorProgression: "sequential", randomness: 10,
+  previewSize: 256, patternSize: 256,
+};
+const FILL_BASE = {
+  ...COMMON, renderMode: "fill", traceStroke: 1, traceDensity: 32,
+  curveType: "hilbert", gradientMap: "none", growthMode: "crystal",
+  symmetryMode: "none", colorProgression: "sequential", randomness: 3,
+  previewSize: 128, patternSize: 128,
+};
+const presets = [
+  { id: "hilbert-bloom", name: "Hilbert Bloom", mode: "Trace", sub: "Hilbert · spectrum", params: { ...TRACE_BASE, curveType: "hilbert", gradientMap: "none", traceDensity: 32 } },
+  { id: "magma-field", name: "Magma Field", mode: "Field", sub: "Hilbert · magma", params: { ...FILL_BASE, curveType: "hilbert", gradientMap: "magma", symmetryMode: "radial", colorProgression: "brightness", randomness: 2, seed: 1337 } },
+  { id: "tide-spiral", name: "Tide Spiral", mode: "Trace", sub: "Spiral · ocean", params: { ...TRACE_BASE, curveType: "spiral", gradientMap: "ocean", traceDensity: 26, traceStroke: 1.1 } },
+  { id: "nebula", name: "Nebula", mode: "Field", sub: "Morton · ocean", params: { ...FILL_BASE, curveType: "morton", gradientMap: "ocean", growthMode: "nebula", symmetryMode: "quadrantal", colorProgression: "sequential", randomness: 4, seed: 88 } },
+  { id: "drift-walk", name: "Drift Walk", mode: "Trace", sub: "Random walk · neon", params: { ...TRACE_BASE, curveType: "randomwalk", gradientMap: "neon", traceDensity: 34, seed: 7 } },
+  { id: "understory", name: "Understory", mode: "Field", sub: "Peano · forest", params: { ...FILL_BASE, curveType: "peano", gradientMap: "forest", growthMode: "flow", symmetryMode: "bilateral", colorProgression: "base-distance", randomness: 3, seed: 256 } },
 ];
 ---
 
@@ -177,82 +140,36 @@ const features = [
     </div>
   </section>
 
-  <!-- ===================== SHOWCASE ===================== -->
-  <section class="showcase" aria-labelledby="showcase-title">
+  <!-- ===================== PRESETS ===================== -->
+  <section class="presets" aria-labelledby="presets-title">
     <header class="section-head" data-reveal>
-      <p class="eyebrow">Plate index</p>
-      <h2 id="showcase-title" class="section-title">The curves the tool draws</h2>
+      <p class="eyebrow">Start from a pattern</p>
+      <h2 id="presets-title" class="section-title">Recipes to remix</h2>
       <p class="section-desc">
-        Every image begins as one of these traversals. Color and symmetry are
-        applied along the path — change the curve and the whole composition reorders.
+        Each is a real, reproducible piece — pick one to load its exact recipe
+        into the generator below, then make it your own.
       </p>
     </header>
-    <div class="rule-ticks" aria-hidden="true" data-reveal></div>
-    <div class="showcase-grid">
-      {showcase.map((c, i) => (
-        <figure class="showcase-card crop" data-reveal>
-          <span class="crop-tr"></span><span class="crop-bl"></span>
-          <div class="showcase-plot">
-            <svg viewBox="0 0 200 200" role="img" aria-label={`${c.label} traversal curve`}>
-              <path class="showcase-path" style={`--i:${i}`} d={c.d} pathLength="1" fill="none"
-                stroke={c.stroke} stroke-width="1.3" stroke-linecap="square" stroke-linejoin="miter" />
-            </svg>
-          </div>
-          <figcaption class="showcase-caption">
-            <span class="mono showcase-label">{c.label}</span>
-            <span class="showcase-hint">{c.hint}</span>
-          </figcaption>
-        </figure>
+    <div class="presets-grid" data-reveal>
+      {presets.map((p) => (
+        <button
+          type="button"
+          class="preset-card"
+          data-preset={JSON.stringify(p.params)}
+          aria-label={`Load and plot the ${p.name} pattern`}
+        >
+          <span class="preset-thumb">
+            <canvas width={p.params.previewSize} height={p.params.previewSize} data-preset-canvas aria-hidden="true"></canvas>
+            <span class="preset-plotting mono" aria-hidden="true">plotting…</span>
+            <span class={`preset-mode mono${p.mode === "Trace" ? " is-trace" : ""}`}>{p.mode}</span>
+          </span>
+          <span class="preset-meta">
+            <span class="preset-name">{p.name}</span>
+            <span class="preset-sub mono">{p.sub}</span>
+          </span>
+        </button>
       ))}
     </div>
-  </section>
-
-  <!-- ===================== FEATURES (legend) ===================== -->
-  <section class="features" aria-labelledby="features-title">
-    <header class="section-head" data-reveal>
-      <p class="eyebrow">Capabilities</p>
-      <h2 id="features-title" class="section-title">A studio built for deliberate exploration</h2>
-    </header>
-    <ol class="legend" data-reveal>
-      {features.map((f) => (
-        <li class="legend-row">
-          <span class="legend-n mono">{f.n}</span>
-          <div class="legend-body">
-            <h3 class="legend-title">{f.title}</h3>
-            <p class="legend-text">{f.body}</p>
-          </div>
-        </li>
-      ))}
-    </ol>
-  </section>
-
-  <!-- ===================== STUDIO NOTES ===================== -->
-  <section class="notes" aria-labelledby="notes-title">
-    <details class="notes-sheet" data-reveal>
-      <summary id="notes-title">Studio notes</summary>
-      <div class="notes-body">
-        <p>
-          The studio is built for deliberate exploration, not random effects.
-          Compare Hilbert against Morton traversal, change how color moves through
-          the image, then save the strongest variations to the gallery for review.
-        </p>
-        <p>
-          A seed defines the starting point, a traversal curve determines how the
-          canvas is visited, and the color rules decide how structure becomes
-          visible. Adjust one setting at a time when you want to compare related outputs.
-        </p>
-        <p>
-          Small parameter changes often explain the system better than a brand-new
-          random seed. Keep the saved versions that show a clear difference in
-          density, symmetry, or color rhythm.
-        </p>
-        <p>
-          When a run works, save it before changing controls. Comparing saved
-          outputs against the live plate makes it easier to spot which choice
-          actually improved the piece: the curve, the symmetry, the seed, or the color path.
-        </p>
-      </div>
-    </details>
   </section>
 
   <!-- ===================== GENERATOR ===================== -->
@@ -357,6 +274,53 @@ const features = [
           window.removeEventListener("resize", invalidate);
         });
       }
+
+      // --- Preset patterns: click a card to load its recipe + plot it ---
+      const presetCards = Array.from(document.querySelectorAll(".preset-card"));
+      if (presetCards.length && !window.__aagPresetsWired) {
+        window.__aagPresetsWired = true;
+        document.addEventListener("click", (e) => {
+          const card = e.target.closest(".preset-card");
+          if (!card || !card.dataset.preset) return;
+          let params;
+          try { params = JSON.parse(card.dataset.preset); } catch (err) { return; }
+          window.dispatchEvent(new CustomEvent("aag-load-preset", { detail: params }));
+          document.getElementById("generator")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
+      // Render preset thumbnails live from their real recipes, via a small worker pool
+      const toRender = presetCards.filter((c) => !c.dataset.rendered);
+      if (toRender.length) {
+        let next = 0;
+        const POOL = Math.min(3, toRender.length);
+        const pump = (worker) => {
+          if (!worker || next >= toRender.length) { if (worker) worker.terminate(); return; }
+          const card = toRender[next++];
+          const canvas = card.querySelector("canvas");
+          let params;
+          try { params = JSON.parse(card.dataset.preset); } catch (err) { card.dataset.rendered = "1"; return pump(worker); }
+          const size = canvas ? canvas.width : 128;
+          worker.onmessage = (e) => {
+            if (e.data.error) { card.dataset.rendered = "1"; return pump(worker); }
+            if (e.data.buffer && !e.data.preview) {
+              try {
+                const buf = new Uint8ClampedArray(e.data.buffer);
+                canvas.getContext("2d").putImageData(new ImageData(buf, size, size), 0, 0);
+                card.classList.add("is-rendered");
+              } catch (err) {}
+              card.dataset.rendered = "1";
+              pump(worker);
+            }
+          };
+          worker.postMessage({ ...params, width: size, height: size, patternComplexity: params.patternSize || size, previewMode: true });
+        };
+        for (let k = 0; k < POOL; k++) {
+          let w = null;
+          try { w = new Worker("/worker/color-mapper.js"); } catch (err) { w = null; }
+          if (w) pump(w);
+        }
+      }
     }
 
     document.addEventListener("astro:page-load", initIndex);
@@ -366,13 +330,16 @@ const features = [
 <style>
   /* ===================== HERO ===================== */
   .hero {
-    width: min(1240px, calc(100% - 2rem));
-    margin: clamp(1.5rem, 5vw, 3.5rem) auto clamp(2.5rem, 6vw, 4rem);
+    width: 100%;
+    max-width: var(--page-max);
+    margin: clamp(1.5rem, 5vw, 3.5rem) auto 0;
+    padding-inline: var(--gutter);
+    box-sizing: border-box;
   }
 
   .hero-sheet {
     background: var(--paper);
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     display: grid;
     grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
     gap: clamp(1.5rem, 4vw, 3rem);
@@ -508,7 +475,7 @@ const features = [
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1px;
     background: var(--line-strong);
-    border: 1px solid var(--line-strong);
+    border: var(--surface-border);
     margin: 0 0 1.75rem;
   }
 
@@ -540,203 +507,155 @@ const features = [
     gap: 0.7rem;
   }
 
-  /* ===================== SECTION HEADS ===================== */
-  .section-head {
-    margin-bottom: 1.75rem;
+  /* Section heads use the global .section-head / .section-title / .section-desc
+     primitives (defined in global.css) so every page frames sections identically. */
+
+  /* ===================== PRESETS ===================== */
+  .presets {
+    width: 100%;
+    max-width: var(--page-max);
+    margin: var(--section-gap) auto 0;
+    padding-inline: var(--gutter);
+    box-sizing: border-box;
   }
 
-  .section-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 460;
-    letter-spacing: -0.02em;
-    line-height: 1.05;
-    margin: 0.7rem 0 0;
-    max-width: 22ch;
-  }
-
-  .section-desc {
-    max-width: 58ch;
-    margin: 0.85rem 0 0;
-    color: var(--ink-2);
-    line-height: 1.7;
-  }
-
-  /* ===================== SHOWCASE ===================== */
-  .showcase {
-    width: min(1240px, calc(100% - 2rem));
-    margin: clamp(2.5rem, 6vw, 4.5rem) auto;
-  }
-
-  .showcase .rule-ticks {
-    margin: 1.5rem 0;
-  }
-
-  .showcase-grid {
+  .presets-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.1rem;
+    margin-top: 1.75rem;
   }
 
-  .showcase-card {
-    background: var(--paper);
-    border: 1px solid var(--line-strong);
+  .preset-card {
+    position: relative;
     display: flex;
     flex-direction: column;
+    text-align: left;
+    padding: 0;
+    background: var(--paper);
+    border: var(--surface-border);
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
     transition: border-color var(--transition-base);
   }
 
-  .showcase-card:hover {
+  .preset-card:hover,
+  .preset-card:focus-visible {
     border-color: var(--accent);
   }
 
-  .showcase-plot {
-    padding: 1rem;
+  .preset-thumb {
+    position: relative;
+    display: block;
+    aspect-ratio: 1 / 1;
     background: var(--paper-2);
     border-bottom: 1px solid var(--line);
-    cursor: crosshair;
     overflow: hidden;
   }
 
-  .showcase-plot svg {
+  .preset-thumb canvas {
     width: 100%;
-    height: auto;
-    aspect-ratio: 1 / 1;
+    height: 100%;
     display: block;
-    transition: transform var(--transition-slow);
+    image-rendering: pixelated;
+    opacity: 0;
+    transition: opacity var(--transition-slow);
   }
 
-  .showcase-card:hover .showcase-plot svg {
-    transform: scale(1.04);
+  .preset-card.is-rendered .preset-thumb canvas {
+    opacity: 1;
   }
 
-  .showcase-path {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: draw-on 2.6s var(--easing-smooth) calc(var(--i) * 0.18s + 0.3s) forwards;
-    transition: stroke var(--transition-base);
-  }
-
-  /* On hover, every plate re-inks in the oxide plot-colour */
-  .showcase-card:hover .showcase-path {
-    stroke: var(--accent);
-  }
-
-  .showcase-caption {
-    padding: 0.85rem 1rem;
+  .preset-plotting {
+    position: absolute;
+    inset: 0;
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: opacity var(--transition-fast);
   }
 
-  .showcase-label {
-    font-size: 0.72rem;
+  .preset-card.is-rendered .preset-plotting {
+    opacity: 0;
+  }
+
+  /* mode badge — tells you at a glance which render mode made the piece */
+  .preset-mode {
+    position: absolute;
+    top: 0.45rem;
+    left: 0.45rem;
+    z-index: 2;
+    padding: 0.18rem 0.4rem;
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
     color: var(--ink);
-    letter-spacing: 0.1em;
-  }
-
-  .showcase-hint {
-    font-size: 0.82rem;
-    color: var(--ink-2);
-    line-height: 1.45;
-  }
-
-  /* ===================== FEATURES / LEGEND ===================== */
-  .features {
-    width: min(1080px, calc(100% - 2rem));
-    margin: clamp(2.5rem, 6vw, 4.5rem) auto;
-  }
-
-  .legend {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    border-top: 1px solid var(--line-strong);
-  }
-
-  .legend-row {
-    display: grid;
-    grid-template-columns: 3.5rem minmax(0, 1fr);
-    gap: 1.25rem;
-    padding: 1.4rem 0.5rem;
-    border-bottom: 1px solid var(--line);
-    transition: background var(--transition-fast), box-shadow var(--transition-fast);
-  }
-
-  .legend-row:hover {
-    background: var(--accent-soft);
-    box-shadow: inset 2px 0 0 0 var(--accent);
-  }
-
-  .legend-n {
-    font-size: 0.85rem;
-    color: var(--accent-strong);
-    letter-spacing: 0.05em;
-    padding-top: 0.2rem;
-  }
-
-  .legend-title {
-    font-family: var(--font-display);
-    font-size: 1.2rem;
-    font-weight: 480;
-    color: var(--ink);
-    margin: 0 0 0.3rem;
-    letter-spacing: -0.01em;
-  }
-
-  .legend-text {
-    margin: 0;
-    color: var(--ink-2);
-    font-size: 0.92rem;
-    line-height: 1.65;
-    max-width: 64ch;
-  }
-
-  /* ===================== STUDIO NOTES ===================== */
-  .notes {
-    width: min(1080px, calc(100% - 2rem));
-    margin: clamp(2rem, 5vw, 3.5rem) auto;
-  }
-
-  .notes-sheet {
     background: var(--paper);
     border: 1px solid var(--line-strong);
   }
 
-  .notes-sheet summary {
-    cursor: pointer;
-    list-style-position: inside;
+  .preset-mode.is-trace {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* "plot this" affordance slides up on hover */
+  .preset-thumb::after {
+    content: "↳ plot this";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.4rem 0.6rem;
     font-family: var(--font-mono);
-    font-size: 0.74rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 1rem 1.25rem;
-    color: var(--ink);
+    color: var(--accent-ink);
+    background: var(--accent);
+    transform: translateY(100%);
+    transition: transform var(--transition-base);
+    pointer-events: none;
   }
 
-  .notes-sheet summary:hover {
-    color: var(--accent);
+  .preset-card:hover .preset-thumb::after,
+  .preset-card:focus-visible .preset-thumb::after {
+    transform: translateY(0);
   }
 
-  .notes-body {
-    padding: 0 1.25rem 1.25rem;
-    columns: 2;
-    column-gap: 2.5rem;
+  .preset-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.7rem 0.85rem;
   }
 
-  .notes-body p {
-    margin: 0 0 1rem;
+  .preset-name {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 480;
+    letter-spacing: -0.01em;
+  }
+
+  .preset-sub {
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
     color: var(--ink-2);
-    line-height: 1.7;
-    font-size: 0.92rem;
-    break-inside: avoid;
   }
 
   /* ===================== GENERATOR + LOADER ===================== */
   .generator {
-    width: min(1240px, calc(100% - 2rem));
-    margin: clamp(2.5rem, 6vw, 4rem) auto 0;
+    width: 100%;
+    max-width: var(--page-max);
+    margin: var(--section-gap) auto 0;
+    padding-inline: var(--gutter);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -765,7 +684,7 @@ const features = [
     background: var(--overlay);
     backdrop-filter: blur(6px);
     opacity: 1;
-    transition: opacity 0.4s var(--easing-smooth);
+    transition: opacity var(--transition-slow);
   }
 
   .art-loader.fade-out {
@@ -780,7 +699,7 @@ const features = [
     gap: 1rem;
     background: var(--paper);
     padding: 2.5rem 4rem;
-    border: 1px solid var(--rule);
+    border: var(--border-strong);
   }
 
   .loader-spinner {
@@ -817,9 +736,6 @@ const features = [
     .hero-plot {
       max-width: 360px;
     }
-    .notes-body {
-      columns: 1;
-    }
   }
 
   @media (max-width: 520px) {
@@ -837,8 +753,7 @@ const features = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .plot-path,
-    .showcase-path {
+    .plot-path {
       animation: none;
       stroke-dashoffset: 0;
     }
@@ -858,7 +773,8 @@ const features = [
       opacity: 1;
       transform: none;
     }
-    .showcase-card:hover .showcase-plot svg {
+    .preset-card:hover,
+    .preset-card:focus-visible {
       transform: none;
     }
   }

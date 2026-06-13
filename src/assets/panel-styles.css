@@ -11,10 +11,11 @@
   flex-direction: row;
   justify-content: center;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: var(--space-6);
   padding: 0;
   width: 100%;
-  max-width: 1220px;
+  /* the parent .generator shell already constrains to --page-max + gutter */
+  max-width: var(--page-max);
   margin: 0 auto;
 }
 
@@ -50,13 +51,91 @@
   width: 100%;
   box-sizing: border-box;
   background: var(--paper);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   color: var(--ink);
   margin: 0 auto;
+}
+
+/* Render-mode segmented switch — two big, obvious segments, active in oxide */
+.mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: var(--border-strong);
+  margin-bottom: 0.75rem;
+}
+
+.mode-seg {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.75rem;
+  background: var(--paper);
+  color: var(--ink-2);
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.mode-seg + .mode-seg {
+  border-left: 1px solid var(--line-strong);
+}
+
+.mode-seg:hover:not(.is-active):not(:disabled) {
+  background: var(--paper-2);
+  color: var(--ink);
+}
+
+.mode-seg.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.mode-seg:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mode-seg-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.mode-seg-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mode-seg-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.mode-seg-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.mode-seg-sub {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .control-actions-bar {
@@ -173,7 +252,7 @@
   background-color: var(--paper-2);
   color: var(--ink);
   padding: 0.6rem 0.7rem;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 500;
@@ -284,7 +363,7 @@
 .finish-note {
   margin: 0 0 0.85rem;
   padding: 0.5rem 0.65rem;
-  border-left: 2px solid var(--accent);
+  border-left: var(--accent-stripe);
   background: var(--accent-soft);
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -318,7 +397,7 @@ kbd {
   font-family: var(--font-mono);
   font-size: 0.66rem;
   padding: 0.12rem 0.4rem;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   background: var(--paper-2);
   color: var(--ink);
   line-height: 1;
@@ -361,7 +440,7 @@ kbd {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   font-size: 0.72rem;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast),
@@ -431,7 +510,7 @@ kbd {
 /* ---- Preview plate -------------------------------------------- */
 .preview-container {
   background: var(--paper);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -457,7 +536,7 @@ kbd {
   width: 100%;
   overflow: hidden;
   background: var(--paper-2);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
 }
 
 .preview-canvas {
@@ -560,7 +639,7 @@ kbd {
   box-sizing: border-box;
   margin-bottom: 1rem;
   padding: 0.7rem 0.9rem;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   border-left-width: 3px;
   border-left-color: var(--accent);
   background: var(--paper-2);
@@ -591,14 +670,14 @@ kbd {
   width: 100%;
   height: 6px;
   background: var(--paper-2);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   overflow: hidden;
 }
 
 .gen-progress-fill {
   height: 100%;
   background: var(--accent);
-  transition: width 0.2s var(--easing-smooth);
+  transition: width var(--transition-fast);
 }
 
 .gen-progress-meta {
@@ -630,7 +709,7 @@ kbd {
   width: 100%;
   box-sizing: border-box;
   background-color: var(--paper-2);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   padding: 1rem;
   margin-top: 1rem;
 }
@@ -667,7 +746,7 @@ kbd {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 0.72rem;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast),
     border-color var(--transition-fast);
@@ -742,9 +821,16 @@ kbd {
    GALLERY
    ============================================================ */
 .gallery-container {
-  max-width: 1320px;
+  /* shares the one site width so the masonry aligns with nav + footer */
+  width: 100%;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: 1.5rem clamp(1rem, 4vw, 2rem) 2rem;
+  padding: var(--section-gap) var(--gutter) var(--space-8);
+  box-sizing: border-box;
+}
+
+.gallery-head {
+  margin-bottom: var(--space-4);
 }
 
 .gallery-header {
@@ -752,13 +838,14 @@ kbd {
   font-size: clamp(2.5rem, 7vw, 4.5rem);
   font-weight: 460;
   color: var(--ink);
-  margin: 0.4rem 0 0.5rem;
+  margin: 0.7rem 0 0;
   letter-spacing: -0.02em;
   line-height: 1;
 }
 
-.gallery-container > .mono-text {
-  color: var(--accent-strong);
+/* byline is metadata, not a label — keep accent for the eyebrow only */
+.gallery-byline {
+  color: var(--ink-3);
   font-size: 0.72rem;
   letter-spacing: 0.18em;
 }
@@ -771,7 +858,7 @@ kbd {
 }
 
 .gallery-notes {
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   background: var(--paper);
   margin: 1.5rem 0;
 }
@@ -817,7 +904,7 @@ kbd {
   background-color: var(--paper);
   color: var(--ink);
   padding: 0.55rem 0.75rem;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   font-family: var(--font-mono);
   font-size: 0.82rem;
   border-radius: 0;
@@ -854,7 +941,7 @@ kbd {
   background-color: var(--paper);
   color: var(--ink);
   padding: 0.5rem 2.1rem 0.5rem 0.7rem;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   font-family: var(--font-mono);
   font-size: 0.78rem;
   cursor: pointer;
@@ -882,7 +969,7 @@ kbd {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   font-size: 0.72rem;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast),
@@ -909,7 +996,7 @@ kbd {
   margin-bottom: 1.5rem;
   padding: 0.9rem 1.1rem;
   background: var(--paper-2);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
 }
 
 .gallery-batch-count {
@@ -935,7 +1022,7 @@ kbd {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   font-size: 0.68rem;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast),
@@ -990,12 +1077,12 @@ kbd {
 .gallery-card {
   position: relative;
   background: var(--paper);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   display: flex;
   flex-direction: column;
   transition: border-color var(--transition-base);
   break-inside: avoid;
-  margin-bottom: 1.25rem;
+  margin-bottom: var(--space-5);
   overflow: hidden;
 }
 
@@ -1033,7 +1120,7 @@ kbd {
   flex-direction: column;
   justify-content: flex-end;
   padding: 1rem;
-  background: linear-gradient(to top, rgba(12, 11, 8, 0.94) 0%, rgba(12, 11, 8, 0.62) 46%, rgba(12, 11, 8, 0) 100%);
+  background: linear-gradient(to top, var(--overlay-scrim) 0%, var(--overlay-scrim-soft) 46%, transparent 100%);
   opacity: 0;
   transition: opacity var(--transition-slow);
   pointer-events: none;
@@ -1054,7 +1141,7 @@ kbd {
 .gallery-card-meta {
   font-family: var(--font-mono);
   font-size: 0.68rem;
-  color: #d8d2c2;
+  color: var(--overlay-meta);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   line-height: 1.5;
@@ -1064,7 +1151,7 @@ kbd {
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 460;
-  color: #f7f3ea;
+  color: var(--overlay-text);
   text-transform: capitalize;
   letter-spacing: -0.01em;
   margin-bottom: 0.2rem;
@@ -1085,17 +1172,17 @@ kbd {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  border: 1px solid rgba(247, 243, 234, 0.72);
+  border: 1px solid color-mix(in srgb, var(--overlay-text) 72%, transparent);
   cursor: pointer;
-  background: rgba(247, 243, 234, 0.2);
-  color: #f7f3ea;
+  background: var(--overlay-surface);
+  color: var(--overlay-text);
   backdrop-filter: blur(4px);
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .gallery-card-btn:hover {
-  background: #f7f3ea;
-  color: #14130d;
+  background: var(--overlay-text);
+  color: var(--overlay-ink);
 }
 
 .gallery-card-checkbox {
@@ -1134,7 +1221,7 @@ kbd {
 .gallery-delete-confirm {
   position: absolute;
   inset: 0;
-  background: rgba(12, 11, 8, 0.94);
+  background: var(--overlay-scrim);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1148,7 +1235,7 @@ kbd {
 .gallery-delete-confirm p {
   font-family: var(--font-mono);
   font-size: 0.78rem;
-  color: #f7f3ea;
+  color: var(--overlay-text);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0;
@@ -1173,12 +1260,12 @@ kbd {
 
 .gallery-delete-confirm-btn.cancel {
   background: transparent;
-  color: #f7f3ea;
-  border-color: rgba(247, 243, 234, 0.4);
+  color: var(--overlay-text);
+  border-color: color-mix(in srgb, var(--overlay-text) 40%, transparent);
 }
 
 .gallery-delete-confirm-btn.cancel:hover {
-  background: rgba(247, 243, 234, 0.14);
+  background: color-mix(in srgb, var(--overlay-text) 14%, transparent);
 }
 
 .gallery-delete-confirm-btn.confirm {
@@ -1255,7 +1342,7 @@ kbd {
   max-height: 90vh;
   background: var(--paper);
   padding: 1rem;
-  border: 1px solid var(--rule);
+  border: var(--border-strong);
   display: flex;
   flex-direction: column;
 }
@@ -1263,7 +1350,7 @@ kbd {
 .gallery-modal-image {
   max-width: 100%;
   max-height: 70vh;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   display: block;
 }
 
@@ -1303,7 +1390,7 @@ kbd {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   cursor: pointer;
   background: transparent;
   color: var(--ink);
@@ -1362,7 +1449,7 @@ kbd {
   padding: 0.9rem 1.1rem;
   margin: 0 auto 2rem;
   border: 1px dashed var(--line-strong);
-  border-left: 3px solid var(--accent);
+  border-left: var(--accent-stripe);
   max-width: 820px;
 }
 
@@ -1384,7 +1471,7 @@ kbd {
   position: fixed;
   padding: var(--space-4);
   background-color: var(--paper);
-  border: 1px solid var(--rule);
+  border: var(--border-strong);
   max-height: 340px;
   max-width: 320px;
   overflow-y: auto;
@@ -1442,7 +1529,7 @@ kbd {
   gap: var(--space-3);
   padding: var(--space-3);
   background-color: var(--paper-2);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
 }
 
 .settings-item-header {
@@ -1515,7 +1602,7 @@ kbd {
 
 .dialog-container {
   background-color: var(--paper);
-  border: 1px solid var(--rule);
+  border: var(--border-strong);
   padding: 2rem;
   max-width: 460px;
   width: 100%;
@@ -1549,7 +1636,7 @@ kbd {
   box-sizing: border-box;
   padding: var(--space-3);
   background-color: var(--paper-2);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   color: var(--ink);
   margin-bottom: var(--space-6);
   font-family: var(--font-mono);
@@ -1567,7 +1654,7 @@ kbd {
   padding: var(--space-3);
   margin-bottom: var(--space-6);
   border: 1px dashed var(--line-strong);
-  border-left: 3px solid var(--accent);
+  border-left: var(--accent-stripe);
 }
 
 .dialog-note p {
@@ -1588,7 +1675,7 @@ kbd {
 .dialog-button {
   padding: var(--space-3) 1.25rem;
   background-color: transparent;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: 0.76rem;
@@ -1649,7 +1736,7 @@ kbd {
   justify-content: center;
   width: 1.05rem;
   height: 1.05rem;
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
   color: var(--ink-2);
   font-size: 0.62rem;
   font-family: var(--font-mono);

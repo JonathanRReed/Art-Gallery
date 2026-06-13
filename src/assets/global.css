@@ -54,14 +54,45 @@
     --text-2xl: 1.5rem;
     --text-3xl: 2rem;
 
+    /* Spacing scale — every margin/padding snaps to a step (no ad-hoc rems) */
+    --space-0-5: 0.125rem;
     --space-1: 0.25rem;
     --space-2: 0.5rem;
     --space-3: 0.75rem;
     --space-4: 1rem;
+    --space-5: 1.25rem;
     --space-6: 1.5rem;
+    --space-7: 1.75rem;
     --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+
+    /* Layout shell — ONE page width + gutter + section rhythm for the whole site */
+    --page-max: 1240px;          /* every page/section centers here */
+    --gutter: clamp(1rem, 4vw, 2rem);
+    --section-gap: clamp(2rem, 5vw, 3.5rem);  /* vertical rhythm between sections */
+    --section-head-gap: var(--space-7);
+
+    /* Surface language — ONE border for interior sheets, a stronger one for chrome */
+    --surface-border: 1px solid var(--line-strong);
+    --border-strong: 1px solid var(--rule);    /* modals / header-footer dividers only */
+    --radius: 0;                                /* square is the system */
+    --pad-panel: 1.25rem;                       /* primary container padding */
+    --pad-dense: 0.85rem;                       /* compact / info-cell padding */
+    --accent-stripe: 3px solid var(--accent);   /* the one emphasis technique */
+
+    /* Image-overlay tokens — gallery card scrims sit on top of artwork, so these
+       are intentionally theme-independent (always a dark scrim with light text). */
+    --overlay-text: #f7f3ea;
+    --overlay-meta: #d8d2c2;
+    --overlay-ink: #14130d;      /* dark text on a light chip over artwork */
+    --overlay-scrim: rgba(12, 11, 8, 0.94);
+    --overlay-scrim-soft: rgba(12, 11, 8, 0.62);
+    --overlay-surface: color-mix(in srgb, var(--overlay-text) 20%, transparent);
 
     --border-ink: 1px solid var(--line-strong);
+    --transition-reveal: var(--transition-slow);
 
     --transition-fast: 130ms cubic-bezier(0.2, 0, 0, 1);
     --transition-base: 220ms cubic-bezier(0.2, 0, 0, 1);
@@ -333,6 +364,49 @@ strong {
     repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px var(--cell)) left top / 100% 5px no-repeat;
 }
 
+/* Layout shell — the single container every page/section centers in.
+   One width, one gutter → content shares a left/right edge down the page. */
+.page-shell {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  box-sizing: border-box;
+}
+
+/* Vertical rhythm — every major section is spaced by the same step. */
+.section {
+  margin-top: var(--section-gap);
+}
+
+.section:first-child {
+  margin-top: 0;
+}
+
+/* Section header — ONE eyebrow + title + description shell, shared by every
+   page so sections are framed by the same hand. */
+.section-head {
+  margin-bottom: var(--section-head-gap);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.8rem);
+  font-weight: 460;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0.7rem 0 0;
+  max-width: 22ch;
+}
+
+.section-desc {
+  max-width: 64ch;
+  margin: 0.85rem 0 0;
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
 /* Buttons -------------------------------------------------------- */
 .btn,
 .btn-accent,
@@ -395,8 +469,8 @@ strong {
   opacity: 0;
   transform: translateY(14px);
   transition:
-    opacity 0.7s var(--easing-smooth),
-    transform 0.7s var(--easing-smooth);
+    opacity var(--transition-reveal),
+    transform var(--transition-reveal);
 }
 
 .reveal-visible {
@@ -425,16 +499,19 @@ strong {
    INFO PAGE (contact / privacy) — a documentation sheet
    ============================================================ */
 .info-page {
-  width: min(1080px, calc(100% - 2rem));
-  margin: 2rem auto 2.5rem;
+  /* the sheet itself sits inside the gutter, so its border lines up with the
+     hero/footer sheets and the nav logo (not the raw shell edge) */
+  width: calc(min(100%, var(--page-max)) - 2 * var(--gutter));
+  margin: var(--section-gap) auto;
   padding: clamp(1.5rem, 4vw, 3rem);
   background: var(--paper);
-  border: 1px solid var(--line-strong);
+  border: var(--surface-border);
 }
 
-.info-page > .mono-text {
-  color: var(--accent-strong);
-  letter-spacing: 0.2em;
+/* byline is metadata under the title — accent lives on the eyebrow only */
+.info-page > .info-byline {
+  color: var(--ink-3);
+  letter-spacing: 0.18em;
   font-size: 0.72rem;
 }
 
@@ -526,5 +603,9 @@ strong {
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
+    /* suppress CSS transitions too (hover zooms, accordions, fades), not just
+       @keyframes — kept ~0 rather than 0 so transitionend listeners still fire */
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
