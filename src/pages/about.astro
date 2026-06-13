@@ -24,7 +24,7 @@ const aboutVideoSchema = {
 >
   <div class="about-page">
     <!-- Header -->
-    <header class="about-hero reveal-element">
+    <header class="about-hero" data-reveal>
       <p class="mono-text about-eyebrow">Process</p>
       <h1 class="about-header">About</h1>
       <p class="mono-text about-meta">
@@ -34,7 +34,7 @@ const aboutVideoSchema = {
 
     <div class="about-content">
       <!-- The Project -->
-      <section class="about-section reveal-element">
+      <section class="about-section" data-reveal>
         <div class="section-pill">
           <span class="mono-text">01</span>
         </div>
@@ -42,10 +42,10 @@ const aboutVideoSchema = {
         <div class="about-card">
           <p>
             This is a small generative art project by me, Jonathan Reed! It uses
-            space-filling curves (Hilbert and Morton) combined with color mapping
-            to produce patterns. You control the seed value, growth mode,
-            symmetry, and color ordering, then let the algorithm fill in the
-            pixels.
+            space-filling curves (Hilbert, Morton, Peano) plus spiral and random-walk
+            traversals, combined with color mapping to produce patterns. You control
+            the seed, traversal curve, growth mode, symmetry, and color flow, then let
+            the algorithm fill in the pixels.
           </p>
           <p>
             Every output is deterministic: same settings produce the same image.
@@ -71,22 +71,23 @@ const aboutVideoSchema = {
       </section>
 
       <!-- Technology & Video -->
-      <section class="about-section reveal-element">
+      <section class="about-section" data-reveal>
         <div class="section-pill">
           <span class="mono-text">02</span>
         </div>
         <h2 class="about-subheader">The Technology</h2>
         <div class="about-card">
           <p>
-            Built with Astro and React, this application uses modern web
-            technologies to provide a fast, responsive experience. An interface
-            inspired by a frosted-glass aesthetic, featuring a dark mode theme
-            with warm coral accents that complements the vibrant colors of the
-            generated art.
+            Built with Astro and React for a fast, mostly-static experience, with
+            the heavy pixel work offloaded to a Web Worker so the interface stays
+            responsive while a piece plots. The interface borrows from drafting and
+            plotter culture — warm paper, graphite ink, a single oxide plot-accent,
+            and a real measurement grid — so the chrome stays quiet and the
+            generated color does the talking.
           </p>
         </div>
 
-        <div class="video-frame reveal-element">
+        <div class="video-frame" data-reveal>
           <p class="mono-text video-eyebrow">Reference</p>
           <h3 class="video-title">I Made Art That HACKS Your Eyes</h3>
           <div class="video-container">
@@ -111,7 +112,7 @@ const aboutVideoSchema = {
       </section>
 
       <!-- How It Works -->
-      <section class="about-section reveal-element">
+      <section class="about-section" data-reveal>
         <div class="section-pill">
           <span class="mono-text">03</span>
         </div>
@@ -126,8 +127,8 @@ const aboutVideoSchema = {
                 size, growth mode, seed shape, and more
               </li>
               <li>
-                <strong>Color & Symmetry</strong>: Define color progression, curve
-                type, color ordering, and symmetry options
+                <strong>Color & Symmetry</strong>: Define the traversal curve, color
+                progression, symmetry, and finishing effects
               </li>
             </ul>
           </div>
@@ -135,7 +136,7 @@ const aboutVideoSchema = {
             <div class="step-number mono-text">2</div>
             <h3>Generate</h3>
             <p>
-              Our algorithm processes your parameters to create a unique piece of algorithmic art.
+              The algorithm processes your parameters to plot a unique piece of algorithmic art.
             </p>
           </div>
           <div class="step-card">
@@ -156,7 +157,7 @@ const aboutVideoSchema = {
       </section>
 
       <!-- Pattern Generation Options -->
-      <section class="about-section reveal-element">
+      <section class="about-section" data-reveal>
         <div class="section-pill">
           <span class="mono-text">04</span>
         </div>
@@ -165,27 +166,64 @@ const aboutVideoSchema = {
           Click on any option below to learn more about it:
         </p>
         <div class="feature-grid">
-          <div class="feature-item" data-feature="growth-modes">
+          <div class="feature-item" data-feature="curve-types">
             <div class="feature-header">
               <div class="feature-header-text">
-                <h3>Growth Modes</h3>
-                <p class="feature-summary">Crystal, Nebula, Rings</p>
+                <h3>Curve Types</h3>
+                <p class="feature-summary">Hilbert, Morton, Peano, Spiral, Random Walk</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
             <div class="feature-details">
               <ul>
                 <li>
-                  <strong>Crystal:</strong> Creates crystalline formations with angular
-                  structures, growing in a more geometric pattern.
+                  <strong>Hilbert:</strong> A space-filling curve that preserves locality
+                  well, creating smoother color transitions and more organic patterns.
                 </li>
                 <li>
-                  <strong>Nebula:</strong> Produces cloud-like, organic shapes with
-                  diffused edges that resemble cosmic nebulae.
+                  <strong>Morton:</strong> The Z-order curve interleaves coordinate bits,
+                  creating blockier, quadrant-based color regions.
                 </li>
                 <li>
-                  <strong>Rings:</strong> Generates concentric circles and orbital
-                  patterns that expand outward like ripples.
+                  <strong>Peano:</strong> A recursive 3×3 space-filling curve — a denser,
+                  more woven path through color space than Hilbert.
+                </li>
+                <li>
+                  <strong>Spiral:</strong> Archimedean-spiral ordering from the center
+                  outward, so color winds out in rings.
+                </li>
+                <li>
+                  <strong>Random Walk:</strong> A constrained, DLA-style random walk
+                  orders the palette for organic, unpredictable color flow.
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="feature-item" data-feature="growth-modes">
+            <div class="feature-header">
+              <div class="feature-header-text">
+                <h3>Growth Modes</h3>
+                <p class="feature-summary">Crystal, Nebula, Rings, Flow</p>
+              </div>
+              <span class="feature-expand-icon" aria-hidden="true">+</span>
+            </div>
+            <div class="feature-details">
+              <ul>
+                <li>
+                  <strong>Crystal:</strong> Grows outward by distance from the center,
+                  forming crystalline, radial structures.
+                </li>
+                <li>
+                  <strong>Nebula:</strong> Near-random growth priority produces cloud-like,
+                  organic shapes with diffused edges.
+                </li>
+                <li>
+                  <strong>Rings:</strong> Priority follows a sine of the radius, generating
+                  concentric rings and orbital bands.
+                </li>
+                <li>
+                  <strong>Flow:</strong> Growth follows a deterministic flow field, so
+                  structure streams along curving currents.
                 </li>
               </ul>
             </div>
@@ -194,7 +232,7 @@ const aboutVideoSchema = {
             <div class="feature-header">
               <div class="feature-header-text">
                 <h3>Seed Shapes</h3>
-                <p class="feature-summary">Point, Circle, Line</p>
+                <p class="feature-summary">Point, Dual, Circle, Line</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
@@ -205,12 +243,16 @@ const aboutVideoSchema = {
                   center, creating a radial expansion pattern.
                 </li>
                 <li>
+                  <strong>Dual:</strong> Begins from two seed points for paired,
+                  symmetrical growth.
+                </li>
+                <li>
                   <strong>Circle:</strong> Begins with a circular boundary that expands
                   outward, creating ring-like structures.
                 </li>
                 <li>
-                  <strong>Line:</strong> Initiates growth from a line across the center,
-                  creating mirror-like patterns.
+                  <strong>Line:</strong> Initiates growth from a horizontal line across
+                  the center, creating mirror-like patterns.
                 </li>
               </ul>
             </div>
@@ -238,7 +280,7 @@ const aboutVideoSchema = {
                   quadrants from the center.
                 </li>
                 <li>
-                  <strong>Radial:</strong> Circular symmetry, repeating pattern radiates
+                  <strong>Radial:</strong> Eight-fold rotational symmetry radiating
                   from the center point.
                 </li>
               </ul>
@@ -248,7 +290,7 @@ const aboutVideoSchema = {
             <div class="feature-header">
               <div class="feature-header-text">
                 <h3>Color Progression</h3>
-                <p class="feature-summary">Sequential, Shuffled, Base Distance</p>
+                <p class="feature-summary">Sequential, Shuffled, Base Distance, Saturation, Brightness</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
@@ -266,63 +308,37 @@ const aboutVideoSchema = {
                   <strong>Base Distance:</strong> Colors are distributed based on
                   their distance from a base color.
                 </li>
+                <li>
+                  <strong>Saturation:</strong> Sorts the palette by saturation for an
+                  AllRGB-style flow.
+                </li>
+                <li>
+                  <strong>Brightness:</strong> Sorts the palette by brightness intensity.
+                </li>
               </ul>
             </div>
           </div>
-          <div class="feature-item" data-feature="curve-types">
+          <div class="feature-item" data-feature="finish">
             <div class="feature-header">
               <div class="feature-header-text">
-                <h3>Curve Types</h3>
-                <p class="feature-summary">Hilbert, Morton</p>
+                <h3>Finish &amp; Effects</h3>
+                <p class="feature-summary">Gradient Map, Dithering, Anti-aliasing</p>
               </div>
               <span class="feature-expand-icon" aria-hidden="true">+</span>
             </div>
             <div class="feature-details">
               <ul>
                 <li>
-                  <strong>Hilbert:</strong> A space-filling curve that preserves locality
-                  well, creating smoother color transitions and more organic patterns.
+                  <strong>Gradient Map:</strong> Remaps the generated colors by brightness
+                  through a curated palette — sunset, ocean, monochrome, neon, forest, or magma.
                 </li>
                 <li>
-                  <strong>Morton:</strong> Also known as Z-order curve, creates more
-                  blocky, quadrant-based patterns with distinct regions.
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="feature-item" data-feature="color-ordering">
-            <div class="feature-header">
-              <div class="feature-header-text">
-                <h3>Color Ordering</h3>
-                <p class="feature-summary">HSV, HVS, SHV, SVH, VHS, VSH</p>
-              </div>
-              <span class="feature-expand-icon" aria-hidden="true">+</span>
-            </div>
-            <div class="feature-details">
-              <ul>
-                <li>
-                  <strong>HSV:</strong> Arranges colors by Hue, Saturation, Value
-                  - emphasizing color families.
+                  <strong>Dithering:</strong> Ordered (Bayer) dithering adds fine tonal
+                  texture and softens color banding.
                 </li>
                 <li>
-                  <strong>HVS:</strong> Arranges by Hue, Value, Saturation - emphasizing
-                  brightness variations within hues.
-                </li>
-                <li>
-                  <strong>SHV:</strong> Arranges by Saturation, Hue, Value - grouping
-                  by color intensity first.
-                </li>
-                <li>
-                  <strong>SVH:</strong> Arranges by Saturation, Value, Hue - emphasizing
-                  intensity and brightness patterns.
-                </li>
-                <li>
-                  <strong>VHS:</strong> Arranges by Value, Hue, Saturation - creating
-                  bands of brightness.
-                </li>
-                <li>
-                  <strong>VSH:</strong> Arranges by Value, Saturation, Hue - emphasizing
-                  brightness and intensity patterns.
+                  <strong>Anti-aliasing:</strong> Edge-preserving smoothing softens harsh
+                  boundaries between color regions.
                 </li>
               </ul>
             </div>
@@ -331,7 +347,7 @@ const aboutVideoSchema = {
       </section>
 
       <!-- Tech Stack -->
-      <section class="about-section reveal-element">
+      <section class="about-section" data-reveal>
         <div class="section-pill">
           <span class="mono-text">05</span>
         </div>
@@ -383,7 +399,7 @@ const aboutVideoSchema = {
       </section>
 
       <!-- Technical Specifications -->
-      <section class="about-section technical-specs reveal-element">
+      <section class="about-section technical-specs" data-reveal>
         <div class="section-pill">
           <span class="mono-text">06</span>
         </div>
@@ -394,8 +410,12 @@ const aboutVideoSchema = {
             <span class="spec-value">From 128×128 to 4096×4096 pixels</span>
           </li>
           <li>
-            <span class="spec-label">Algorithms</span>
-            <span class="spec-value">Hilbert Curve, Morton Curve (Z-order)</span>
+            <span class="spec-label">Traversal curves</span>
+            <span class="spec-value">Hilbert, Morton (Z-order), Peano, Spiral, Random Walk</span>
+          </li>
+          <li>
+            <span class="spec-label">Growth modes</span>
+            <span class="spec-value">Crystal, Nebula, Rings, Flow</span>
           </li>
           <li>
             <span class="spec-label">Export Options</span>
@@ -413,8 +433,12 @@ const aboutVideoSchema = {
 
 <script is:inline>
   // Feature cards expand/collapse functionality
-  document.addEventListener("DOMContentLoaded", () => {
+  (function () {
+    if (window.__aagAbout) return;
+    window.__aagAbout = true;
+    document.addEventListener("astro:page-load", () => {
     const featureItems = document.querySelectorAll(".feature-item");
+    if (!featureItems.length) return;
 
     featureItems.forEach((item) => {
       if (!(item instanceof HTMLElement)) return;
@@ -477,96 +501,101 @@ const aboutVideoSchema = {
         if (expandIcon) expandIcon.textContent = "−";
       }
     }
-  });
+    });
+  })();
 </script>
 
 <style>
   /* ========================================
-     ABOUT PAGE LAYOUT
+     ABOUT — a process documentation sheet
      ======================================== */
   .about-page {
     width: min(960px, calc(100% - 2rem));
-    margin: 0 auto 2rem;
+    margin: 1.5rem auto 2rem;
     padding: 0 1rem;
     box-sizing: border-box;
   }
 
   .about-hero {
     text-align: center;
-    padding: 3rem 0 2rem;
+    padding: 2.5rem 0 2.5rem;
   }
 
   .about-eyebrow {
-    color: var(--color-accent);
-    font-size: 0.8rem;
+    color: var(--accent-strong);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
     margin-bottom: 0.75rem;
   }
 
   .about-header {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-size: clamp(2.5rem, 8vw, 5rem);
-    color: var(--color-ink);
+    font-weight: 480;
+    color: var(--ink);
     margin: 0 0 0.75rem;
     letter-spacing: -0.03em;
     line-height: 0.95;
   }
 
   .about-meta {
-    color: var(--color-ink-light);
-    font-size: 0.8rem;
+    color: var(--ink-2);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
   }
 
   .about-content {
     display: flex;
     flex-direction: column;
-    gap: 3.5rem;
+    gap: 3.25rem;
   }
 
-  /* ========================================
-     SECTIONS
-     ======================================== */
+  /* Sections with a drafting "plate" number */
   .about-section {
     position: relative;
-    padding-left: 3rem;
+    padding-left: 3.25rem;
   }
 
   .section-pill {
     position: absolute;
     left: 0;
-    top: 0.35rem;
-    width: 2rem;
-    height: 2rem;
+    top: 0.4rem;
+    width: 2.1rem;
+    height: 2.1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: var(--border-ink);
-    background: var(--color-paper);
-    color: var(--color-accent);
+    border: 1px solid var(--line-strong);
+    background: var(--paper);
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 600;
+    letter-spacing: 0.04em;
   }
 
   .about-subheader {
-    font-family: var(--font-serif);
+    font-family: var(--font-display);
     font-size: clamp(1.5rem, 4vw, 2.25rem);
-    color: var(--color-ink);
+    font-weight: 470;
+    color: var(--ink);
     margin: 0 0 1.25rem;
     letter-spacing: -0.02em;
     line-height: 1.1;
   }
 
   .about-card {
-    background: var(--color-paper-alt);
-    border: var(--border-ink);
-    padding: 1.5rem;
-    box-shadow: 6px 6px 0 0 var(--color-ink);
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    border-left: 3px solid var(--accent);
+    padding: 1.5rem 1.75rem;
   }
 
   .about-card p {
     font-size: 0.95rem;
-    line-height: 1.7;
+    line-height: 1.75;
     margin: 0 0 1rem;
-    color: var(--color-ink-light);
+    color: var(--ink-2);
   }
 
   .about-card p:last-child {
@@ -578,53 +607,48 @@ const aboutVideoSchema = {
   }
 
   .about-link a {
-    color: var(--color-ink);
+    color: var(--ink);
     text-decoration: none;
     font-family: var(--font-mono);
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.05em;
+    font-size: 0.76rem;
+    letter-spacing: 0.1em;
     display: inline-block;
-    padding: 0.6rem 1.25rem;
-    border: var(--border-ink);
-    background: var(--color-paper);
-    box-shadow: 3px 3px 0 0 var(--color-ink);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    padding: 0.7rem 1.2rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    transition: background var(--transition-fast), color var(--transition-fast);
   }
 
   .about-link a:hover {
-    background: var(--color-ink);
-    color: var(--color-paper);
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0 0 var(--color-accent);
+    background: var(--ink);
+    color: var(--table);
   }
 
-  /* ========================================
-     VIDEO
-     ======================================== */
+  /* Video — a reference plate */
   .video-frame {
     margin-top: 2rem;
-    background: var(--color-paper-alt);
-    border: var(--border-ink);
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
     padding: 1.5rem;
-    box-shadow: 6px 6px 0 0 var(--color-ink);
   }
 
   .video-eyebrow {
-    color: var(--color-accent);
-    font-size: 0.75rem;
+    color: var(--accent-strong);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
     margin-bottom: 0.5rem;
   }
 
   .video-title {
-    font-family: var(--font-serif);
-    font-size: 1.15rem;
-    font-weight: 400;
-    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 470;
+    color: var(--ink);
     margin: 0 0 1rem;
     padding-left: 0.75rem;
-    border-left: 3px solid var(--color-accent);
+    border-left: 3px solid var(--accent);
   }
 
   .video-container {
@@ -632,8 +656,8 @@ const aboutVideoSchema = {
     padding-bottom: 56.25%;
     height: 0;
     overflow: hidden;
-    border: var(--border-ink);
-    background: var(--color-paper);
+    border: 1px solid var(--line-strong);
+    background: var(--paper-2);
   }
 
   .video-container iframe {
@@ -649,56 +673,55 @@ const aboutVideoSchema = {
     margin: 1rem 0 0;
     font-size: 0.9rem;
     line-height: 1.65;
-    color: var(--color-ink-light);
+    color: var(--ink-2);
   }
 
-  /* ========================================
-     STEPS
-     ======================================== */
+  /* Steps */
   .steps-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+    gap: 1px;
+    background: var(--line-strong);
+    border: 1px solid var(--line-strong);
   }
 
   .step-card {
-    background: var(--color-paper-alt);
-    border: var(--border-ink);
+    background: var(--paper);
     padding: 1.5rem;
-    box-shadow: 5px 5px 0 0 var(--color-ink);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: background var(--transition-fast);
   }
 
   .step-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 7px 7px 0 0 var(--color-accent);
+    background: var(--paper-2);
   }
 
   .step-number {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 2rem;
     height: 2rem;
-    line-height: 2rem;
-    text-align: center;
-    border: var(--border-ink);
-    background: var(--color-paper);
-    color: var(--color-accent);
+    border: 1px solid var(--line-strong);
+    background: var(--paper-2);
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
     font-size: 0.8rem;
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.85rem;
   }
 
   .step-card h3 {
-    font-family: var(--font-serif);
-    font-size: 1.1rem;
-    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 470;
+    color: var(--ink);
     margin: 0 0 0.5rem;
   }
 
   .step-card p {
     font-size: 0.9rem;
     line-height: 1.6;
-    color: var(--color-ink-light);
+    color: var(--ink-2);
     margin: 0;
   }
 
@@ -711,7 +734,7 @@ const aboutVideoSchema = {
   .parameter-list li {
     font-size: 0.9rem;
     line-height: 1.6;
-    color: var(--color-ink-light);
+    color: var(--ink-2);
     margin-bottom: 0.5rem;
     display: flex;
     align-items: flex-start;
@@ -719,19 +742,17 @@ const aboutVideoSchema = {
   }
 
   .parameter-list li::before {
-    content: "■";
-    color: var(--color-accent);
+    content: "▸";
+    color: var(--accent);
     flex-shrink: 0;
-    font-size: 0.6rem;
-    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    margin-top: 0.2rem;
   }
 
-  /* ========================================
-     FEATURE GRID
-     ======================================== */
+  /* Feature index (expandable) */
   .feature-intro {
     font-size: 0.95rem;
-    color: var(--color-ink-light);
+    color: var(--ink-2);
     margin-bottom: 1.25rem;
   }
 
@@ -742,22 +763,20 @@ const aboutVideoSchema = {
   }
 
   .feature-item {
-    background: var(--color-paper-alt);
-    border: var(--border-ink);
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
     padding: 1.25rem;
     cursor: pointer;
-    box-shadow: 4px 4px 0 0 var(--color-ink);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color var(--transition-fast), background var(--transition-fast);
     position: relative;
   }
 
   .feature-item:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 var(--color-accent);
+    border-color: var(--accent);
   }
 
   .feature-item.click-effect {
-    filter: invert(1);
+    background: var(--paper-2);
   }
 
   .feature-header {
@@ -772,25 +791,26 @@ const aboutVideoSchema = {
   }
 
   .feature-item h3 {
-    font-size: 1.05rem;
-    font-family: var(--font-serif);
-    color: var(--color-ink);
+    font-size: 0.95rem;
+    font-family: var(--font-mono);
+    color: var(--ink);
     margin: 0 0 0.35rem;
-    font-weight: 400;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.08em;
   }
 
   .feature-summary {
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     margin: 0;
-    color: var(--color-ink-light);
+    color: var(--ink-2);
     text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .feature-expand-icon {
-    color: var(--color-ink);
+    color: var(--accent);
     font-size: 1.25rem;
     font-family: var(--font-mono);
     font-weight: 400;
@@ -800,7 +820,7 @@ const aboutVideoSchema = {
   }
 
   .feature-item.active .feature-expand-icon {
-    color: var(--color-accent);
+    color: var(--accent);
     transform: rotate(45deg);
   }
 
@@ -813,7 +833,7 @@ const aboutVideoSchema = {
   }
 
   .feature-item.active {
-    background-color: var(--color-paper);
+    background-color: var(--paper-2);
   }
 
   .feature-item.active .feature-details {
@@ -821,7 +841,7 @@ const aboutVideoSchema = {
     opacity: 1;
     margin-top: 1rem;
     padding-top: 1rem;
-    border-top: 1px dashed var(--color-ink-light);
+    border-top: 1px dashed var(--line-strong);
   }
 
   .feature-details ul {
@@ -832,47 +852,44 @@ const aboutVideoSchema = {
 
   .feature-details li {
     margin-bottom: 0.75rem;
-    color: var(--color-ink-light);
+    color: var(--ink-2);
     font-size: 0.85rem;
     line-height: 1.55;
     position: relative;
   }
 
   .feature-details li::before {
-    content: "-";
+    content: "–";
     position: absolute;
     left: -1rem;
-    color: var(--color-accent);
+    color: var(--accent);
   }
 
   .feature-details li:last-child {
     margin-bottom: 0;
   }
 
-  /* ========================================
-     TECH STACK
-     ======================================== */
+  /* Tech stack */
   .tech-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 1rem;
+    gap: 1px;
+    background: var(--line-strong);
+    border: 1px solid var(--line-strong);
   }
 
   .tech-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    padding: 1.25rem 0.75rem;
-    background: var(--color-paper-alt);
-    border: var(--border-ink);
-    box-shadow: 4px 4px 0 0 var(--color-ink);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    gap: 0.55rem;
+    padding: 1.4rem 0.75rem;
+    background: var(--paper);
+    transition: background var(--transition-fast);
   }
 
   .tech-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 var(--color-accent);
+    background: var(--paper-2);
   }
 
   .tech-icon {
@@ -881,27 +898,27 @@ const aboutVideoSchema = {
     justify-content: center;
     width: 44px;
     height: 44px;
-    border: var(--border-ink);
-    background: var(--color-paper);
-    color: var(--color-accent);
+    border: 1px solid var(--line-strong);
+    background: var(--paper-2);
+    color: var(--accent);
   }
 
   .tech-name {
-    font-family: var(--font-serif);
-    font-size: 1rem;
-    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 470;
+    color: var(--ink);
   }
 
   .tech-role {
-    font-size: 0.65rem;
-    color: var(--color-ink-light);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--ink-2);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
   }
 
-  /* ========================================
-     TECHNICAL SPECS
-     ======================================== */
+  /* Technical specs */
   .technical-specs {
     padding-bottom: 2rem;
   }
@@ -910,15 +927,15 @@ const aboutVideoSchema = {
     list-style: none;
     padding: 0;
     margin: 0;
-    border-top: var(--border-ink);
+    border-top: 1px solid var(--line-strong);
   }
 
   .spec-list li {
     padding: 1rem 0;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-family: var(--font-mono);
-    border-bottom: 1px solid rgba(70, 80, 105, 0.25);
-    color: var(--color-ink);
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -926,29 +943,27 @@ const aboutVideoSchema = {
   }
 
   .spec-list li:last-child {
-    border-bottom: var(--border-ink);
+    border-bottom: 1px solid var(--line-strong);
   }
 
   .spec-label {
-    color: var(--color-ink);
+    color: var(--ink);
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.06em;
     min-width: 200px;
     flex-shrink: 0;
   }
 
   .spec-value {
-    color: var(--color-ink-light);
+    color: var(--ink-2);
   }
 
   strong {
-    color: var(--color-ink);
+    color: var(--ink);
     font-weight: 600;
   }
 
-  /* ========================================
-     RESPONSIVE
-     ======================================== */
   @media (max-width: 768px) {
     .about-section { padding-left: 0; }
     .section-pill { position: static; margin-bottom: 0.75rem; }

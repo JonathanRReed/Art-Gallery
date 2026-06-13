@@ -1,7 +1,8 @@
 // color-mapper.js (Web Worker)
 // Enhanced algorithmic art generation engine
 // Supports Hilbert, Morton, Peano, Spiral, and RandomWalk traversal curves.
-// Supports Crystal, Nebula, Rings, Organic, Fractal, and Flow growth modes.
+// Exposed growth modes: Crystal, Nebula, Rings, Flow.
+// (Organic and Fractal branches remain below but are not selectable from the UI.)
 
 // ─── Seeded PRNG (mulberry32) ───
 function mulberry32(a) {
@@ -76,18 +77,6 @@ class PriorityQueue {
     if (a.priority !== b.priority) return a.priority - b.priority;
     return a.seq - b.seq;
   }
-}
-
-// ─── Coordinate helpers ───
-function mirrorCoords(x, y, width, height) {
-  const mx = width - 1 - x;
-  const my = height - 1 - y;
-  return [
-    [x, y],
-    [mx, y],
-    [x, my],
-    [mx, my]
-  ];
 }
 
 // ─── Optimized Color Distance with Memoization ───
@@ -220,21 +209,6 @@ function applyColorProgression(colorList, colorProgression, seed) {
     default:
       seededShuffle(colorList, seed);
   }
-}
-
-function permuteHSV(h, s, v, curveType, colorOrdering) {
-  let arr = [h, s, v];
-  const order = (colorOrdering || 'hsv').toLowerCase();
-  let idx = [0, 1, 2];
-  if (order === 'hsv') idx = [0, 1, 2];
-  else if (order === 'hvs') idx = [0, 2, 1];
-  else if (order === 'shv') idx = [1, 0, 2];
-  else if (order === 'svh') idx = [1, 2, 0];
-  else if (order === 'vhs') idx = [2, 0, 1];
-  else if (order === 'vsh') idx = [2, 1, 0];
-  if (curveType === 'morton') arr[0] = (arr[0] + 120) % 360;
-  if (curveType === 'hilbert') arr[0] = (arr[0] + 240) % 360;
-  return [arr[idx[0]], arr[idx[1]], arr[idx[2]]];
 }
 
 function simpleHash(x, y, seed) {
@@ -594,10 +568,10 @@ self.onmessage = function (e) {
   try {
     const {
       width = 128, height = 128, seed,
-      symmetry = true, distanceRandomness = 10, colorSampleSize = 100,
+      distanceRandomness = 10, colorSampleSize = 100,
       growthMode = 'crystal', seedShape = 'point', symmetryMode = 'quadrantal', colorProgression = 'shuffled',
       branchingFactor = 0.5, growthRate = 1, randomness = 10,
-      curveType = 'hilbert', colorOrdering = 'hsv',
+      curveType = 'hilbert',
       patternComplexity = 128,
       optimizeForLargeExport = false,
       previewMode = false,
@@ -655,7 +629,6 @@ self.onmessage = function (e) {
 
     // ─── Color Generation ───
     let colorList = [];
-    let colorSet = null;
 
     if (allRGBMode) {
       self.postMessage({ progress: 1 });
@@ -770,17 +743,13 @@ self.onmessage = function (e) {
         const y = (idx / width) | 0;
         allRGBColorIndex--;
         const packed = colorList[allRGBColorIndex];
-        let r = (packed >> 16) & 0xFF;
-        let g = (packed >> 8) & 0xFF;
-        let b = packed & 0xFF;
+        const r = (packed >> 16) & 0xFF;
+        const g = (packed >> 8) & 0xFF;
+        const b = packed & 0xFF;
 
-        // Apply gradient map and dithering even in AllRGB mode
-        if (gradientMap !== 'none' && GRADIENT_PALETTES[gradientMap]) {
-          [r, g, b] = applyGradientMap(r, g, b, GRADIENT_PALETTES[gradientMap]);
-        }
-        if (dithering) {
-          [r, g, b] = applyDithering(r, g, b, x, y, 1.0);
-        }
+        // AllRGB must contain every color exactly once — finish effects
+        // (gradient map / dithering / anti-aliasing) are intentionally NOT
+        // applied here so the result stays a true AllRGB image.
 
         const bufIdx = idx * 4;
         buffer[bufIdx] = r;
@@ -810,9 +779,7 @@ self.onmessage = function (e) {
         }
       }
 
-      if (antiAliasing) {
-        applyAntiAliasing(buffer, width, height, 0.3);
-      }
+      // (no anti-aliasing in AllRGB mode — see note above)
 
       self.postMessage({ progress: 100 });
       self.postMessage({
@@ -1070,20 +1037,10 @@ self.onmessage = function (e) {
 
         // ─── Standard Priority-Queue Growth (crystal, nebula, rings, flow) ───
         const [x, y] = pq.pop();
-        let coords;
-        if (isExport && symmetryMode !== 'none') {
-          if (symmetryMode === 'bilateral') {
-            const mx = width - 1 - x;
-            coords = [[x, y], [mx, y]];
-          } else if (symmetryMode === 'quadrantal') {
-            const mx = width - 1 - x, my = height - 1 - y;
-            coords = [[x, y], [mx, y], [x, my], [mx, my]];
-          } else {
-            coords = [[x, y]];
-          }
-        } else {
-          coords = getSymmetryCoords(x, y, width, height, symmetryMode);
-        }
+        // Honor every symmetry mode (incl. radial) at all sizes — exports
+        // previously dropped radial silently, which broke "what you preview
+        // is what you export".
+        const coords = getSymmetryCoords(x, y, width, height, symmetryMode);
 
         let pixelsFilled = 0;
         for (const [mx, my] of coords) {
@@ -1196,9 +1153,10 @@ self.onmessage = function (e) {
 
                 let priority;
                 const dist = Math.hypot(nx - width / 2, ny - height / 2);
-                const distRand = isExport
-                  ? (mainRand() - 0.5) * 5
-                  : (mainRand() - 0.5) * distanceRandomness * (dist / (width / 2));
+                // Honor distanceRandomness at every size (was hardcoded to 5 on
+                // exports/large previews, so the export didn't match the preview).
+                // The dist/(width/2) term normalizes the magnitude across sizes.
+                const distRand = (mainRand() - 0.5) * distanceRandomness * (dist / (width / 2));
 
                 if (growthMode === 'crystal') {
                   priority = dist + (mainRand() - 0.5) * randomness + distRand;
@@ -1219,7 +1177,11 @@ self.onmessage = function (e) {
                 } else {
                   priority = dist + (mainRand() - 0.5) * randomness + distRand;
                 }
-                priority /= growthRate;
+                // Growth rate reshapes the radial gradient relative to the noise:
+                // 1 = unchanged (default); higher flattens it so growth expands
+                // outward faster; lower steepens it for tighter, slower growth.
+                // (Identity at growthRate === 1, so default output is unchanged.)
+                priority -= (growthRate - 1) * dist;
                 pq.push([nx, ny], priority);
               }
             }

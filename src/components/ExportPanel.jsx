@@ -11,22 +11,17 @@ export default function ExportPanel({
   return (
     <div className="export-panel">
       <button
-        className="generate-button gallery-action-btn"
+        className="generate-button"
         type="button"
         onClick={onGenerate}
         disabled={loading}
-        style={{
-          width: '100%',
-          marginBottom: '1rem',
-          fontWeight: 'bold'
-        }}
       >
-        {loading ? 'Generating…' : patternSizeChanged ? 'Regenerate with New Size' : 'Generate Artwork'}
+        {loading ? 'Plotting…' : patternSizeChanged ? 'Regenerate at new size' : 'Generate artwork'}
       </button>
 
-      <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem' }}>
+      <div className="export-actions">
         <button
-          className="export-button gallery-action-btn"
+          className="export-button"
           type="button"
           onClick={onDownloadPNG}
           disabled={!hasArtwork || loading}
@@ -34,7 +29,7 @@ export default function ExportPanel({
           Download PNG
         </button>
         <button
-          className="export-button gallery-action-btn"
+          className="export-button"
           type="button"
           onClick={onDownloadPDF}
           disabled={!hasArtwork || loading}
@@ -43,17 +38,11 @@ export default function ExportPanel({
         </button>
       </div>
 
-      <div style={{
-        marginTop: '0.75rem',
-        fontSize: '0.8rem',
-        color: 'var(--color-ink)',
-        fontWeight: 600,
-        padding: '0.5rem',
-        backgroundColor: 'var(--color-paper)',
-        textAlign: 'center'
-      }}>
-        <div>{hasArtwork ? 'Exports render at 4096 × 4096 for high-resolution output.' : 'Generate a piece to unlock PNG and PDF export.'}</div>
-      </div>
+      <p className="export-note">
+        {hasArtwork
+          ? 'Exports render at 4096 × 4096 for high-resolution output.'
+          : 'Generate a piece to unlock PNG and PDF export.'}
+      </p>
     </div>
   );
 }

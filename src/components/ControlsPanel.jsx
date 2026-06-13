@@ -1,9 +1,10 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useId } from 'react';
 
 const growthModes = [
   { label: 'Crystal', value: 'crystal' },
   { label: 'Nebula', value: 'nebula' },
   { label: 'Rings', value: 'rings' },
+  { label: 'Flow', value: 'flow' },
 ];
 const seedShapes = [
   { label: 'Point', value: 'point' },
@@ -15,41 +16,46 @@ const symmetryModes = [
   { label: 'None', value: 'none' },
   { label: 'Bilateral', value: 'bilateral' },
   { label: 'Quadrantal', value: 'quadrantal' },
-  { label: 'Radial', value: 'radial' },
+  { label: 'Radial (8-fold)', value: 'radial' },
 ];
 const colorProgressions = [
   { label: 'Sequential', value: 'sequential' },
   { label: 'Shuffled', value: 'shuffled' },
   { label: 'Base Distance', value: 'base-distance' },
-  { label: 'Saturation (AllRGB style)', value: 'saturation' },
+  { label: 'Saturation', value: 'saturation' },
   { label: 'Brightness', value: 'brightness' },
 ];
 const curveTypes = [
   { label: 'Hilbert', value: 'hilbert' },
-  { label: 'Morton', value: 'morton' },
+  { label: 'Morton (Z-order)', value: 'morton' },
+  { label: 'Peano', value: 'peano' },
+  { label: 'Spiral', value: 'spiral' },
+  { label: 'Random Walk', value: 'randomwalk' },
 ];
-const colorOrderings = [
-  { label: 'HSV', value: 'hsv' },
-  { label: 'HVS', value: 'hvs' },
-  { label: 'SHV', value: 'shv' },
-  { label: 'SVH', value: 'svh' },
-  { label: 'VHS', value: 'vhs' },
-  { label: 'VSH', value: 'vsh' },
+const gradientMaps = [
+  { label: 'None (true color)', value: 'none' },
+  { label: 'Sunset', value: 'sunset' },
+  { label: 'Ocean', value: 'ocean' },
+  { label: 'Monochrome', value: 'monochrome' },
+  { label: 'Neon', value: 'neon' },
+  { label: 'Forest', value: 'forest' },
+  { label: 'Magma', value: 'magma' },
 ];
 
 const tooltips = {
   seed: "A numerical value that determines the starting point for the generation. The same seed will always produce the same result.",
   patternSize: "Controls the complexity and detail level of the generated pattern. Larger values create more intricate patterns but take longer to generate. The 'Extreme' option may cause slow performance on some devices.",
   growthMode: {
-    crystal: "Creates crystalline formations with angular structures.",
-    nebula: "Produces cloud-like, organic shapes with diffused edges.",
-    rings: "Generates concentric circles and orbital patterns.",
+    crystal: "Grows outward from the center by distance, forming crystalline, radial structures.",
+    nebula: "Near-random growth priority produces cloud-like, organic shapes with diffused edges.",
+    rings: "Priority follows a sine of the radius, generating concentric rings and orbital bands.",
+    flow: "Growth follows a deterministic flow field, so structure streams along curving currents.",
   },
   seedShape: {
     point: "Starts growth from a single point at the center.",
     dual: "Begins with two seed points for symmetrical growth.",
     circle: "Begins with a circular boundary that expands outward.",
-    line: "Initiates growth from a line across the center.",
+    line: "Initiates growth from a horizontal line across the center.",
   },
   branchingFactor: "Controls how much the pattern branches out. Higher values create more complex, tree-like structures.",
   growthRate: "Determines how quickly the pattern expands. Higher values create more rapid, expansive growth.",
@@ -58,39 +64,54 @@ const tooltips = {
     sequential: "Colors follow a strict sequence based on their position in the RGB space.",
     shuffled: "Colors are randomly arranged while maintaining visual coherence.",
     'base-distance': "Colors are distributed based on their distance from a base color.",
-    saturation: "Arranges colors by saturation for an AllRGB-style effect.",
-    brightness: "Arranges colors by brightness intensity.",
+    saturation: "Sorts the palette by saturation for an AllRGB-style flow.",
+    brightness: "Sorts the palette by brightness intensity.",
   },
   curveType: {
     hilbert: "A space-filling curve that preserves locality well, creating smoother color transitions.",
-    morton: "Also known as Z-order curve, creates more blocky, quadrant-based patterns.",
+    morton: "Also known as Z-order, interleaves bits into blocky, quadrant-based color regions.",
+    peano: "A 3×3 recursive space-filling curve — a denser, more woven color path than Hilbert.",
+    spiral: "Archimedean-spiral ordering from the center outward, so color winds out in rings.",
+    randomwalk: "Orders color by a constrained, DLA-style random walk for organic, unpredictable transitions.",
   },
-  colorOrdering: {
-    hsv: "Arranges colors by Hue, Saturation, Value — emphasizing color families.",
-    hvs: "Arranges by Hue, Value, Saturation — emphasizing brightness variations within hues.",
-    shv: "Arranges by Saturation, Hue, Value — grouping by color intensity first.",
-    svh: "Arranges by Saturation, Value, Hue — emphasizing intensity and brightness patterns.",
-    vhs: "Arranges by Value, Hue, Saturation — creating bands of brightness.",
-    vsh: "Arranges by Value, Saturation, Hue — emphasizing brightness and intensity patterns.",
+  gradientMap: {
+    none: "Keeps the full-spectrum generated color untouched.",
+    sunset: "Remaps colors by brightness through a warm sunset palette.",
+    ocean: "Remaps colors by brightness through a cool ocean palette.",
+    monochrome: "Remaps colors by brightness to a black-to-white ramp.",
+    neon: "Remaps colors by brightness through a high-saturation neon palette.",
+    forest: "Remaps colors by brightness through a deep-to-light green palette.",
+    magma: "Remaps colors by brightness through a magma (black-purple-orange) palette.",
   },
+  dithering: "Ordered (Bayer) dithering adds fine tonal texture and softens color banding.",
+  antiAliasing: "Edge-preserving smoothing that softens harsh boundaries between color regions.",
   symmetryMode: {
     none: "No symmetry applied — pattern grows freely in all directions.",
     bilateral: "Mirror symmetry along a central axis, like a butterfly's wings.",
     quadrantal: "Four-way symmetry, mirrored in four quadrants from the center.",
-    radial: "Circular symmetry, repeating pattern radiates from the center point.",
+    radial: "Eight-fold rotational symmetry radiating from the center point. Slower on large exports.",
   },
   distanceRandomness: "Controls random variation in the distance calculations. Higher values create more organic, less mathematical patterns.",
-  colorSampleSize: "Determines how many color samples are taken. Higher values create more detailed color mapping.",
+  colorSampleSize: "Color-matching sample size for high-resolution exports only. Higher values mean more accurate color choices (slower); the on-screen preview always uses an exhaustive search, so this has no visible effect while tuning.",
   previewSize: "Sets the resolution of the preview. Higher values show more detail but take longer to generate.",
   allRGBMode: "When enabled, forces a 4096×4096 AllRGB generation where every RGB color appears exactly once.",
 };
 
 function LabelWithTooltip({ children, tooltip, position = "top" }) {
+  const tipId = useId();
   return (
-    <span className={`tooltip-wrapper tooltip-${position}`}>
+    <span className={`tooltip-wrapper${position !== "top" ? ` tooltip-${position}` : ""}`}>
       <span>{children}</span>
-      <span className="info-icon" role="img" aria-label="info">i</span>
-      <span className="tooltip" role="tooltip">{tooltip}</span>
+      <span
+        className="info-icon"
+        tabIndex={0}
+        role="img"
+        aria-label="More information"
+        aria-describedby={tipId}
+      >
+        i
+      </span>
+      <span className="tooltip" role="tooltip" id={tipId}>{tooltip}</span>
     </span>
   );
 }
@@ -161,7 +182,6 @@ function RangeControl({ id, label, value, onChange, min, max, step, tooltip, loa
 export default function ControlsPanel({
   curveType, setCurveType,
   seed, setSeed,
-  colorOrdering, setColorOrdering,
   previewSize, setPreviewSize,
   symmetryMode, setSymmetryMode,
   distanceRandomness, setDistanceRandomness,
@@ -175,6 +195,9 @@ export default function ControlsPanel({
   growthRate, setGrowthRate,
   randomness, setRandomness,
   patternSize, setPatternSize,
+  gradientMap, setGradientMap,
+  dithering, setDithering,
+  antiAliasing, setAntiAliasing,
   allRGBMode, setAllRGBMode,
 }) {
   const settingsButtonRef = useRef(null);
@@ -215,10 +238,12 @@ export default function ControlsPanel({
 
   const dispatchToggleSettings = () => {
     const rect = settingsButtonRef.current?.getBoundingClientRect();
+    // .settings-panel is position:fixed, so feed it viewport coordinates
+    // (no scroll offset) and clamp so it can't overflow the right edge.
     window.dispatchEvent(new CustomEvent('toggle-settings-panel', {
       detail: {
         position: rect
-          ? { top: rect.bottom + window.scrollY, left: rect.left + window.scrollX }
+          ? { top: rect.bottom, left: Math.min(rect.left, window.innerWidth - 320 - 8) }
           : { top: 0, left: 0 }
       }
     }));
@@ -388,17 +413,6 @@ export default function ControlsPanel({
         />
 
         <SelectControl
-          id="color-ordering-select"
-          label="Color Ordering"
-          value={colorOrdering}
-          onChange={setColorOrdering}
-          options={colorOrderings}
-          tooltipMap={tooltips.colorOrdering}
-          loading={loading}
-          getLabel={getSelectedLabel}
-        />
-
-        <SelectControl
           id="symmetry-mode-select"
           label="Symmetry"
           value={symmetryMode}
@@ -408,6 +422,59 @@ export default function ControlsPanel({
           loading={loading}
           getLabel={getSelectedLabel}
         />
+      </CollapsibleSection>
+
+      {/* Finish / Effects — disabled in AllRGB mode to keep that output exact */}
+      <CollapsibleSection title="Finish" defaultOpen={false}>
+        {allRGBMode && (
+          <p className="finish-note">Finish effects are off in AllRGB mode to keep every color exact.</p>
+        )}
+        <SelectControl
+          id="gradient-map-select"
+          label="Gradient Map"
+          value={gradientMap}
+          onChange={setGradientMap}
+          options={gradientMaps}
+          tooltipMap={tooltips.gradientMap}
+          loading={loading || allRGBMode}
+          getLabel={getSelectedLabel}
+        />
+
+        <div className="control-row allrgb-toggle">
+          <label className="control-label">
+            <LabelWithTooltip tooltip={tooltips.dithering} position="right">
+              Dithering
+            </LabelWithTooltip>
+          </label>
+          <button
+            type="button"
+            className={`gallery-action-btn toggle-btn${dithering ? ' active' : ''}`}
+            onClick={() => setDithering((v) => !v)}
+            disabled={loading || allRGBMode}
+            aria-pressed={dithering}
+            aria-label={`Dithering ${dithering ? 'on' : 'off'}`}
+          >
+            {dithering ? 'On' : 'Off'}
+          </button>
+        </div>
+
+        <div className="control-row allrgb-toggle">
+          <label className="control-label">
+            <LabelWithTooltip tooltip={tooltips.antiAliasing} position="right">
+              Anti-aliasing
+            </LabelWithTooltip>
+          </label>
+          <button
+            type="button"
+            className={`gallery-action-btn toggle-btn${antiAliasing ? ' active' : ''}`}
+            onClick={() => setAntiAliasing((v) => !v)}
+            disabled={loading || allRGBMode}
+            aria-pressed={antiAliasing}
+            aria-label={`Anti-aliasing ${antiAliasing ? 'on' : 'off'}`}
+          >
+            {antiAliasing ? 'On' : 'Off'}
+          </button>
+        </div>
       </CollapsibleSection>
 
       {/* Advanced */}
@@ -478,8 +545,9 @@ export default function ControlsPanel({
               onClick={() => setAllRGBMode((v) => !v)}
               disabled={loading}
               aria-pressed={allRGBMode}
+              aria-label={`AllRGB mode ${allRGBMode ? 'on' : 'off'}`}
             >
-              {allRGBMode ? 'ON' : 'OFF'}
+              {allRGBMode ? 'On' : 'Off'}
             </button>
           </div>
         )}

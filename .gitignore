@@ -1,4 +1,4 @@
-z# Build output
+# Build output
 dist/
 .output/
 
@@ -32,7 +32,8 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Editor directories and files
+# Editor / tooling directories
+.claude/
 .vscode/*
 !.vscode/extensions.json
 .idea/
