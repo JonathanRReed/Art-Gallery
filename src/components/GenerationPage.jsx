@@ -120,6 +120,7 @@ export default function GenerationPage() {
         if (p.gradientMap) setGradientMap(p.gradientMap);
         if (typeof p.dithering === 'boolean') setDithering(p.dithering);
         if (typeof p.antiAliasing === 'boolean') setAntiAliasing(p.antiAliasing);
+        if (typeof p.allRGBMode === 'boolean') setAllRGBMode(p.allRGBMode);
         if (typeof p.exportSize === 'number') setPreviewSize(p.exportSize);
         if (typeof p.patternSize === 'number') setPatternSize(p.patternSize);
         updateFeedback('info', 'Settings restored from the gallery. Press Generate to plot this piece.');
@@ -187,6 +188,7 @@ export default function GenerationPage() {
       gradientMap,
       dithering,
       antiAliasing,
+      allRGBMode,
       patternSize
     };
   }
@@ -243,6 +245,7 @@ export default function GenerationPage() {
     setGradientMap(settings.gradientMap || 'none');
     setDithering(Boolean(settings.dithering));
     setAntiAliasing(Boolean(settings.antiAliasing));
+    setAllRGBMode(Boolean(settings.allRGBMode));
     setPatternSize(settings.patternSize || 128);
 
     setShowSettingsPanel(false);
@@ -837,6 +840,7 @@ export default function GenerationPage() {
         gradientMap,
         dithering,
         antiAliasing,
+        allRGBMode,
         exportSize: previewSize,
         patternSize
       },
