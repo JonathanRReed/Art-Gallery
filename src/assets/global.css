@@ -14,7 +14,7 @@
   :root {
     /* Surfaces — the drafting table holds the grid; sheets sit on it */
     --table: #e7e1d3;          /* page ground (warm bone, holds the grid) */
-    --paper: #f5f1e8;          /* the sheet / primary card */
+    --paper: #faf7ef;          /* the sheet / primary card (bright, crisp) */
     --paper-2: #efe9dc;        /* inset / alternate sheet */
 
     /* Graphite ink */
@@ -29,9 +29,9 @@
     --rule: #1f1d17;                        /* emphasised structural border */
     --error: #c2392a;                       /* error indicator */
 
-    /* Graph-paper grid */
-    --grid: rgba(31, 29, 23, 0.045);        /* fine cells */
-    --grid-strong: rgba(31, 29, 23, 0.085); /* every 5th cell */
+    /* Graph-paper grid — faint blueprint blue (warm paper + blue grid + oxide redline) */
+    --grid: rgba(40, 68, 120, 0.05);        /* fine cells */
+    --grid-strong: rgba(40, 68, 120, 0.09); /* every 5th cell */
 
     /* Oxide plot accent (the pen) */
     --accent: #bc3f1c;
@@ -87,8 +87,8 @@
     --rule: #f3eee0;
     --error: #ff6b5c;
 
-    --grid: rgba(243, 238, 224, 0.05);
-    --grid-strong: rgba(243, 238, 224, 0.09);
+    --grid: rgba(150, 178, 230, 0.06);
+    --grid-strong: rgba(150, 178, 230, 0.10);
 
     --accent: #ff6a40;
     --accent-strong: #ff8a66;
