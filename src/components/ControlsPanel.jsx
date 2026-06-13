@@ -5,7 +5,6 @@ const growthModes = [
   { label: 'Nebula', value: 'nebula' },
   { label: 'Rings', value: 'rings' },
   { label: 'Flow', value: 'flow' },
-  { label: 'Fractal', value: 'fractal' },
 ];
 const seedShapes = [
   { label: 'Point', value: 'point' },
@@ -51,7 +50,6 @@ const tooltips = {
     nebula: "Near-random growth priority produces cloud-like, organic shapes with diffused edges.",
     rings: "Priority follows a sine of the radius, generating concentric rings and orbital bands.",
     flow: "Growth follows a deterministic flow field, so structure streams along curving currents.",
-    fractal: "Recursively subdivides the canvas into quadrants that fill in like a fractal.",
   },
   seedShape: {
     point: "Starts growth from a single point at the center.",
@@ -94,7 +92,7 @@ const tooltips = {
     radial: "Eight-fold rotational symmetry radiating from the center point. Slower on large exports.",
   },
   distanceRandomness: "Controls random variation in the distance calculations. Higher values create more organic, less mathematical patterns.",
-  colorSampleSize: "Determines how many color samples are taken. Higher values create more detailed color mapping.",
+  colorSampleSize: "Color-matching sample size for high-resolution exports only. Higher values mean more accurate color choices (slower); the on-screen preview always uses an exhaustive search, so this has no visible effect while tuning.",
   previewSize: "Sets the resolution of the preview. Higher values show more detail but take longer to generate.",
   allRGBMode: "When enabled, forces a 4096×4096 AllRGB generation where every RGB color appears exactly once.",
 };
@@ -426,8 +424,11 @@ export default function ControlsPanel({
         />
       </CollapsibleSection>
 
-      {/* Finish / Effects */}
+      {/* Finish / Effects — disabled in AllRGB mode to keep that output exact */}
       <CollapsibleSection title="Finish" defaultOpen={false}>
+        {allRGBMode && (
+          <p className="finish-note">Finish effects are off in AllRGB mode to keep every color exact.</p>
+        )}
         <SelectControl
           id="gradient-map-select"
           label="Gradient Map"
@@ -435,7 +436,7 @@ export default function ControlsPanel({
           onChange={setGradientMap}
           options={gradientMaps}
           tooltipMap={tooltips.gradientMap}
-          loading={loading}
+          loading={loading || allRGBMode}
           getLabel={getSelectedLabel}
         />
 
@@ -449,7 +450,7 @@ export default function ControlsPanel({
             type="button"
             className={`gallery-action-btn toggle-btn${dithering ? ' active' : ''}`}
             onClick={() => setDithering((v) => !v)}
-            disabled={loading}
+            disabled={loading || allRGBMode}
             aria-pressed={dithering}
             aria-label={`Dithering ${dithering ? 'on' : 'off'}`}
           >
@@ -467,7 +468,7 @@ export default function ControlsPanel({
             type="button"
             className={`gallery-action-btn toggle-btn${antiAliasing ? ' active' : ''}`}
             onClick={() => setAntiAliasing((v) => !v)}
-            disabled={loading}
+            disabled={loading || allRGBMode}
             aria-pressed={antiAliasing}
             aria-label={`Anti-aliasing ${antiAliasing ? 'on' : 'off'}`}
           >

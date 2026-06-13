@@ -1,7 +1,8 @@
 // color-mapper.js (Web Worker)
 // Enhanced algorithmic art generation engine
 // Supports Hilbert, Morton, Peano, Spiral, and RandomWalk traversal curves.
-// Supports Crystal, Nebula, Rings, Organic, Fractal, and Flow growth modes.
+// Exposed growth modes: Crystal, Nebula, Rings, Flow.
+// (Organic and Fractal branches remain below but are not selectable from the UI.)
 
 // ─── Seeded PRNG (mulberry32) ───
 function mulberry32(a) {
@@ -742,17 +743,13 @@ self.onmessage = function (e) {
         const y = (idx / width) | 0;
         allRGBColorIndex--;
         const packed = colorList[allRGBColorIndex];
-        let r = (packed >> 16) & 0xFF;
-        let g = (packed >> 8) & 0xFF;
-        let b = packed & 0xFF;
+        const r = (packed >> 16) & 0xFF;
+        const g = (packed >> 8) & 0xFF;
+        const b = packed & 0xFF;
 
-        // Apply gradient map and dithering even in AllRGB mode
-        if (gradientMap !== 'none' && GRADIENT_PALETTES[gradientMap]) {
-          [r, g, b] = applyGradientMap(r, g, b, GRADIENT_PALETTES[gradientMap]);
-        }
-        if (dithering) {
-          [r, g, b] = applyDithering(r, g, b, x, y, 1.0);
-        }
+        // AllRGB must contain every color exactly once — finish effects
+        // (gradient map / dithering / anti-aliasing) are intentionally NOT
+        // applied here so the result stays a true AllRGB image.
 
         const bufIdx = idx * 4;
         buffer[bufIdx] = r;
@@ -782,9 +779,7 @@ self.onmessage = function (e) {
         }
       }
 
-      if (antiAliasing) {
-        applyAntiAliasing(buffer, width, height, 0.3);
-      }
+      // (no anti-aliasing in AllRGB mode — see note above)
 
       self.postMessage({ progress: 100 });
       self.postMessage({
@@ -1158,9 +1153,10 @@ self.onmessage = function (e) {
 
                 let priority;
                 const dist = Math.hypot(nx - width / 2, ny - height / 2);
-                const distRand = isExport
-                  ? (mainRand() - 0.5) * 5
-                  : (mainRand() - 0.5) * distanceRandomness * (dist / (width / 2));
+                // Honor distanceRandomness at every size (was hardcoded to 5 on
+                // exports/large previews, so the export didn't match the preview).
+                // The dist/(width/2) term normalizes the magnitude across sizes.
+                const distRand = (mainRand() - 0.5) * distanceRandomness * (dist / (width / 2));
 
                 if (growthMode === 'crystal') {
                   priority = dist + (mainRand() - 0.5) * randomness + distRand;
@@ -1181,7 +1177,11 @@ self.onmessage = function (e) {
                 } else {
                   priority = dist + (mainRand() - 0.5) * randomness + distRand;
                 }
-                priority /= growthRate;
+                // Growth rate reshapes the radial gradient relative to the noise:
+                // 1 = unchanged (default); higher flattens it so growth expands
+                // outward faster; lower steepens it for tighter, slower growth.
+                // (Identity at growthRate === 1, so default output is unchanged.)
+                priority -= (growthRate - 1) * dist;
                 pq.push([nx, ny], priority);
               }
             }

@@ -5,6 +5,11 @@ import ExportPanel from './ExportPanel.jsx';
 
 const PREVIEW_SIZE = 512; // Use a small preview for static hosting
 
+// Growth modes the UI exposes. Used to sanitize values restored from older
+// saved gallery items / configs (which could still carry 'fractal'/'organic').
+const ALLOWED_GROWTH_MODES = ['crystal', 'nebula', 'rings', 'flow'];
+const sanitizeGrowthMode = (m) => (ALLOWED_GROWTH_MODES.includes(m) ? m : 'crystal');
+
 // Debug helper to check for circular references or other JSON issues
 function checkSerializable(obj, name = 'object') {
   try {
@@ -103,7 +108,7 @@ export default function GenerationPage() {
       if (p && typeof p === 'object') {
         if (p.curveType) setCurveType(p.curveType);
         if (typeof p.seed === 'number') setSeed(p.seed);
-        if (p.growthMode) setGrowthMode(p.growthMode);
+        if (p.growthMode) setGrowthMode(sanitizeGrowthMode(p.growthMode));
         if (p.seedShape) setSeedShape(p.seedShape);
         if (p.symmetryMode) setSymmetryMode(p.symmetryMode);
         if (p.colorProgression) setColorProgression(p.colorProgression);
@@ -228,7 +233,7 @@ export default function GenerationPage() {
     setPreviewSize(settings.previewSize || 128);
     setDistanceRandomness(settings.distanceRandomness || 10);
     setColorSampleSize(settings.colorSampleSize || 100);
-    setGrowthMode(settings.growthMode || 'crystal');
+    setGrowthMode(sanitizeGrowthMode(settings.growthMode));
     setSeedShape(settings.seedShape || 'point');
     setSymmetryMode(settings.symmetryMode || 'quadrantal');
     setColorProgression(settings.colorProgression || 'shuffled');
@@ -783,8 +788,8 @@ export default function GenerationPage() {
 
       // Generate a completely new image at the export size
       worker.postMessage({
-        width: EXPORT_SIZE,
-        height: EXPORT_SIZE,
+        width: allRGBMode ? 4096 : EXPORT_SIZE,
+        height: allRGBMode ? 4096 : EXPORT_SIZE,
         seed,
         distanceRandomness,
         colorSampleSize,
@@ -799,10 +804,11 @@ export default function GenerationPage() {
         gradientMap,
         dithering,
         antiAliasing,
-        patternComplexity: patternSize,
+        patternComplexity: allRGBMode ? 4096 : patternSize,
         exportMode: true,
         format: 'pdf',
-        exactOutputSize: EXPORT_SIZE // Force exact output size
+        exactOutputSize: allRGBMode ? 4096 : EXPORT_SIZE, // Force exact output size
+        allRGBMode
       });
     }).catch(error => {
       console.error("Error loading PDF library:", error);

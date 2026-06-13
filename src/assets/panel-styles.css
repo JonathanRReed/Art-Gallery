@@ -281,6 +281,18 @@
   text-align: right;
 }
 
+.finish-note {
+  margin: 0 0 0.85rem;
+  padding: 0.5rem 0.65rem;
+  border-left: 2px solid var(--accent);
+  background: var(--accent-soft);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+
 /* Keyboard hints */
 .kbd-hints {
   display: flex;
