@@ -72,6 +72,7 @@ export default function GenerationPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const [allRGBMode, setAllRGBMode] = useState(false);
+  const [pendingPreset, setPendingPreset] = useState(null); // set when a home preset asks to load+generate
   const [renderKey, setRenderKey] = useState(0); // Force re-render key
   const [savedSettings, setSavedSettings] = useState([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -129,6 +130,41 @@ export default function GenerationPage() {
       console.error('Error restoring regenerate params:', error);
     }
   }, []);
+
+  // Home-page preset cards dispatch this with a full recipe: apply it, then plot.
+  useEffect(() => {
+    const onPreset = (e) => {
+      const p = e.detail;
+      if (!p || typeof p !== 'object') return;
+      if (p.curveType) setCurveType(p.curveType);
+      if (typeof p.seed === 'number') setSeed(p.seed);
+      if (p.growthMode) setGrowthMode(sanitizeGrowthMode(p.growthMode));
+      if (p.seedShape) setSeedShape(p.seedShape);
+      if (p.symmetryMode) setSymmetryMode(p.symmetryMode);
+      if (p.colorProgression) setColorProgression(p.colorProgression);
+      if (typeof p.branchingFactor === 'number') setBranchingFactor(p.branchingFactor);
+      if (typeof p.growthRate === 'number') setGrowthRate(p.growthRate);
+      if (typeof p.randomness === 'number') setRandomness(p.randomness);
+      if (typeof p.distanceRandomness === 'number') setDistanceRandomness(p.distanceRandomness);
+      if (typeof p.colorSampleSize === 'number') setColorSampleSize(p.colorSampleSize);
+      if (p.gradientMap) setGradientMap(p.gradientMap);
+      if (typeof p.dithering === 'boolean') setDithering(p.dithering);
+      if (typeof p.antiAliasing === 'boolean') setAntiAliasing(p.antiAliasing);
+      if (typeof p.previewSize === 'number') setPreviewSize(p.previewSize);
+      if (typeof p.patternSize === 'number') setPatternSize(p.patternSize);
+      if (typeof p.allRGBMode === 'boolean') setAllRGBMode(p.allRGBMode);
+      // Trigger a generate once React has committed the new state (see effect below).
+      setPendingPreset({});
+    };
+    window.addEventListener('aag-load-preset', onPreset);
+    return () => window.removeEventListener('aag-load-preset', onPreset);
+  }, []);
+
+  // Plot after a preset's params have been committed to state.
+  useEffect(() => {
+    if (pendingPreset) handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPreset]);
 
   // Add event listeners for settings buttons
   useEffect(() => {
