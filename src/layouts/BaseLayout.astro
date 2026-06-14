@@ -194,7 +194,7 @@ const schemaGraph = [
 
     <header class="site-header" aria-label="Primary">
       <nav class="nav-container">
-        <a class="site-logo" href="/" aria-label="Algorithmic Art Gallery — home">
+        <a class="site-logo" href="/" aria-label="Algorithmic Art Gallery home">
           <svg class="logo-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M3 3h6v6H3V3Zm0 12h6v6H3v-6Zm12 0h6v6h-6v-6Zm0-12h6v6h-6V3ZM6 9v6m12-6v6M9 6h6m-6 12h6"
@@ -239,7 +239,7 @@ const schemaGraph = [
     <script is:inline>
       (function () {
         // Guard: the inline script may be re-evaluated on a view-transition
-        // swap — only register the page-load handler once.
+        // swap - only register the page-load handler once.
         if (window.__aagInit) return;
         window.__aagInit = true;
 
@@ -298,7 +298,7 @@ const schemaGraph = [
           }
         }
 
-        // Delegated click ripple — registered once on the persistent document
+        // Delegated click ripple - registered once on the persistent document
         document.addEventListener("click", (e) => {
           const target = e.target.closest(
             'button, [role="button"], .nav-link, .site-logo, .gallery-action-btn',
@@ -316,6 +316,20 @@ const schemaGraph = [
         // region and announce the new title (View Transitions otherwise drop
         // focus to <body> with no announcement). Fires only on transitions.
         document.addEventListener("astro:after-swap", () => {
+          // A view-transition swap restores the server-rendered <html>, which has
+          // no theme class - re-apply the saved/system theme before paint so it
+          // doesn't snap back to light on every navigation.
+          try {
+            const localTheme = localStorage.getItem("theme");
+            const isDark =
+              localTheme === "dark" ||
+              (!localTheme &&
+                window.matchMedia("(prefers-color-scheme: dark)").matches);
+            document.documentElement.classList.toggle("dark-theme", isDark);
+            const meta = document.getElementById("theme-color-meta");
+            if (meta) meta.setAttribute("content", isDark ? "#14130d" : "#e7e1d3");
+          } catch (e) {}
+
           const main = document.getElementById("main-content");
           if (main) main.focus({ preventScroll: true });
           const announcer = document.getElementById("route-announcer");

@@ -110,7 +110,7 @@ const tooltips = {
   curveType: {
     hilbert: "A space-filling curve that preserves locality well, creating smoother color transitions.",
     morton: "Also known as Z-order, interleaves bits into blocky, quadrant-based color regions.",
-    peano: "A 3×3 recursive space-filling curve — a denser, more woven color path than Hilbert.",
+    peano: "A 3×3 recursive space-filling curve, a denser, more woven color path than Hilbert.",
     spiral: "Archimedean-spiral ordering from the center outward, so color winds out in rings.",
     randomwalk: "Orders color by a constrained, DLA-style random walk for organic, unpredictable transitions.",
   },
@@ -126,7 +126,7 @@ const tooltips = {
   dithering: "Ordered (Bayer) dithering adds fine tonal texture and softens color banding.",
   antiAliasing: "Edge-preserving smoothing that softens harsh boundaries between color regions.",
   symmetryMode: {
-    none: "No symmetry applied — pattern grows freely in all directions.",
+    none: "No symmetry applied. The pattern grows freely in all directions.",
     bilateral: "Mirror symmetry along a central axis, like a butterfly's wings.",
     quadrantal: "Four-way symmetry, mirrored in four quadrants from the center.",
     radial: "Eight-fold rotational symmetry radiating from the center point. Slower on large exports.",
@@ -136,11 +136,11 @@ const tooltips = {
   previewSize: "Sets the resolution of the preview. Higher values show more detail but take longer to generate.",
   allRGBMode: "When enabled, forces a 4096×4096 AllRGB generation where every RGB color appears exactly once.",
   renderMode: {
-    fill: "Color field — fills every pixel along the traversal curve with a different color. Dense, painterly output.",
-    trace: "Line trace — strokes the traversal curve itself as one continuous colored line, advancing color along its length. Clean, plotted line art.",
+    fill: "Color field: fills every pixel along the traversal curve with a different color. Dense, painterly output.",
+    trace: "Line trace: strokes the traversal curve itself as one continuous colored line, advancing color along its length. Clean, plotted line art.",
   },
   traceStroke: "Line weight of the traced curve. Higher is bolder.",
-  traceDensity: "How many cells the curve fills per side — higher is finer and more intricate, lower is bolder. Snaps to the nearest value each curve can tile.",
+  traceDensity: "How many cells the curve fills per side. Higher is finer and more intricate, lower is bolder. Snaps to the nearest value each curve can tile.",
   traceColorMap: "Colors the line as it advances along the curve. 'Spectrum' sweeps the full hue wheel; the others ride a themed gradient.",
 };
 
@@ -226,7 +226,7 @@ function RangeControl({ id, label, value, onChange, min, max, step, tooltip, loa
   );
 }
 
-// Prominent segmented switch for the two render modes — the primary creative choice.
+// Prominent segmented switch for the two render modes - the primary creative choice.
 function ModeToggle({ value, onChange, loading }) {
   return (
     <div className="mode-toggle" role="group" aria-label="Render mode">
@@ -331,7 +331,7 @@ export default function ControlsPanel({
 
   return (
     <div className="panel-container">
-      {/* Render mode — the primary creative choice, up top */}
+      {/* Render mode - the primary creative choice, up top */}
       <ModeToggle value={renderMode} onChange={setRenderMode} loading={loading} />
 
       {/* Top actions bar */}
@@ -406,7 +406,7 @@ export default function ControlsPanel({
         </div>
       </CollapsibleSection>
 
-      {/* Line / Trace — the only relevant knobs when stroking the curve */}
+      {/* Line / Trace - the only relevant knobs when stroking the curve */}
       {isTrace && (
         <CollapsibleSection title="Line" defaultOpen={true}>
           <SelectControl
@@ -555,7 +555,7 @@ export default function ControlsPanel({
       </CollapsibleSection>
       )}
 
-      {/* Finish / Effects (color-field mode only) — off in AllRGB to keep output exact */}
+      {/* Finish / Effects (color-field mode only) - off in AllRGB to keep output exact */}
       {!isTrace && (
       <CollapsibleSection title="Finish" defaultOpen={false}>
         {allRGBMode && (

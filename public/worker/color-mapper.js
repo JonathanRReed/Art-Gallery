@@ -545,7 +545,7 @@ function applyAntiAliasing(buffer, width, height, strength = 0.3) {
 }
 
 // ─── Trace (line) renderer ───
-// Strokes the chosen traversal curve as one continuous colored polyline —
+// Strokes the chosen traversal curve as one continuous colored polyline -
 // the clean "plotted line" aesthetic, as real, deterministic generator output.
 // Color advances along the path (0→1) through the gradient map (or a hue sweep
 // when no map is set). Renders onto a transparent background so it composites
@@ -583,8 +583,8 @@ function snapTraceGrid(curveType, target) {
 }
 
 // A true square spiral PATH (adjacent steps), center-out. The spiral sort key
-// used by fill mode only orders cells by radius/angle — it is NOT a drawable
-// continuous path — so trace mode walks an actual rectangular spiral instead.
+// used by fill mode only orders cells by radius/angle - it is NOT a drawable
+// continuous path - so trace mode walks an actual rectangular spiral instead.
 function squareSpiralSequence(G) {
   const path = [];
   let l = 0, r = G - 1, t = 0, b = G - 1;
@@ -919,7 +919,7 @@ self.onmessage = function (e) {
         const g = (packed >> 8) & 0xFF;
         const b = packed & 0xFF;
 
-        // AllRGB must contain every color exactly once — finish effects
+        // AllRGB must contain every color exactly once - finish effects
         // (gradient map / dithering / anti-aliasing) are intentionally NOT
         // applied here so the result stays a true AllRGB image.
 
@@ -951,7 +951,7 @@ self.onmessage = function (e) {
         }
       }
 
-      // (no anti-aliasing in AllRGB mode — see note above)
+      // (no anti-aliasing in AllRGB mode - see note above)
 
       self.postMessage({ progress: 100 });
       self.postMessage({
@@ -1209,7 +1209,7 @@ self.onmessage = function (e) {
 
         // ─── Standard Priority-Queue Growth (crystal, nebula, rings, flow) ───
         const [x, y] = pq.pop();
-        // Honor every symmetry mode (incl. radial) at all sizes — exports
+        // Honor every symmetry mode (incl. radial) at all sizes - exports
         // previously dropped radial silently, which broke "what you preview
         // is what you export".
         const coords = getSymmetryCoords(x, y, width, height, symmetryMode);

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ============================================================
-   DRAFTING STUDIO — design system
+   DRAFTING STUDIO - design system
    A precision-instrument aesthetic for a deterministic,
    coordinate-based generative-art tool. Warm paper, graphite
    ink, one oxide plot-accent, a real graph-paper grid,
@@ -12,7 +12,7 @@
 
 @layer base {
   :root {
-    /* Surfaces — the drafting table holds the grid; sheets sit on it */
+    /* Surfaces - the drafting table holds the grid; sheets sit on it */
     --table: #e7e1d3;          /* page ground (warm bone, holds the grid) */
     --paper: #faf7ef;          /* the sheet / primary card (bright, crisp) */
     --paper-2: #efe9dc;        /* inset / alternate sheet */
@@ -20,7 +20,7 @@
     /* Graphite ink */
     --ink: #1f1d17;            /* primary text & structural lines */
     --ink-2: #6b6757;          /* secondary text */
-    --ink-3: #67634f;          /* faint labels — kept >=4.5:1 on every surface */
+    --ink-3: #67634f;          /* faint labels - kept >=4.5:1 on every surface */
 
     /* Lines */
     --line: rgba(31, 29, 23, 0.14);        /* hairline divider */
@@ -29,13 +29,13 @@
     --rule: #1f1d17;                        /* emphasised structural border */
     --error: #c2392a;                       /* error indicator */
 
-    /* Graph-paper grid — faint blueprint blue (warm paper + blue grid + oxide redline) */
+    /* Graph-paper grid - faint blueprint blue (warm paper + blue grid + oxide redline) */
     --grid: rgba(40, 68, 120, 0.05);        /* fine cells */
     --grid-strong: rgba(40, 68, 120, 0.09); /* every 5th cell */
 
     /* Oxide plot accent (the pen) */
     --accent: #bc3f1c;
-    --accent-strong: #9c3013;  /* small text / hover — passes contrast on paper */
+    --accent-strong: #9c3013;  /* small text / hover - passes contrast on paper */
     --accent-soft: rgba(188, 63, 28, 0.12);
     --accent-ink: #faf6ed;     /* text drawn on accent */
 
@@ -54,7 +54,7 @@
     --text-2xl: 1.5rem;
     --text-3xl: 2rem;
 
-    /* Spacing scale — every margin/padding snaps to a step (no ad-hoc rems) */
+    /* Spacing scale - every margin/padding snaps to a step (no ad-hoc rems) */
     --space-0-5: 0.125rem;
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -68,13 +68,13 @@
     --space-12: 3rem;
     --space-16: 4rem;
 
-    /* Layout shell — ONE page width + gutter + section rhythm for the whole site */
+    /* Layout shell - ONE page width + gutter + section rhythm for the whole site */
     --page-max: 1240px;          /* every page/section centers here */
     --gutter: clamp(1rem, 4vw, 2rem);
     --section-gap: clamp(2rem, 5vw, 3.5rem);  /* vertical rhythm between sections */
     --section-head-gap: var(--space-7);
 
-    /* Surface language — ONE border for interior sheets, a stronger one for chrome */
+    /* Surface language - ONE border for interior sheets, a stronger one for chrome */
     --surface-border: 1px solid var(--line-strong);
     --border-strong: 1px solid var(--rule);    /* modals / header-footer dividers only */
     --radius: 0;                                /* square is the system */
@@ -82,7 +82,7 @@
     --pad-dense: 0.85rem;                       /* compact / info-cell padding */
     --accent-stripe: 3px solid var(--accent);   /* the one emphasis technique */
 
-    /* Image-overlay tokens — gallery card scrims sit on top of artwork, so these
+    /* Image-overlay tokens - gallery card scrims sit on top of artwork, so these
        are intentionally theme-independent (always a dark scrim with light text). */
     --overlay-text: #f7f3ea;
     --overlay-meta: #d8d2c2;
@@ -99,7 +99,7 @@
     --transition-slow: 360ms cubic-bezier(0.2, 0, 0, 1);
     --easing-smooth: cubic-bezier(0.2, 0, 0, 1);
 
-    /* grid cadence — used by background + ruler motifs */
+    /* grid cadence - used by background + ruler motifs */
     --cell: 24px;
   }
 
@@ -225,7 +225,7 @@ strong {
   color: var(--ink);
 }
 
-/* Monospace data label — used FUNCTIONALLY (coords, specs, values) */
+/* Monospace data label - used FUNCTIONALLY (coords, specs, values) */
 .mono-text,
 .mono {
   font-family: var(--font-mono);
@@ -272,7 +272,7 @@ strong {
   outline-offset: 2px;
 }
 
-/* Programmatic focus target on view-transition nav — no visible ring */
+/* Programmatic focus target on view-transition nav - no visible ring */
 #main-content:focus {
   outline: none;
 }
@@ -303,7 +303,7 @@ strong {
    SHARED PRIMITIVES
    ============================================================ */
 
-/* Crop / registration marks — the signature motif, used intentionally
+/* Crop / registration marks - the signature motif, used intentionally
    on the plot surfaces only: the hero plate, showcase plates, the loader,
    and the live generator preview plate (not every card, to keep it a
    signature rather than noise). Apply to a relatively-positioned element
@@ -355,7 +355,7 @@ strong {
   border-left-width: 1.5px;
 }
 
-/* Ruler rule — a hairline with measurement ticks, for dividers */
+/* Ruler rule - a hairline with measurement ticks, for dividers */
 .rule-ticks {
   height: 9px;
   width: 100%;
@@ -364,7 +364,7 @@ strong {
     repeating-linear-gradient(90deg, var(--line-strong) 0 1px, transparent 1px var(--cell)) left top / 100% 5px no-repeat;
 }
 
-/* Layout shell — the single container every page/section centers in.
+/* Layout shell - the single container every page/section centers in.
    One width, one gutter → content shares a left/right edge down the page. */
 .page-shell {
   width: 100%;
@@ -374,7 +374,7 @@ strong {
   box-sizing: border-box;
 }
 
-/* Vertical rhythm — every major section is spaced by the same step. */
+/* Vertical rhythm - every major section is spaced by the same step. */
 .section {
   margin-top: var(--section-gap);
 }
@@ -383,7 +383,7 @@ strong {
   margin-top: 0;
 }
 
-/* Section header — ONE eyebrow + title + description shell, shared by every
+/* Section header - ONE eyebrow + title + description shell, shared by every
    page so sections are framed by the same hand. */
 .section-head {
   margin-bottom: var(--section-head-gap);
@@ -496,7 +496,7 @@ strong {
 }
 
 /* ============================================================
-   INFO PAGE (contact / privacy) — a documentation sheet
+   INFO PAGE (contact / privacy) - a documentation sheet
    ============================================================ */
 .info-page {
   /* the sheet itself sits inside the gutter, so its border lines up with the
@@ -508,7 +508,7 @@ strong {
   border: var(--surface-border);
 }
 
-/* byline is metadata under the title — accent lives on the eyebrow only */
+/* byline is metadata under the title - accent lives on the eyebrow only */
 .info-page > .info-byline {
   color: var(--ink-3);
   letter-spacing: 0.18em;
@@ -604,7 +604,7 @@ strong {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     /* suppress CSS transitions too (hover zooms, accordions, fades), not just
-       @keyframes — kept ~0 rather than 0 so transitionend listeners still fire */
+       @keyframes - kept ~0 rather than 0 so transitionend listeners still fire */
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }

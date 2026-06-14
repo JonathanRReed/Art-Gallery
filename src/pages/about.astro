@@ -48,15 +48,14 @@ const aboutVideoSchema = {
             the algorithm fill in the pixels.
           </p>
           <p>
-            Every output is deterministic: same settings produce the same image.
-            Change a parameter and you get something new. It's mostly an
-            experiment in seeing what happens when you let math do the drawing.
+            Every output is deterministic: the same settings produce the same
+            image. Change a parameter and you get something new. It is mostly an
+            experiment in what these algorithms can draw.
           </p>
           <p>
-            The project is also a practical study in creative tooling. The generator
-            keeps the controls visible, the output repeatable, and the saved gallery
-            close to the work surface so each image can be treated as a small
-            experiment rather than a disposable random effect.
+            The generator keeps the controls visible, the output repeatable, and
+            the saved gallery close by, so each image is something you can revisit
+            and refine rather than a one-off random result.
           </p>
         </div>
         <p class="about-link">
@@ -81,9 +80,9 @@ const aboutVideoSchema = {
             Built with Astro and React for a fast, mostly-static experience, with
             the heavy pixel work offloaded to a Web Worker so the interface stays
             responsive while a piece plots. The interface borrows from drafting and
-            plotter culture — warm paper, graphite ink, a single oxide plot-accent,
-            and a real measurement grid — so the chrome stays quiet and the
-            generated color does the talking.
+            plotter culture: warm paper, graphite ink, a single oxide accent, and a
+            real measurement grid, so the interface stays quiet and the focus stays
+            on the artwork.
           </p>
         </div>
 
@@ -179,12 +178,12 @@ const aboutVideoSchema = {
                 <li>
                   <strong>Color field:</strong> the traversal curve sets the order in
                   which every pixel is filled, and each is given a different color from a
-                  palette spanning the whole color space — a dense, painterly field.
+                  palette spanning the whole color space, for a dense, painterly field.
                 </li>
                 <li>
                   <strong>Line trace:</strong> the curve itself is stroked as one
                   continuous colored line, color advancing along its length through the
-                  chosen gradient (or a full hue sweep) — clean, plotted line art. Tune
+                  chosen gradient (or a full hue sweep), for clean, plotted line art. Tune
                   the line weight and detail; every curve type traces its own signature.
                 </li>
               </ul>
@@ -209,7 +208,7 @@ const aboutVideoSchema = {
                   creating blockier, quadrant-based color regions.
                 </li>
                 <li>
-                  <strong>Peano:</strong> A recursive 3×3 space-filling curve — a denser,
+                  <strong>Peano:</strong> A recursive 3×3 space-filling curve, a denser,
                   more woven path through color space than Hilbert.
                 </li>
                 <li>
@@ -354,7 +353,7 @@ const aboutVideoSchema = {
               <ul>
                 <li>
                   <strong>Gradient Map:</strong> Remaps the generated colors by brightness
-                  through a curated palette — sunset, ocean, monochrome, neon, forest, or magma.
+                  through a curated palette: sunset, ocean, monochrome, neon, forest, or magma.
                 </li>
                 <li>
                   <strong>Dithering:</strong> Ordered (Bayer) dithering adds fine tonal
@@ -531,7 +530,7 @@ const aboutVideoSchema = {
 
 <style>
   /* ========================================
-     ABOUT — a process documentation sheet
+     ABOUT - a process documentation sheet
      ======================================== */
   .about-page {
     width: 100%;
@@ -658,7 +657,7 @@ const aboutVideoSchema = {
     color: var(--table);
   }
 
-  /* Video — a reference plate */
+  /* Video - a reference plate */
   .video-frame {
     margin-top: 2rem;
     background: var(--paper);
