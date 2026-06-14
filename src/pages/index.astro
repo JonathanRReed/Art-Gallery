@@ -46,7 +46,7 @@ function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10
 
 const heroPath = toPath(hilbertPoints(5));
 
-// Curated starting points — each is a real, exact recipe the generator
+// Curated starting points - each is a real, exact recipe the generator
 // reproduces. Thumbnails render live on the client from these same params, and
 // clicking a card loads the recipe into the generator and plots it. The set
 // mixes both render modes so the showcase shows what each one makes.
@@ -118,12 +118,12 @@ const presets = [
       </figure>
 
       <div class="hero-copy">
-        <p class="eyebrow">Generative drawing instrument</p>
+        <p class="eyebrow">Generative art studio</p>
         <h1 id="art-index-title" class="hero-title">Algorithmic<br />Art Gallery</h1>
         <p class="hero-lead">
-          Plot deterministic artwork from space-filling curves, growth modes,
-          color progression, symmetry, and seeds. Every saved piece regenerates
-          exactly from its settings — then exports for screen or print.
+          Make artwork from space-filling curves, growth modes, color, symmetry,
+          and seeds. Every saved piece regenerates exactly from its settings, then
+          exports for screen or print.
         </p>
         <dl class="titleblock">
           <div><dt>Author</dt><dd>Jonathan R Reed</dd></div>
@@ -146,8 +146,8 @@ const presets = [
       <p class="eyebrow">Start from a pattern</p>
       <h2 id="presets-title" class="section-title">Recipes to remix</h2>
       <p class="section-desc">
-        Each is a real, reproducible piece — pick one to load its exact recipe
-        into the generator below, then make it your own.
+        Each one is a real, reproducible piece. Pick one to load its recipe into
+        the generator below and start editing.
       </p>
     </header>
     <div class="presets-grid" data-reveal>
@@ -175,7 +175,7 @@ const presets = [
   <!-- ===================== GENERATOR ===================== -->
   <section id="generator" class="generator">
     <header class="section-head" data-reveal>
-      <p class="eyebrow">The instrument</p>
+      <p class="eyebrow">The generator</p>
       <h2 class="section-title">Plot a new piece</h2>
     </header>
 
@@ -183,8 +183,8 @@ const presets = [
       <div class="loader-container crop">
         <span class="crop-tr"></span><span class="crop-bl"></span>
         <div class="loader-spinner" aria-hidden="true"></div>
-        <div class="loader-text mono">Initializing plotter</div>
-        <div class="loader-subtext mono">Loading the generative engine<span class="loader-cursor">_</span></div>
+        <div class="loader-text mono">Loading the generator</div>
+        <div class="loader-subtext mono">One moment<span class="loader-cursor">_</span></div>
       </div>
     </div>
 
@@ -196,6 +196,23 @@ const presets = [
 
 <script is:inline>
   (function () {
+    // Dismiss the intro loader robustly, independent of astro:page-load (which
+    // can be missed on a cold first load with a client:only island). Runs now,
+    // during parse: hides the moment the React generator signals ready, with a
+    // hard timeout so the overlay can never get stuck.
+    (function dismissLoader() {
+      var loader = document.getElementById("art-loader");
+      if (!loader) return;
+      var hide = function () {
+        if (loader.dataset.done) return;
+        loader.dataset.done = "1";
+        loader.classList.add("fade-out");
+        setTimeout(function () { loader.style.display = "none"; }, 500);
+      };
+      window.addEventListener("aag-generator-ready", hide, { once: true });
+      setTimeout(hide, 3000);
+    })();
+
     if (window.__aagIndex) return;
     window.__aagIndex = true;
 
@@ -207,34 +224,8 @@ const presets = [
         if (head) head.remove();
       }
 
-      // --- Loader: mask the gap until the React generator hydrates ---
-      const loader = document.getElementById("art-loader");
-      if (loader) {
-        if (window.__aagLoaderDone) {
-          loader.classList.add("fade-out");
-          loader.style.display = "none";
-        } else {
-          let attempts = 0;
-          const check = () => {
-            const generator = document.querySelector(".generator-container");
-            if (generator && generator.children.length > 0) {
-              loader.classList.add("fade-out");
-              setTimeout(() => { loader.style.display = "none"; }, 500);
-              window.__aagLoaderDone = true;
-              return;
-            }
-            if (attempts++ < 120) requestAnimationFrame(check);
-          };
-          setTimeout(() => {
-            if (!loader.classList.contains("fade-out")) {
-              loader.classList.add("fade-out");
-              loader.style.display = "none";
-              window.__aagLoaderDone = true;
-            }
-          }, 4000);
-          setTimeout(check, 100);
-        }
-      }
+      // (The intro loader is dismissed by the top-level handler above, tied to
+      //  the generator-ready signal - not gated behind this page-load handler.)
 
       // --- Interactive coordinate crosshair over the hero plot ---
       const stage = document.getElementById("hero-plot-stage");
@@ -392,7 +383,7 @@ const presets = [
     cursor: crosshair;
   }
 
-  /* Interactive coordinate crosshair — like a plotter bed readout */
+  /* Interactive coordinate crosshair - like a plotter bed readout */
   .plot-cross {
     position: absolute;
     inset: 0;
@@ -427,7 +418,7 @@ const presets = [
     white-space: nowrap;
   }
 
-  /* Choreographed hero entrance — the sheet plots itself in */
+  /* Choreographed hero entrance - the sheet plots itself in */
   @keyframes heroIn {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: none; }
@@ -584,7 +575,7 @@ const presets = [
     opacity: 0;
   }
 
-  /* mode badge — tells you at a glance which render mode made the piece */
+  /* mode badge - tells you at a glance which render mode made the piece */
   .preset-mode {
     position: absolute;
     top: 0.45rem;

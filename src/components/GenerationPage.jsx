@@ -169,6 +169,12 @@ export default function GenerationPage() {
     return () => window.removeEventListener('aag-load-preset', onPreset);
   }, []);
 
+  // Tell the page the generator is mounted and usable, so the intro loader can
+  // dismiss the moment we're ready (instead of waiting on a fixed timeout).
+  useEffect(() => {
+    window.dispatchEvent(new Event('aag-generator-ready'));
+  }, []);
+
   // Plot after a preset's params have been committed to state.
   useEffect(() => {
     if (pendingPreset) handleGenerate();
@@ -198,7 +204,7 @@ export default function GenerationPage() {
     };
   }, []);
 
-  // Cleanup on unmount to prevent memory leaks — terminate any worker still
+  // Cleanup on unmount to prevent memory leaks - terminate any worker still
   // running (e.g. a long 4096px job) so it doesn't keep computing detached
   // after the island unmounts (notably across View Transitions navigation).
   useEffect(() => {

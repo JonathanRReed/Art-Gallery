@@ -1,5 +1,5 @@
 /* ============================================================
-   DRAFTING STUDIO — application surfaces
+   DRAFTING STUDIO - application surfaces
    Generator console · preview plate · gallery · dialogs.
    Flat sheets, hairline edges, oxide accents, functional
    monospace data. No offset drop-shadows.
@@ -60,7 +60,7 @@
   margin: 0 auto;
 }
 
-/* Render-mode segmented switch — two big, obvious segments, active in oxide */
+/* Render-mode segmented switch - two big, obvious segments, active in oxide */
 .mode-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -309,7 +309,7 @@
   margin-bottom: 0;
 }
 
-/* Range slider — a measured track with a pen-nib thumb */
+/* Range slider - a measured track with a pen-nib thumb */
 .control-range {
   -webkit-appearance: none;
   appearance: none;
@@ -843,7 +843,7 @@ kbd {
   line-height: 1;
 }
 
-/* byline is metadata, not a label — keep accent for the eyebrow only */
+/* byline is metadata, not a label - keep accent for the eyebrow only */
 .gallery-byline {
   color: var(--ink-3);
   font-size: 0.72rem;
@@ -1131,7 +1131,7 @@ kbd {
   opacity: 1;
 }
 
-/* Touch devices have no hover — keep the actions reachable */
+/* Touch devices have no hover - keep the actions reachable */
 @media (hover: none) {
   .gallery-card-overlay {
     opacity: 1;
@@ -1278,7 +1278,7 @@ kbd {
   background: var(--accent-strong);
 }
 
-/* Empty state — spans the full masonry width */
+/* Empty state - spans the full masonry width */
 .empty-gallery {
   column-span: all;
   text-align: center;
@@ -1801,7 +1801,7 @@ details .tooltip-wrapper .tooltip {
 }
 
 /* ------------------------------------------------------------------
-   WCAG 1.4.11 — active controls need a >=3:1 resting boundary.
+   WCAG 1.4.11 - active controls need a >=3:1 resting boundary.
    This only overrides the default border-color; :hover/:focus/:disabled
    selectors are more specific and keep their own treatment.
    ------------------------------------------------------------------ */
