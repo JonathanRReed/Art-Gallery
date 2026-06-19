@@ -156,7 +156,6 @@ const presets = [
           type="button"
           class="preset-card"
           data-preset={JSON.stringify(p.params)}
-          aria-label={`Load and plot the ${p.name} pattern`}
         >
           <span class="preset-thumb">
             <canvas width={p.params.previewSize} height={p.params.previewSize} data-preset-canvas aria-hidden="true"></canvas>

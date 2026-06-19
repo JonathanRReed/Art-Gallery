@@ -330,7 +330,6 @@ export default function GalleryPage() {
             id="gallery-sort"
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value)}
-            aria-label="Sort gallery"
           >
             {SORT_OPTIONS.map((opt) => (
               <option key={opt.key} value={opt.key}>
@@ -347,7 +346,6 @@ export default function GalleryPage() {
             setSelectedIds(new Set());
           }}
           aria-pressed={batchMode}
-          aria-label={batchMode ? 'Exit batch mode' : 'Enter batch mode'}
         >
           {batchMode ? 'Done' : 'Select'}
         </button>
@@ -399,7 +397,11 @@ export default function GalleryPage() {
       )}
 
       {/* Masonry Grid */}
-      <div className="gallery-masonry" role="list" aria-label="Saved artworks">
+      <div
+        className="gallery-masonry"
+        role={filteredGallery.length > 0 ? 'list' : undefined}
+        aria-label={filteredGallery.length > 0 ? 'Saved artworks' : undefined}
+      >
         {filteredGallery.length === 0 && (
           <div className="empty-gallery" role="status">
             <div className="empty-gallery-icon" aria-hidden="true">

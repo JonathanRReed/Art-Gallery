@@ -194,7 +194,7 @@ const schemaGraph = [
 
     <header class="site-header" aria-label="Primary">
       <nav class="nav-container">
-        <a class="site-logo" href="/" aria-label="Algorithmic Art Gallery home">
+        <a class="site-logo" href="/">
           <svg class="logo-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M3 3h6v6H3V3Zm0 12h6v6H3v-6Zm12 0h6v6h-6v-6Zm0-12h6v6h-6V3ZM6 9v6m12-6v6M9 6h6m-6 12h6"
@@ -204,6 +204,7 @@ const schemaGraph = [
             />
           </svg>
           <span class="site-logo-text">Algorithmic<span class="site-logo-accent">Art Gallery</span></span>
+          <span class="sr-only"> home</span>
         </a>
         <div class="main-nav">
           <a class={isActivePath("/") ? "nav-link active" : "nav-link"} href="/">Generator</a>
