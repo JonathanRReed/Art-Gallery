@@ -33,6 +33,90 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
+// Plain-language names for the stored settings, matching the generator's own
+// control labels and the behavior in public/worker/color-mapper.js. Used to
+// build real alt text for each saved image instead of a bare "curve, seed" tag.
+const CURVE_LABELS = {
+  hilbert: 'Hilbert curve',
+  morton: 'Morton Z-order curve',
+  peano: 'Peano curve',
+  spiral: 'spiral',
+  randomwalk: 'random walk',
+};
+const GROWTH_LABELS = {
+  crystal: 'crystalline growth from the center',
+  nebula: 'diffused, cloud-like growth',
+  rings: 'concentric ring growth',
+  flow: 'growth streaming along a flow field',
+};
+const SYMMETRY_LABELS = {
+  bilateral: 'mirrored down the center axis',
+  quadrantal: 'mirrored into four quadrants',
+  radial: 'repeated with eight-fold radial symmetry',
+};
+const PROGRESSION_LABELS = {
+  sequential: 'sequential color order',
+  shuffled: 'shuffled color order',
+  'base-distance': 'color ordered by distance from a base color',
+  saturation: 'color sorted by saturation',
+  brightness: 'color sorted by brightness',
+};
+const PALETTE_LABELS = {
+  sunset: 'sunset palette',
+  ocean: 'ocean palette',
+  monochrome: 'monochrome palette',
+  neon: 'neon palette',
+  forest: 'forest palette',
+  magma: 'magma palette',
+};
+
+const CURVE_TITLES = {
+  hilbert: 'Hilbert',
+  morton: 'Morton',
+  peano: 'Peano',
+  spiral: 'Spiral',
+  randomwalk: 'Random walk',
+};
+
+// A readable, unique name for a saved piece: curve, render mode, and seed
+// together identify exactly one output.
+function titleForArtwork(params) {
+  const p = params || {};
+  const curve = CURVE_TITLES[p.curveType] || p.curveType || 'Study';
+  const mode = p.renderMode === 'trace' ? 'trace' : 'field';
+  const seed = p.seed === undefined || p.seed === null ? '' : `, seed ${p.seed}`;
+  return `${curve} ${mode}${seed}`;
+}
+
+// Describe a saved piece from the settings that made it. Nothing here guesses
+// at the picture; every clause maps to a parameter the renderer acted on.
+function describeArtwork(params, full = false) {
+  const p = params || {};
+  const curve = CURVE_LABELS[p.curveType] || (p.curveType ? `${p.curveType} curve` : 'space-filling curve');
+  const parts = [];
+
+  if (p.renderMode === 'trace') {
+    parts.push(`a single continuous line traced along a ${curve}`);
+    parts.push(
+      PALETTE_LABELS[p.gradientMap]
+        ? `colored through the ${PALETTE_LABELS[p.gradientMap]} as the line advances`
+        : 'colored by a full hue sweep as the line advances'
+    );
+    if (p.traceDensity) parts.push(`about ${p.traceDensity} cells per side`);
+  } else {
+    parts.push(`a dense color field ordered by a ${curve}`);
+    if (GROWTH_LABELS[p.growthMode]) parts.push(GROWTH_LABELS[p.growthMode]);
+    if (SYMMETRY_LABELS[p.symmetryMode]) parts.push(SYMMETRY_LABELS[p.symmetryMode]);
+    if (PROGRESSION_LABELS[p.colorProgression]) parts.push(PROGRESSION_LABELS[p.colorProgression]);
+    if (PALETTE_LABELS[p.gradientMap]) parts.push(`remapped through the ${PALETTE_LABELS[p.gradientMap]}`);
+    if (p.allRGBMode) parts.push('in AllRGB mode, where every RGB color appears exactly once');
+  }
+
+  const seed = p.seed === undefined || p.seed === null ? '' : `, seed ${p.seed}`;
+  const lead = full ? 'Full-size generative artwork' : 'Generative artwork';
+  return `${lead}: ${parts.join(', ')}${seed}.`;
+}
+
 const SORT_OPTIONS = [
   { key: 'dateDesc', label: 'Date: newest' },
   { key: 'dateAsc', label: 'Date: oldest' },
@@ -459,7 +543,7 @@ export default function GalleryPage() {
                   type="checkbox"
                   checked={selectedIds.has(item.savedAt)}
                   onChange={() => toggleSelection(item.savedAt)}
-                  aria-label={`Select artwork ${idx + 1}`}
+                  aria-label={`Select ${titleForArtwork(item.params)}`}
                 />
               </label>
             )}
@@ -493,7 +577,7 @@ export default function GalleryPage() {
             <div className="gallery-card-image-wrapper">
               <img
                 src={item.imageDataUrl}
-                alt={`Algorithmic art: ${item.params.curveType} curve, seed ${item.params.seed}${item.params.growthMode ? `, ${item.params.growthMode} growth` : ''}`}
+                alt={describeArtwork(item.params)}
                 className="gallery-card-image"
                 loading="lazy"
                 onClick={() => {
@@ -502,10 +586,10 @@ export default function GalleryPage() {
               />
               <div className="gallery-card-overlay" aria-hidden="true">
                 <div className="gallery-card-meta-title">
-                  {item.params.curveType}
+                  {titleForArtwork(item.params)}
                 </div>
                 <div className="gallery-card-meta">
-                  Seed {item.params.seed}
+                  {item.params.renderMode === 'trace' ? 'Line trace' : 'Color field'}
                   {(item.params.growthMode || item.params.colorProgression) &&
                     ` · ${item.params.growthMode || item.params.colorProgression}`}
                 </div>
@@ -555,7 +639,7 @@ export default function GalleryPage() {
             </div>
 
             <div className="gallery-card-info-below">
-              <span>{item.params.curveType}</span>
+              <span>{titleForArtwork(item.params)}</span>
               <span>{formatDate(item.savedAt)}</span>
             </div>
           </div>
@@ -568,7 +652,7 @@ export default function GalleryPage() {
           className="gallery-modal"
           role="dialog"
           aria-modal="true"
-          aria-label={`Artwork ${viewIndex + 1} of ${filteredGallery.length}`}
+          aria-label={`${titleForArtwork(viewingItem.params)}, artwork ${viewIndex + 1} of ${filteredGallery.length}`}
           onClick={handleCloseModal}
           ref={modalRef}
           tabIndex={-1}
@@ -589,7 +673,7 @@ export default function GalleryPage() {
             <img
               ref={modalImageRef}
               src={viewingItem.imageDataUrl}
-              alt={`Full-size algorithmic art with ${viewingItem.params.curveType} curve, seed ${viewingItem.params.seed}`}
+              alt={describeArtwork(viewingItem.params, true)}
               className="gallery-modal-image"
             />
 

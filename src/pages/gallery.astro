@@ -1,11 +1,36 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GalleryPage from "../components/GalleryPage.jsx";
+import { studies } from "../data/studies";
+
+// VisualArtwork entries only repeat what the page already shows: the title and
+// the description printed under each study, plus the author named in the byline.
+const studySchema = {
+  "@type": "ItemList",
+  "@id": "https://art.jonathanrreed.com/gallery/#studies",
+  name: "Reference studies",
+  description:
+    "Six reproducible generative studies from the Algorithmic Art Gallery, each with the exact settings that plot it.",
+  numberOfItems: studies.length,
+  itemListOrder: "https://schema.org/ItemListOrderAscending",
+  itemListElement: studies.map((study, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    item: {
+      "@type": "VisualArtwork",
+      name: study.name,
+      description: study.blurb,
+      artform: "Generative art",
+      creator: { "@id": "https://jonathanrreed.com/#person" },
+    },
+  })),
+};
 ---
 
 <BaseLayout
   title="Generative Art Collection | Jonathan R. Reed"
-  description="Browse saved generative artworks from the Algorithmic Art Gallery by Jonathan R. Reed, featuring space-filling curves and mathematical patterns."
+  description="Six reproducible generative studies with the exact curve, seed, color and symmetry settings that plot them, plus your own saved artworks from the Algorithmic Art Gallery."
+  structuredData={[studySchema]}
 >
   <div class="gallery-container">
     <header class="section-head gallery-head">
@@ -13,7 +38,7 @@ import GalleryPage from "../components/GalleryPage.jsx";
       <h1 class="gallery-header">Gallery</h1>
     </header>
     <p class="mono-text gallery-byline">
-      By Jonathan R. Reed. Updated <time datetime="2026-04-21">April 21, 2026</time>.
+      By Jonathan R. Reed. Updated <time datetime="2026-08-04">August 4, 2026</time>.
     </p>
     <p class="gallery-intro">
       Saved pieces collect the strongest algorithmic art runs from the generator.
@@ -54,6 +79,285 @@ import GalleryPage from "../components/GalleryPage.jsx";
       <a href="/">Open generator</a>
       <a href="/about/">Read process notes</a>
     </p>
+
+    <!-- ===================== REFERENCE STUDIES ===================== -->
+    <section id="studies" class="studies" aria-labelledby="studies-title">
+      <header class="section-head">
+        <p class="eyebrow">Reference studies</p>
+        <h2 id="studies-title" class="section-title">Six pieces worth keeping</h2>
+        <p class="section-desc">
+          These are the studies the collection keeps on hand. Every one is a real
+          recipe, so the settings listed under it plot the same drawing again on
+          any machine. The thumbnails are rendered here by the same worker the
+          generator uses, not stored as flat images.
+        </p>
+      </header>
+
+      <ol class="studies-list">
+        {studies.map((study) => (
+          <li class="study" id={`study-${study.id}`}>
+            <div class="study-plate crop">
+              <span class="crop-tr"></span><span class="crop-bl"></span>
+              {/* role="img" + aria-label give the canvas the same accessible
+                  description an <img alt> would carry; the text inside the
+                  canvas is the fallback when the element cannot draw. */}
+              <canvas
+                class="study-canvas"
+                width={study.params.previewSize}
+                height={study.params.previewSize}
+                role="img"
+                aria-label={study.alt}
+                data-study-canvas
+                data-study-params={JSON.stringify(study.params)}
+              >{study.alt}</canvas>
+              <span class="study-plotting mono" aria-hidden="true">plotting…</span>
+            </div>
+
+            <div class="study-body">
+              <p class="study-mode mono">{study.mode === "Trace" ? "Line trace" : "Color field"}</p>
+              <h3 class="study-name">{study.name}</h3>
+              <p class="study-blurb">{study.blurb}</p>
+              <dl class="study-recipe">
+                {study.recipe.map((row) => (
+                  <div class="study-recipe-row">
+                    <dt>{row.label}</dt>
+                    <dd>{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <a
+                class="study-plot-link"
+                href="/#generator"
+                data-study-plot={JSON.stringify(study.params)}
+              >
+                Load {study.name} in the generator
+              </a>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <h2 class="section-title studies-saved-title">Your saved studies</h2>
     <GalleryPage client:idle />
   </div>
 </BaseLayout>
+
+<script is:inline>
+  (function () {
+    if (window.__aagGalleryStudies) return;
+    window.__aagGalleryStudies = true;
+
+    function initStudies() {
+      // Send the recipe to the generator the same way the saved-artwork
+      // "Regenerate" button does, so no new URLs are created for a piece.
+      if (!window.__aagStudyPlotWired) {
+        window.__aagStudyPlotWired = true;
+        document.addEventListener("click", function (e) {
+          var link = e.target.closest("[data-study-plot]");
+          if (!link) return;
+          try {
+            sessionStorage.setItem("regenerateParams", link.dataset.studyPlot);
+          } catch (err) {}
+        });
+      }
+
+      var canvases = Array.prototype.slice
+        .call(document.querySelectorAll("[data-study-canvas]"))
+        .filter(function (c) { return !c.dataset.rendered; });
+      if (!canvases.length) return;
+
+      var next = 0;
+      var pool = Math.min(3, canvases.length);
+      function pump(worker) {
+        if (!worker || next >= canvases.length) { if (worker) worker.terminate(); return; }
+        var canvas = canvases[next++];
+        var params;
+        try { params = JSON.parse(canvas.dataset.studyParams); }
+        catch (err) { canvas.dataset.rendered = "1"; return pump(worker); }
+        var size = canvas.width || 128;
+        worker.onmessage = function (e) {
+          if (e.data.error) { canvas.dataset.rendered = "1"; return pump(worker); }
+          if (e.data.buffer && !e.data.preview) {
+            try {
+              var buf = new Uint8ClampedArray(e.data.buffer);
+              canvas.getContext("2d").putImageData(new ImageData(buf, size, size), 0, 0);
+              canvas.closest(".study-plate").classList.add("is-rendered");
+            } catch (err) {}
+            canvas.dataset.rendered = "1";
+            pump(worker);
+          }
+        };
+        worker.postMessage(
+          Object.assign({}, params, {
+            width: size,
+            height: size,
+            patternComplexity: params.patternSize || size,
+            previewMode: true,
+          })
+        );
+      }
+      for (var k = 0; k < pool; k++) {
+        var w = null;
+        try { w = new Worker("/worker/color-mapper.js"); } catch (err) { w = null; }
+        if (w) pump(w);
+      }
+    }
+
+    document.addEventListener("astro:page-load", initStudies);
+  })();
+</script>
+
+<style>
+  .studies {
+    margin: var(--section-gap) 0 0;
+  }
+
+  .studies-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .study {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    background: var(--paper);
+    border: var(--surface-border);
+    padding: 1rem;
+  }
+
+  .study-plate {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 1 / 1;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .study-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    image-rendering: pixelated;
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+  }
+
+  .study-plate.is-rendered .study-canvas {
+    opacity: 1;
+  }
+
+  .study-plotting {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: opacity var(--transition-fast);
+  }
+
+  .study-plate.is-rendered .study-plotting {
+    opacity: 0;
+  }
+
+  .study-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .study-mode {
+    margin: 0;
+    font-size: 0.6rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .study-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 480;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .study-blurb {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 0.94rem;
+    line-height: 1.65;
+  }
+
+  .study-recipe {
+    margin: 0.35rem 0 0;
+    display: grid;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+
+  .study-recipe-row {
+    display: grid;
+    grid-template-columns: minmax(0, 8.5rem) minmax(0, 1fr);
+    gap: 1px;
+    background: var(--line);
+  }
+
+  .study-recipe dt,
+  .study-recipe dd {
+    margin: 0;
+    padding: 0.4rem 0.6rem;
+    background: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .study-recipe dt {
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .study-recipe dd {
+    color: var(--ink);
+  }
+
+  .study-plot-link {
+    align-self: flex-start;
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  .study-plot-link:hover {
+    color: var(--accent-strong);
+  }
+
+  .studies-saved-title {
+    margin: var(--section-gap) 0 1rem;
+  }
+
+  @media (max-width: 520px) {
+    .study-recipe-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

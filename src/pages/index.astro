@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import GenerationPage from "../components/GenerationPage.jsx";
+import { studies } from "../data/studies";
 
 /* Hilbert space-filling curve, computed at build time for the hero's live trace. */
 function hilbertPoints(order: number) {
@@ -47,37 +48,12 @@ function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10
 const heroPath = toPath(hilbertPoints(5));
 
 // Curated starting points - each is a real, exact recipe the generator
-// reproduces. Thumbnails render live on the client from these same params, and
+// reproduces. Titles, descriptions, alt text and params all live in
+// src/data/studies.ts so the home cards and the gallery study list cannot drift
+// apart. Thumbnails render live on the client from these same params, and
 // clicking a card loads the recipe into the generator and plots it. The set
 // mixes both render modes so the showcase shows what each one makes.
-const COMMON = {
-  seed: 1, seedShape: "point", branchingFactor: 0.5, growthRate: 1,
-  colorSampleSize: 100, distanceRandomness: 10,
-  dithering: false, antiAliasing: false, allRGBMode: false,
-};
-// Trace recipes render fast at 256 (no color-match); fill recipes stay at 128
-// because the color-field engine's match is O(pixels²). Canvas size == previewSize
-// so each thumbnail is exactly what clicking the card plots.
-const TRACE_BASE = {
-  ...COMMON, renderMode: "trace", traceStroke: 1, traceDensity: 32,
-  curveType: "hilbert", gradientMap: "none", growthMode: "crystal",
-  symmetryMode: "none", colorProgression: "sequential", randomness: 10,
-  previewSize: 256, patternSize: 256,
-};
-const FILL_BASE = {
-  ...COMMON, renderMode: "fill", traceStroke: 1, traceDensity: 32,
-  curveType: "hilbert", gradientMap: "none", growthMode: "crystal",
-  symmetryMode: "none", colorProgression: "sequential", randomness: 3,
-  previewSize: 128, patternSize: 128,
-};
-const presets = [
-  { id: "hilbert-bloom", name: "Hilbert Bloom", mode: "Trace", sub: "Hilbert · spectrum", params: { ...TRACE_BASE, curveType: "hilbert", gradientMap: "none", traceDensity: 32 } },
-  { id: "magma-field", name: "Magma Field", mode: "Field", sub: "Hilbert · magma", params: { ...FILL_BASE, curveType: "hilbert", gradientMap: "magma", symmetryMode: "radial", colorProgression: "brightness", randomness: 2, seed: 1337 } },
-  { id: "tide-spiral", name: "Tide Spiral", mode: "Trace", sub: "Spiral · ocean", params: { ...TRACE_BASE, curveType: "spiral", gradientMap: "ocean", traceDensity: 26, traceStroke: 1.1 } },
-  { id: "nebula", name: "Nebula", mode: "Field", sub: "Morton · ocean", params: { ...FILL_BASE, curveType: "morton", gradientMap: "ocean", growthMode: "nebula", symmetryMode: "quadrantal", colorProgression: "sequential", randomness: 4, seed: 88 } },
-  { id: "drift-walk", name: "Drift Walk", mode: "Trace", sub: "Random walk · neon", params: { ...TRACE_BASE, curveType: "randomwalk", gradientMap: "neon", traceDensity: 34, seed: 7 } },
-  { id: "understory", name: "Understory", mode: "Field", sub: "Peano · forest", params: { ...FILL_BASE, curveType: "peano", gradientMap: "forest", growthMode: "flow", symmetryMode: "bilateral", colorProgression: "base-distance", randomness: 3, seed: 256 } },
-];
+const presets = studies;
 ---
 
 <BaseLayout
@@ -155,6 +131,7 @@ const presets = [
         <button
           type="button"
           class="preset-card"
+          aria-label={`Plot ${p.name}. ${p.alt}`}
           data-preset={JSON.stringify(p.params)}
         >
           <span class="preset-thumb">
@@ -169,6 +146,11 @@ const presets = [
         </button>
       ))}
     </div>
+    <p class="presets-note">
+      Each recipe is written up in the collection, with the settings that made it
+      and what those settings do to the drawing.
+      <a href="/gallery/#studies">Read the study notes</a>.
+    </p>
   </section>
 
   <!-- ===================== GENERATOR ===================== -->
@@ -637,6 +619,24 @@ const presets = [
     font-size: 0.66rem;
     letter-spacing: 0.08em;
     color: var(--ink-2);
+  }
+
+  .presets-note {
+    margin: 1.1rem 0 0;
+    max-width: 62ch;
+    color: var(--ink-2);
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .presets-note a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .presets-note a:hover {
+    color: var(--accent-strong);
   }
 
   /* ===================== GENERATOR + LOADER ===================== */
