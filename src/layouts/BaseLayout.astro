@@ -23,7 +23,7 @@ const pageStructuredData = Array.isArray(structuredData)
 const schemaGraph = [
   {
     "@type": "Person",
-    "@id": "https://jonathanrreed.com/#person",
+    "@id": "https://jonathanrreed.com/about/#person",
     name: "Jonathan R. Reed",
     alternateName: ["Jonathan Reed", "Jonathan Reed AI"],
     url: "https://jonathanrreed.com/",
@@ -39,10 +39,10 @@ const schemaGraph = [
     url: `${siteUrl}/`,
     description,
     author: {
-      "@id": "https://jonathanrreed.com/#person",
+      "@id": "https://jonathanrreed.com/about/#person",
     },
     publisher: {
-      "@id": "https://jonathanrreed.com/#person",
+      "@id": "https://jonathanrreed.com/about/#person",
     },
     inLanguage: "en-US",
   },
@@ -56,7 +56,7 @@ const schemaGraph = [
       "@id": `${siteUrl}/#website`,
     },
     author: {
-      "@id": "https://jonathanrreed.com/#person",
+      "@id": "https://jonathanrreed.com/about/#person",
     },
     datePublished: "2026-04-21",
     dateModified: "2026-07-16",
