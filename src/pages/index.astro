@@ -54,6 +54,14 @@ const heroPath = toPath(hilbertPoints(5));
 // clicking a card loads the recipe into the generator and plots it. The set
 // mixes both render modes so the showcase shows what each one makes.
 const presets = studies;
+
+// Each study's alt text opens with the piece's name. The preset button already
+// says the name, so drop the duplicate prefix rather than make a screen reader
+// announce the title twice in one label.
+function altBody(name: string, alt: string) {
+  const prefix = name + ": ";
+  return alt.startsWith(prefix) ? alt.slice(prefix.length) : alt;
+}
 ---
 
 <BaseLayout
@@ -131,7 +139,7 @@ const presets = studies;
         <button
           type="button"
           class="preset-card"
-          aria-label={`Plot ${p.name}. ${p.alt}`}
+          aria-label={`Plot ${p.name}. ${altBody(p.name, p.alt)}`}
           data-preset={JSON.stringify(p.params)}
         >
           <span class="preset-thumb">
