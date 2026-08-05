@@ -127,8 +127,8 @@ export const studies: Study[] = [
     mode: "Field",
     sub: "Hilbert · magma",
     blurb:
-      "Crystal growth from the center, ordered by a Hilbert curve and set to eight-fold radial symmetry. The magma palette puts a dark purple, almost black mass in the middle and brightens out to orange at the edges, grainy at pixel scale because the color is sorted by brightness.",
-    alt: "Magma Field: a grainy color field with a dark purple, near-black mass at the center that brightens outward to orange, colored through a magma palette.",
+      "Crystal growth from the center, ordered by a Hilbert curve and set to eight-fold radial symmetry. The magma palette puts a dark purple, almost black mass in the middle and warms outward through purple-magenta into pink-red at the edges, grainy at pixel scale because the color is sorted by brightness.",
+    alt: "Magma Field: a grainy color field with a dark purple, near-black mass at the center that warms outward through purple-magenta to pink-red, colored through a magma palette.",
     recipe: [
       { label: "Render mode", value: "Color field" },
       { label: "Curve", value: "Hilbert" },
