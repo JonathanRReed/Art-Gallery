@@ -42,6 +42,19 @@ Created by Jonathan Reed
 - ZenType Typing Trainer: https://zentype.jonathanrreed.com
 - Hello World Consulting: https://helloworldfirm.com
 
+## Usage Policy
+
+This policy matches the machine-readable signals in https://art.jonathanrreed.com/robots.txt
+(Content-Signal: search=yes, ai-input=yes, ai-train=no, use=reference).
+
+- Search indexing: allowed. You may index this site and return hyperlinks and short excerpts.
+- AI answers and grounding: allowed. You may retrieve this content in real time to ground or cite
+  AI-generated answers, provided the answer links back to the source page.
+- AI training: not allowed. This content may not be used to train or fine-tune AI models.
+
+Any restriction expressed above is an express reservation of rights under Article 4 of EU
+Directive 2019/790.
+
 ## Optional
 
 - [GitHub](https://github.com/JonathanRReed): Source code and other projects
