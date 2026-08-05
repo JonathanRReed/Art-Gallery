@@ -4,16 +4,19 @@
 
 ## About
 
-Algorithmic Art Gallery is a free, browser-based tool for generating unique digital artwork. It uses space filling curves (Hilbert, Morton) and color mapping algorithms to create visually stunning patterns that are mathematically precise yet artistically beautiful.
+Algorithmic Art Gallery is a free, browser-based tool for generating digital artwork. It walks a
+space-filling curve across the canvas and maps color along that order. Every image is
+deterministic: the same settings plot the same picture again.
 
 Key features:
-- Real-time pattern generation with customizable parameters
-- Multiple curve types: Hilbert and Morton (Z-order)
-- Various growth modes: Crystal, Nebula, Rings
+- Live preview that re-plots as parameters change
+- Traversal curves: Hilbert, Morton (Z-order), Peano, Spiral, Random Walk
+- Growth modes: Crystal, Nebula, Rings, Flow
 - Symmetry options: None, Bilateral, Quadrantal, Radial
-- Color progression controls: Sequential, Shuffled, Base Distance
+- Color progression: Sequential, Shuffled, Base Distance, Saturation, Brightness
+- Two render modes: color field (every pixel filled) and line trace (the curve stroked as one line)
 - Export to PNG and PDF at up to 4096×4096 resolution
-- Local gallery for saving favorite creations
+- Local gallery for saving pieces in the browser
 
 ## Pages
 

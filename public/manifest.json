@@ -1,7 +1,7 @@
 {
   "name": "Algorithmic Art Gallery",
   "short_name": "Art Gallery",
-  "description": "Generate algorithmic artworks with curated controls, live previews, and high-resolution exports.",
+  "description": "Plot generative artwork from space-filling curves, growth modes and seeds, then export it as a PNG or PDF.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f6f7fb",

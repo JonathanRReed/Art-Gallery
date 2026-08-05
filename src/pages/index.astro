@@ -47,7 +47,7 @@ function toPath({ pts, n }: { pts: number[][]; n: number }, size = 200, pad = 10
 
 const heroPath = toPath(hilbertPoints(5));
 
-// Curated starting points - each is a real, exact recipe the generator
+// Starting points - each is a real, exact recipe the generator
 // reproduces. Titles, descriptions, alt text and params all live in
 // src/data/studies.ts so the home cards and the gallery study list cannot drift
 // apart. Thumbnails render live on the client from these same params, and
@@ -66,7 +66,7 @@ function altBody(name: string, alt: string) {
 
 <BaseLayout
   title="Generative Art Studio | Jonathan R. Reed"
-  description="Generate algorithmic artworks with curated controls, live previews, saved gallery studies, deterministic seeds, and high-resolution exports by Jonathan R. Reed."
+  description="Generative art generator by Jonathan R. Reed. Set the curve, seed, growth mode and color, watch the piece plot live, then export it as a PNG or PDF at 4096 × 4096."
 >
   <!-- ===================== HERO ===================== -->
   <section class="hero" aria-labelledby="art-index-title">

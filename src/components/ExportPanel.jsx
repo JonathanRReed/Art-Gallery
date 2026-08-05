@@ -41,7 +41,7 @@ export default function ExportPanel({
       <p className="export-note">
         {hasArtwork
           ? 'Exports render at 4096 × 4096 for high-resolution output.'
-          : 'Generate a piece to unlock PNG and PDF export.'}
+          : 'Nothing to export yet. Plot a piece first.'}
       </p>
     </div>
   );

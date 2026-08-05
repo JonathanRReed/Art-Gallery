@@ -53,9 +53,8 @@ const aboutVideoSchema = {
             experiment in what these algorithms can draw.
           </p>
           <p>
-            The generator keeps the controls visible, the output repeatable, and
-            the saved gallery close by, so each image is something you can revisit
-            and refine rather than a one-off random result.
+            The controls stay on screen and the gallery is one click away, so a
+            piece you like is something you can come back to and push further.
           </p>
         </div>
         <p class="about-link">
@@ -77,12 +76,11 @@ const aboutVideoSchema = {
         <h2 class="about-subheader">The Technology</h2>
         <div class="about-card">
           <p>
-            Built with Astro and React for a fast, mostly-static experience, with
-            the heavy pixel work offloaded to a Web Worker so the interface stays
-            responsive while a piece plots. The interface borrows from drafting and
-            plotter culture: warm paper, graphite ink, a single oxide accent, and a
-            real measurement grid, so the interface stays quiet and the focus stays
-            on the artwork.
+            Built with Astro and React, mostly static, with the heavy pixel work
+            pushed into a Web Worker so the page still responds while a piece
+            plots. The look borrows from drafting and plotter culture: warm paper,
+            graphite ink, one oxide accent, and a real measurement grid. Quiet
+            enough that the artwork is the loudest thing on the page.
           </p>
         </div>
 
@@ -102,10 +100,9 @@ const aboutVideoSchema = {
             </iframe>
           </div>
           <p class="video-caption">
-            The video is included as a reference point for the visual idea, but the
-            generator itself is built around browser-side controls, deterministic
-            settings, and exportable studies that can be recreated from documented
-            parameters.
+            The video is here as the reference for the visual idea. The generator
+            is my own take on it, running in the browser off parameters you can
+            write down and plot again later.
           </p>
         </div>
       </section>
@@ -135,21 +132,22 @@ const aboutVideoSchema = {
             <div class="step-number mono-text">2</div>
             <h3>Generate</h3>
             <p>
-              The algorithm processes your parameters to plot a unique piece of algorithmic art.
+              The worker walks the curve and fills in the pixels. Same settings,
+              same picture, every time.
             </p>
           </div>
           <div class="step-card">
             <div class="step-number mono-text">3</div>
             <h3>Export</h3>
             <p>
-              Download your creation as a PNG or PDF file.
+              Download it as a PNG or a PDF, up to 4096 × 4096.
             </p>
           </div>
           <div class="step-card">
             <div class="step-number mono-text">4</div>
             <h3>Save</h3>
             <p>
-              Add your favorite generations to your personal gallery to revisit later.
+              Keep the ones worth keeping in the local gallery.
             </p>
           </div>
         </div>
@@ -353,7 +351,7 @@ const aboutVideoSchema = {
               <ul>
                 <li>
                   <strong>Gradient Map:</strong> Remaps the generated colors by brightness
-                  through a curated palette: sunset, ocean, monochrome, neon, forest, or magma.
+                  through one of six palettes: sunset, ocean, monochrome, neon, forest, or magma.
                 </li>
                 <li>
                   <strong>Dithering:</strong> Ordered (Bayer) dithering adds fine tonal
