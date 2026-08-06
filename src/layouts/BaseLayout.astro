@@ -58,8 +58,11 @@ const schemaGraph = [
     author: {
       "@id": "https://jonathanrreed.com/about/#person",
     },
+    // Committed literals, not the build clock: a fresh shallow clone must emit
+    // the same dates. dateModified tracks public/sitemap.xml's lastmod for
+    // every URL — change the two together or crawlers get conflicting signals.
     datePublished: "2026-04-21",
-    dateModified: "2026-07-16",
+    dateModified: "2026-08-04",
     inLanguage: "en-US",
   },
 ];
@@ -92,7 +95,7 @@ const schemaGraph = [
     <meta property="og:image" content={socialImageUrl} />
     <meta property="article:author" content="Jonathan R. Reed" />
     <meta property="article:published_time" content="2026-04-21T00:00:00-05:00" />
-    <meta property="article:modified_time" content="2026-04-21T00:00:00-05:00" />
+    <meta property="article:modified_time" content="2026-08-04T00:00:00-05:00" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
