@@ -1,58 +1,31 @@
 # Algorithmic Art Gallery
 
-A browser-based generative art studio that uses space-filling curves, symmetry rules, and deterministic seeds to create exportable artwork. The project was inspired by Corridor Crew's [I Made Art That HACKS Your Eyes](https://www.youtube.com/watch?v=SxsN6FRXMWQ).
+Generate art from space-filling curves, symmetry rules, and deterministic seeds. The same settings reproduce the same image. Save studies in the browser, then export PNGs or PDFs.
 
-Live demo: https://art.jonathanrreed.com
+[Live demo](https://art.jonathanrreed.com) · Inspired by Corridor Crew's [I Made Art That HACKS Your Eyes](https://www.youtube.com/watch?v=SxsN6FRXMWQ)
 
-## Highlights
+## Run locally
 
-- Deterministic generation, so the same settings reproduce the same image
-- Multiple curve and growth modes for varied visual output
-- Local gallery for saving favorite studies in the browser
-- PNG and PDF export for portfolio sharing and printing
-- Responsive layout with keyboard-friendly navigation and skip link support
-
-## Quick start
-
-### Requirements
-
-- Node.js 18 or newer
-- bun 1.0+ recommended
-
-### Install
+Requires Node.js 18+. Bun 1.0+ is recommended.
 
 ```sh
 bun install
-```
-
-### Run locally
-
-```sh
 bun run dev
 ```
 
-Then open the local URL shown by Astro, usually `http://localhost:4321`.
+Open the URL Astro prints, usually `http://localhost:4321`.
 
-### Production checks
+## Check and build
 
 ```sh
 bun run check
 bun run build
 ```
 
-## Notes for reviewers
+The app uses Astro, React, Tailwind CSS, and Web Workers. Static output can run on Cloudflare Pages, Netlify, Vercel, or another static host. Settings and saved studies stay in browser storage; no account or backend is required.
 
-- The app is static Astro output, so deployment is suitable for Netlify, Vercel, Cloudflare Pages, or similar static hosts.
-- Settings are stored locally in the browser. No account or backend is required.
-
-## Technologies
-
-- Astro
-- React
-- Tailwind CSS
-- Web Workers
-- LocalStorage
+The interface includes several curve and growth modes, keyboard navigation, and skip links.
 
 ## License
 
-MIT
+MIT.
